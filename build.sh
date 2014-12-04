@@ -40,46 +40,73 @@ fi
 wrkdir=`pwd`
 
 # Build gcc 4.8
-if [ ! -f "gcc-4.8/bin/gcc" ]; then
-    echo "\\n===> Download and build GCC 4.8\\n"
-    wget ftp://ftp.gnu.org/gnu/gcc/gcc-4.8.3/gcc-4.8.3.tar.gz
-    tar xzf gcc-4.8.3.tar.gz
-    cd gcc-4.8.3
+GCC_VERSION_MAJOR=4.8
+GCC_VERSION=${GCC_VERSION_MAJOR}.3
+GCC_TARBALL=gcc-${GCC_VERSION}.tar.gz
+GCC_DIR=gcc-${GCC_VERSION}
+GCC_BINARY=${wrkdir}/gcc-${GCC_VERSION_MAJOR}/bin/gcc
+GXX_BINARY=${wrkdir}/gcc-${GCC_VERSION_MAJOR}/bin/g++
+GCC_DOWNLOAD_URI=ftp://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/${GCC_TARBALL}
+
+if [ ! -f "${GCC_BINARY}" ]; then
+    echo "\\n===> Download and build GCC ${GCC_VERSION}\\n"
+    if [ ! -f "${GCC_TARBALL}" ]; then
+	    wget ${GCC_DOWNLOAD_URI}
+    fi
+    tar xzf ${GCC_TARBALL}
+    cd ${GCC_DIR}
     ./contrib/download_prerequisites
     cd ..
     mkdir objdir
     cd objdir
-    ../gcc-4.8.3/configure --prefix=$wrkdir/gcc-4.8 
+    ../${GCC_DIR}/configure --prefix=$wrkdir/gcc-${GCC_VERSION_MAJOR}
     make || exit $?
     make install || exit $?
 else
-    echo "\\n===> GCC 4.8 already done\\n"
+    echo "\\n===> GCC ${GCC_VERSION} already done\\n"
 fi
 
 # HHVM
 # XXX only build if not installed
+
+# XXX checkout an explicit version of HHVM, but also figure
+# out how to get a fixed version of the submodules too.
+
+#HHVM_VERSION=f4c9d79f648fc30f44bf0af809da86d0fe9d188a
+HHVM_GIT_URI=git://github.com/facebook/hhvm.git
+
+# XXX get a fixed version of GLOG
+GLOG_SVN_URI=http://google-glog.googlecode.com/svn/trunk/
+#GLOG_VERSION=...
+GLOG_DIR=google-glog
+
+
 if [ ! -f "hhvm/hphp/hhvm/hhvm" ]; then
     cd $wrkdir
     echo "\\n===> Download and build HHVM\\n"
     sleep 3
-    git clone git://github.com/facebook/hhvm.git --depth=1
+    git clone ${HHVM_GIT_URI} --depth=1
+    #git clone ${HHVM_GIT_URI} --depth=1
     cd hhvm
+    #git checkout ${HHVM_VERSION}
     git submodule update --init --recursive
     cd ..
 
     echo "\\n===> Download and build GLOG\\n"
     export CMAKE_PREFIX_PATH=`pwd`/glog
-    svn checkout http://google-glog.googlecode.com/svn/trunk/ google-glog
-    cd google-glog
-    ./configure --prefix=$CMAKE_PREFIX_PATH CC=$wrkdir/gcc-4.8/bin/gcc CXX=$wrkdir/gcc-4.8/bin/g++
+    if [ ! -e "${GLOG_DIR}" ]; then
+	    svn checkout ${GLOG_SVN_URI} ${GLOG_DIR}
+    fi
+    cd ${GLOG_DIR}
+    ./configure --prefix=$CMAKE_PREFIX_PATH CC=${GCC_BINARY} CXX=${GXX_BINARY}
     make || exit $?
     make install || exit $?
     cd $wrkdir
 
     cd hhvm 
     echo "\\n===> Building HHVM\\n"
-    export LD_LIBRARY_PATH=$wrkdir/gcc-4.8/lib64/
-    cmake . -DCMAKE_CXX_COMPILER=$wrkdir/gcc-4.8/bin/g++ -DCMAKE_C_COMPILER=$wrkdir/gcc-4.8/bin/gcc || exit $?
+    export LD_LIBRARY_PATH=$wrkdir/${GCC_DIR}/lib64/
+    cmake . -DCMAKE_CXX_COMPILER=${GXX_BINARY} -DCMAKE_C_COMPILER=${GCC_BINARY} || exit $?
     make || exit $?
 else
     echo "\\n===> HHVM already done\\n"
