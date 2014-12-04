@@ -1,6 +1,4 @@
-=================
-PyHyP Experiments
-=================
+# PyHyP Experiments #
 
 This repository contains experiments and benchmarks for our composed Python/PHP
 VM as well as other VMs.
