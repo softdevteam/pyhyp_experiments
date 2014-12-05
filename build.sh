@@ -69,26 +69,20 @@ fi
 # HHVM
 # XXX only build if not installed
 
-# XXX checkout an explicit version of HHVM, but also figure
-# out how to get a fixed version of the submodules too.
-
-#HHVM_VERSION=f4c9d79f648fc30f44bf0af809da86d0fe9d188a
+# HHVM 3.4.0 and deps of that time.
+HHVM_VERSION=817b3a07fc4e509ce15635dbc87778e5b3496663
 HHVM_GIT_URI=git://github.com/facebook/hhvm.git
-
-# XXX get a fixed version of GLOG
 GLOG_SVN_URI=http://google-glog.googlecode.com/svn/trunk/
-#GLOG_VERSION=...
+GLOG_VERSION=143
 GLOG_DIR=google-glog
-
 
 if [ ! -f "hhvm/hphp/hhvm/hhvm" ]; then
     cd $wrkdir
     echo "\\n===> Download and build HHVM\\n"
     sleep 3
-    git clone ${HHVM_GIT_URI} --depth=1
-    #git clone ${HHVM_GIT_URI} --depth=1
+    git clone ${HHVM_GIT_URI}
     cd hhvm
-    #git checkout ${HHVM_VERSION}
+    git checkout ${HHVM_VERSION}
     git submodule update --init --recursive
     cd ..
 
