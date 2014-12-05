@@ -111,6 +111,7 @@ do_hhvm() {
 }
 
 # CPython
+# XXX use variables.
 
 do_cpython() {
 	if [ ! -f "cpython/python" ]; then
@@ -155,6 +156,7 @@ do_zend() {
 }
 
 # Download and build PyPy
+# XXX use variables.
 
 do_pypy() {
 	if [ ! -f "pypy/pypy/goal/pypy" ]; then
@@ -177,6 +179,7 @@ do_pypy() {
 }
 
 # PyHyP
+# XXX use variables.
 
 do_pyhyp() {
 	if [ ! -f "hippyvm/pyhyp" ]; then
@@ -207,6 +210,7 @@ do_pyhyp() {
 }
 
 # Hippy
+# XXX use variables.
 
 do_hippy() {
 	if [ ! -f "hippyvm/hippy-c" ]; then
