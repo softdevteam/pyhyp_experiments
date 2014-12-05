@@ -38,6 +38,7 @@ if [ $missing -eq 1 ]; then
 fi
 
 wrkdir=`pwd`
+PATCH_DIR=${wrkdir}/patches
 
 # GCC
 GCC_VERSION_MAJOR=4.8
@@ -84,6 +85,7 @@ do_hhvm() {
 	    cd hhvm
 	    git checkout ${HHVM_VERSION}
 	    git submodule update --init --recursive
+	    patch -Ep1 < ${PATCH_DIR}/hhvm.diff
 	    cd ..
 
 	    echo "\\n===> Download and build GLOG\\n"
@@ -139,6 +141,7 @@ do_zend() {
 	    bunzip2 -c - php-${PHPV}.tar.bz2 | tar xf - || exit $?
 	    mv php-${PHPV} php
 	    cd php
+	    patch -Ep1 < ${PATCH_DIR}/zend.diff
 	    ./configure || exit $?
 	    $MYMAKE || exit $?
 	else
