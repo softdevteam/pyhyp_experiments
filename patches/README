@@ -1,0 +1,4 @@
+The patches here add a function clock_gettime_monotonic() to the Zend
+and HHVM PHP interpreters. We use this function to take monotonic clock
+readings that are unnaffected by artificial clock skew introduced by,
+for example, NTPD.

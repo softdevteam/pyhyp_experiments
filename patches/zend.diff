@@ -1,0 +1,71 @@
+diff -urNa -x *.o -x *.lo -x *.swp php-5.6.3/ext/standard/basic_functions.c php-5.6.3.new/ext/standard/basic_functions.c
+--- php-5.6.3/ext/standard/basic_functions.c	Wed Nov 12 13:52:21 2014
++++ php-5.6.3.new/ext/standard/basic_functions.c	Wed Dec  3 11:53:44 2014
+@@ -1804,6 +1804,9 @@
+ 	ZEND_ARG_INFO(0, who)
+ ZEND_END_ARG_INFO()
+ #endif
++
++ZEND_BEGIN_ARG_INFO_EX(arginfo_clock_gettime_monotonic, 0, 0, 0)
++ZEND_END_ARG_INFO()
+ /* }}} */
+ /* {{{ pack.c */
+ ZEND_BEGIN_ARG_INFO_EX(arginfo_pack, 0, 0, 2)
+@@ -2933,6 +2936,8 @@
+ #ifdef HAVE_GETRUSAGE
+ 	PHP_FE(getrusage,														arginfo_getrusage)
+ #endif
++
++PHP_FE(clock_gettime_monotonic,	arginfo_clock_gettime_monotonic)
+ 
+ #ifdef HAVE_GETTIMEOFDAY
+ 	PHP_FE(uniqid,															arginfo_uniqid)
+diff -urNa -x *.o -x *.lo -x *.swp php-5.6.3/ext/standard/microtime.c php-5.6.3.new/ext/standard/microtime.c
+--- php-5.6.3/ext/standard/microtime.c	Wed Nov 12 13:52:21 2014
++++ php-5.6.3.new/ext/standard/microtime.c	Wed Dec  3 13:23:54 2014
+@@ -157,6 +157,35 @@
+ /* }}} */
+ 
+ /*
++ * Access to the monotonic clock.
++ * This is not standard PHP. Function added for soft-dev benchmarking
++ */
++
++#ifdef __linux__
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC_RAW
++#else
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC
++#endif
++
++PHP_FUNCTION(clock_gettime_monotonic) {
++	struct timespec		ts;
++	double				result;
++
++	if ((clock_gettime(ACTUAL_MONOTONIC_CLOCK, &ts)) < 0) {
++		php_error_docref(NULL TSRMLS_CC, E_ERROR,
++			"Monotonic clock read failed");
++	}
++
++	/*
++	 * Convert to a double, that's about as precise as we can get without
++	 * using a arbitrary precision library
++	 */
++	result = ts.tv_sec + ts.tv_nsec * pow(10, -9);
++	RETURN_DOUBLE(result);
++}
++
++
++/*
+  * Local variables:
+  * tab-width: 4
+  * c-basic-offset: 4
+diff -urNa -x *.o -x *.lo -x *.swp php-5.6.3/ext/standard/microtime.h php-5.6.3.new/ext/standard/microtime.h
+--- php-5.6.3/ext/standard/microtime.h	Wed Nov 12 13:52:21 2014
++++ php-5.6.3.new/ext/standard/microtime.h	Wed Dec  3 11:31:55 2014
+@@ -29,4 +29,6 @@
+ PHP_FUNCTION(getrusage);
+ #endif
+ 
++PHP_FUNCTION(clock_gettime_monotonic);
++
+ #endif /* MICROTIME_H */
