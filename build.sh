@@ -131,19 +131,23 @@ do_cpython() {
 
 # Zend PHP
 
+ZEND_VERSION=5.5.13
+ZEND_TARBALL=php-${ZEND_VERSION}.tar.bz2
+ZEND_DOWNLOAD_URI=http://uk3.php.net/get/${ZEND_TARBALL}/from/this/mirror
+ZEND_DIR=php-${ZEND_VERSION}
+ZEND_BINARY=${ZEND_DIR}/sapi/cli/php
+
 do_zend() {
-	if [ ! -f "php/sapi/cli/php" ]; then
+	if [ ! -f "${ZEND_BINARY}" ]; then
 	    echo "\\n===> Download and build PHP\\n"
-	    sleep 3
-	    PHPV=5.5.13
 	    cd $wrkdir
-	    wget -O php-${PHPV}.tar.bz2 http://uk3.php.net/get/php-${PHPV}.tar.bz2/from/this/mirror || exit $?
-	    bunzip2 -c - php-${PHPV}.tar.bz2 | tar xf - || exit $?
-	    mv php-${PHPV} php
-	    cd php
+	    wget -O ${ZEND_TARBALL} ${ZEND_DOWNLOAD_URI} || exit $?
+	    bunzip2 -c - ${ZEND_TARBALL} | tar xf - || exit $?
+	    cd ${ZEND_DIR}
 	    patch -Ep1 < ${PATCH_DIR}/zend.diff
 	    ./configure || exit $?
-	    $MYMAKE || exit $?
+	    ${MYMAKE} || exit $?
+	    # Zend PHP can run out of the build dir, so no 'make install'.
 	else
 	    echo "\\n===> PHP already done\\n"
 	fi
