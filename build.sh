@@ -45,9 +45,10 @@ GCC_VERSION_MAJOR=4.8
 GCC_VERSION=${GCC_VERSION_MAJOR}.3
 GCC_TARBALL=gcc-${GCC_VERSION}.tar.gz
 GCC_DIR=gcc-${GCC_VERSION}
-GCC_BINARY=${wrkdir}/gcc-${GCC_VERSION_MAJOR}/bin/gcc
-GXX_BINARY=${wrkdir}/gcc-${GCC_VERSION_MAJOR}/bin/g++
 GCC_DOWNLOAD_URI=ftp://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/${GCC_TARBALL}
+GCC_INST_DIR=${wrkdir}/gcc-${GCC_VERSION}-inst
+GCC_BINARY=${GCC_INST_DIR}/bin/gcc
+GXX_BINARY=${GCC_INST_DIR}/bin/g++
 
 do_gcc() {
 	if [ ! -f "${GCC_BINARY}" ]; then
@@ -61,7 +62,7 @@ do_gcc() {
 	    cd ..
 	    mkdir objdir
 	    cd objdir
-	    ../${GCC_DIR}/configure --prefix=$wrkdir/gcc-${GCC_VERSION_MAJOR}
+	    ../${GCC_DIR}/configure --prefix=${GCC_INST_DIR}
 	    make || exit $?
 	    make install || exit $?
 	else
