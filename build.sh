@@ -37,8 +37,10 @@ if [ $missing -eq 1 ]; then
     exit 1
 fi
 
-wrkdir=`pwd`
-PATCH_DIR=${wrkdir}/patches
+HERE=`pwd`
+WRKDIR=${HERE}/work
+mkdir -p ${WRKDIR}
+PATCH_DIR=${HERE}/patches
 
 # GCC
 GCC_VERSION_MAJOR=4.8
@@ -46,12 +48,13 @@ GCC_VERSION=${GCC_VERSION_MAJOR}.3
 GCC_TARBALL=gcc-${GCC_VERSION}.tar.gz
 GCC_DIR=gcc-${GCC_VERSION}
 GCC_DOWNLOAD_URI=ftp://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/${GCC_TARBALL}
-GCC_INST_DIR=${wrkdir}/gcc-${GCC_VERSION}-inst
+GCC_INST_DIR=${WRKDIR}/gcc-${GCC_VERSION}-inst
 GCC_BINARY=${GCC_INST_DIR}/bin/gcc
 GXX_BINARY=${GCC_INST_DIR}/bin/g++
 
 do_gcc() {
 	if [ ! -f "${GCC_BINARY}" ]; then
+	    cd ${WRKDIR}
 	    echo "\\n===> Download and build GCC ${GCC_VERSION}\\n"
 	    if [ ! -f "${GCC_TARBALL}" ]; then
 		    wget ${GCC_DOWNLOAD_URI}
@@ -73,15 +76,16 @@ do_gcc() {
 # HHVM 3.4.0 and deps of that time.
 HHVM_VERSION=817b3a07fc4e509ce15635dbc87778e5b3496663
 HHVM_GIT_URI=git://github.com/facebook/hhvm.git
+HHVM_DIR=${WRKDIR}/hhvm
+HHVM_BINARY=${HHVM_DIR}/hphp/hhvm/hhvm
 GLOG_SVN_URI=http://google-glog.googlecode.com/svn/trunk/
 GLOG_VERSION=143
 GLOG_DIR=google-glog
 
 do_hhvm() {
-	if [ ! -f "hhvm/hphp/hhvm/hhvm" ]; then
-	    cd $wrkdir
+	if [ ! -f "${HHVM_BINARY}" ]; then
+	    cd ${WRKDIR}
 	    echo "\\n===> Download and build HHVM\\n"
-	    sleep 3
 	    git clone ${HHVM_GIT_URI}
 	    cd hhvm
 	    git checkout ${HHVM_VERSION}
@@ -98,11 +102,11 @@ do_hhvm() {
 	    ./configure --prefix=$CMAKE_PREFIX_PATH CC=${GCC_BINARY} CXX=${GXX_BINARY}
 	    make || exit $?
 	    make install || exit $?
-	    cd $wrkdir
+	    cd ${WRKDIR}
 
 	    cd hhvm 
 	    echo "\\n===> Building HHVM\\n"
-	    export LD_LIBRARY_PATH=$wrkdir/${GCC_DIR}/lib64/
+	    export LD_LIBRARY_PATH=${GCC_INST_DIR}/lib64/
 	    cmake . -DCMAKE_CXX_COMPILER=${GXX_BINARY} -DCMAKE_C_COMPILER=${GCC_BINARY} || exit $?
 	    make || exit $?
 	else
@@ -111,21 +115,23 @@ do_hhvm() {
 }
 
 # CPython
-# XXX use variables.
+
+CPYTHON_VERSION=2.7.7
+CPYTHON_DIR=${WRKDIR}/Python-${CPYTHON_VERSION}
+CPYTHON_TARBALL=Python-${CPYTHON_VERSION}.tgz
+CPYTHON_DOWNLOAD_URI=http://python.org/ftp/python/${CPYTHON_VERSION}/${CPYTHON_TARBALL}
+CPYTHON_BINARY=${CPYTHON_DIR}/python
 
 do_cpython() {
-	if [ ! -f "cpython/python" ]; then
+	if [ ! -f "${CPYTHON_BINARY}" ]; then
 	    echo "\\n===> Download and build CPython\\n"
-	    sleep 3
-	    CPYTHONV=2.7.7
-	    cd $wrkdir
-	    wget http://python.org/ftp/python/${CPYTHONV}/Python-${CPYTHONV}.tgz || exit $?
-	    tar xfz Python-${CPYTHONV}.tgz || exit $?
-	    mv Python-${CPYTHONV} cpython
-	    cd cpython
+	    cd ${WRKDIR}
+	    wget ${CPYTHON_DOWNLOAD_URI} || exit $?
+	    tar xfz Python-${CPYTHON_VERSION}.tgz || exit $?
+	    cd ${CPYTHON_DIR}
 	    ./configure || exit $?
-	    $MYMAKE || exit $?
-	    cp $wrkdir/cpython/Lib/test/pystone.py $wrkdir/benchmarks/dhrystone.py
+	    ${MYMAKE} || exit $?
+	    #cp ${WRKDIR}/cpython/Lib/test/pystone.py ${WRKDIR}/benchmarks/dhrystone.py
 	else
 	    echo "\\n===> CPython already done\\n"
 	fi
@@ -137,12 +143,13 @@ ZEND_VERSION=5.5.13
 ZEND_TARBALL=php-${ZEND_VERSION}.tar.bz2
 ZEND_DOWNLOAD_URI=http://uk3.php.net/get/${ZEND_TARBALL}/from/this/mirror
 ZEND_DIR=php-${ZEND_VERSION}
-ZEND_BINARY=${ZEND_DIR}/sapi/cli/php
+ZEND_BINARY=${WRKDIR}/${ZEND_DIR}/sapi/cli/php
 
+echo ${ZEND_BINARY}
 do_zend() {
 	if [ ! -f "${ZEND_BINARY}" ]; then
-	    echo "\\n===> Download and build PHP\\n"
-	    cd $wrkdir
+	    echo "\\n===> Download and build Zend PHP\\n"
+	    cd ${WRKDIR}
 	    wget -O ${ZEND_TARBALL} ${ZEND_DOWNLOAD_URI} || exit $?
 	    bunzip2 -c - ${ZEND_TARBALL} | tar xf - || exit $?
 	    cd ${ZEND_DIR}
@@ -156,77 +163,91 @@ do_zend() {
 }
 
 # Download and build PyPy
-# XXX use variables.
+
+PYPY_VERSION=2.4.0
+PYPY_TARBALL=pypy-${PYPY_VERSION}-src.tar.bz2
+PYPY_DIR=${WRKDIR}/pypy-${PYPY_VERSION}-src
+PYPY_GOAL_DIR=${PYPY_DIR}/pypy/goal
+PYPY_BINARY=${PYPY_GOAL_DIR}/pypy
+PYPY_DOWNLOAD_URI=https://bitbucket.org/pypy/pypy/downloads/${PYPY_TARBALL}
 
 do_pypy() {
-	if [ ! -f "pypy/pypy/goal/pypy" ]; then
+	if [ ! -f "${PYPY_BINARY}" ]; then
 	    echo "\\n===> Download PyPy\\n"
 	    sleep 3
-	    PYPYV=2.3.1
-	    cd $wrkdir
-	    wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPYV}-src.tar.bz2 || exit $?
-	    bunzip2 -c - pypy-${PYPYV}-src.tar.bz2 | tar xf -
-	    mv pypy-${PYPYV}-src pypy
-	    cd pypy/pypy/goal/
+	    cd ${WRKDIR}
+	    wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
+	    bunzip2 -c - ${PYPY_TARBALL} | tar xf -
+	    cd ${PYPY_GOAL_DIR}
 	    echo "\\n===> Build normal PyPy\\n"
-	    sleep 3
 	    usession=`mktemp -d`
-	    PYPY_USESSION_DIR=$usession $PYTHON ../../rpython/bin/rpython -Ojit --output=pypy || exit $?
-	    rm -rf $usession
+	    PYPY_USESSION_DIR=${usession} ${PYTHON} ../../rpython/bin/rpython -Ojit --output=pypy || exit $?
+	    rm -rf ${usession}
 	else
 	    echo "\\n===> PyPy already done\\n"
 	fi
 }
 
 # PyHyP
-# XXX use variables.
+# Uses a patched PyPy and HippyVM
+
+PYHYP_PYPY_DIR=${WRKDIR}/pypy-hippy-bridge
+PYHYP_PYPY_VERSION=hippy_bridge # XXX freeze
+PYHYP_HIPPY_VERSION=pypy_bridge # XXX freeze
+PYHYP_HIPPY_DIR=${WRKDIR}/hippyvm
+PYHYP_BINARY=${PYHYP_HIPPY_DIR}/pyhyp
+PYHYP_PYPY_HG_URI=https://bitbucket.org/softdevteam/pypy-hippy-bridge
+PYHYP_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
+
+RPLY_VERSION=0.5.1
+RPLY_TARBALL=rply-0.5.1.tar.gz
+RPLY_DOWNLOAD_URI=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
+RPLY_DIR=rply-${RPLY_VERSION}
 
 do_pyhyp() {
-	if [ ! -f "hippyvm/pyhyp" ]; then
+	if [ ! -f "${PYHYP_BINARY}" ]; then
 	    echo "\\n===> Download  and build PyHyP\\n"
-	    PYTHON=$wrkdir/pypy/pypy/goal/pypy # needs rply
-	    sleep 3
-	    cd $wrkdir
-	    if [ ! -d "pypy-hippy-bridge" ]; then
-		hg clone https://l.diekmann@bitbucket.org/softdevteam/pypy-hippy-bridge
+	    cd ${WRKDIR}
+	    if [ ! -d "${PYHYP_PYPY_DIR}" ]; then
+		hg clone ${PYHYP_PYPY_HG_URI}
 	    fi
-	    if [ ! -d "hippyvm" ]; then
-		git clone https://github.com/hippyvm/hippyvm.git
+	    if [ ! -d "${PYHYP_HIPPY_DIR}" ]; then
+		git clone ${PYHYP_HIPPY_GIT_URI}
 	    fi
-	    wget https://pypi.python.org/packages/source/r/rply/rply-0.5.1.tar.gz
-	    tar xfz rply-0.5.1.tar.gz
-	    cp -r rply-0.5.1/rply hippyvm/
-	    rm rply-0.5.1.tar.gz
-	    cd pypy-hippy-bridge/
-	    hg up hippy_bridge
-	    cd ..
-	    cd hippyvm/
-	    git checkout pypy_bridge
-	    $PYTHON ../pypy-hippy-bridge/rpython/bin/rpython -Ojit targethippy.py || exit $?
+	    wget ${RPLY_DOWNLOAD_URI}
+	    tar xfz ${RPLY_TARBALL}
+	    cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR}
+	    rm ${RPLY_TARBALL}
+	    cd ${PYHYP_PYPY_DIR}
+	    hg up ${PYHYP_PYPY_VERSION}
+	    cd ${PYHYP_HIPPY_DIR}
+	    git checkout ${PYHYP_HIPPY_VERSION}
+	    ${PYPY_BINARY} ../pypy-hippy-bridge/rpython/bin/rpython \
+		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
 	else
-	    echo "\\n===> Hippy already done\\n"
+	    echo "\\n===> PyHyp already done\\n"
 	fi
 }
 
 # Hippy
-# XXX use variables.
+
+HIPPY_DIR=${WRKDIR}/hippyvm
+HIPPY_BINARY=${HIPPY_DIR}/hippy-c
+HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
+HIPPY_VERSION=master	# XXX freeze
 
 do_hippy() {
-	if [ ! -f "hippyvm/hippy-c" ]; then
-	    echo "\\n===> Download  and build Hippy\\n"
-	    PYTHON=$wrkdir/pypy/pypy/goal/pypy
-	    sleep 3
-	    cd $wrkdir
-	    if [ ! -d "hippyvm" ]; then
-		git clone https://github.com/hippyvm/hippyvm.git
+	if [ ! -f "${HIPPY_BINARY}" ]; then
+	    echo "\\n===> Download and build Hippy\\n"
+	    cd ${WRKDIR}
+	    if [ ! -d "${HIPPY_DIR}" ]; then
+		git clone ${HIPPY_GIT_URI}
 	    fi
-	    cd pypy-hippy-bridge/
-	    hg up default
-	    cd ..
-	    cd hippyvm/
-	    git checkout master
-	    $PYTHON ../pypy-hippy-bridge/rpython/bin/rpython -Ojit targethippy.py || exit $?
+	    cd ${HIPPY_DIR}
+	    git checkout ${HIPPY_VERSION}
+	    # Here we re-use RPython from the earlier PyPy build
+	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit targethippy.py || exit $?
 	else
 	    echo "\\n===> Hippy already done\\n"
 	fi
@@ -244,4 +265,11 @@ do_pypy;
 do_pyhyp;
 do_hippy;
 
+echo "We are done! Here are your interpreters:"
+echo "  HHVM:		${HHVM_BINARY}"
+echo "  CPYTHON:	${CPYTHON_BINARY}"
+echo "  ZEND PHP:	${ZEND_BINARY}"
+echo "  PyPy:		${PYPY_BINARY}"
+echo "  PyHyp:	${PYHYP_BINARY}"
+echo "  HippyVM:	${HIPPY_BINARY}"
 
