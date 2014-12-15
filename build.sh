@@ -288,7 +288,7 @@ gen_config() {
 	# PyHyp
 	echo "\t'${PYHYP_BINARY}': {" >> ${CONFIG_FILE}
 	echo "\t\t'name': 'PyHyp'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-python', 'comp']," >> ${CONFIG_FILE}
+	echo "\t\t'variants': ['comp']," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# HippyVM
@@ -296,9 +296,19 @@ gen_config() {
 	echo "\t\t'name': 'HippyVM'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
-	echo "}" >> ${CONFIG_FILE}
+	echo "}\n" >> ${CONFIG_FILE}
 
-	echo ""
+	# Add benchmarks
+	echo "BENCHMARKS = {" >> ${CONFIG_FILE}
+	echo "\t'richards': 11," >> ${CONFIG_FILE}
+	echo "}\n" >> ${CONFIG_FILE}
+
+	# Repetitions
+	echo "N_EXECUTIONS = 1" >> ${CONFIG_FILE}	
+	echo "N_ITERATIONS = 5\n" >> ${CONFIG_FILE}
+
+	# Output
+	echo "OUT_FILE = 'output.json'" >> ${CONFIG_FILE}
 
 	# check syntax
 	${CPYTHON_BINARY} -c 'import config'

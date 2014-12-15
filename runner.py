@@ -12,20 +12,32 @@ ANSI_RESET = '\033[0m'
 
 import os, subprocess, sys, subprocess, json
 
+VARIANT_TO_FILENAME = {
+    "mono-php": "mono.php",
+    "mono-python": "mono.ppy",
+    "composed": "comp.php",
+}
+
+BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
+
 def usage():
     print(__doc__)
     sys.exit(1)
 
-def run_exec(vm, benchmark, variant, n_executions, n_iterations, param):
+def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
     """ Runs multiple executions of a benchmark """
 
     executions_results = []
+
+    bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
+    args = [vm, "iterations_runner.php", bench_file,
+            str(n_iterations), str(param)]
+
     for e in xrange(n_executions):
         print("%sExecution %3d/%3d%s" % (ANSI_MAGENTA, e + 1, n_executions, ANSI_RESET))
-        bench_file = os.path.join(benchmark, variant + ".php")
 
-        args = [vm, "iterations_runner.php", bench_file,
-                str(n_iterations), str(param)]
+        if BENCH_DEBUG:
+            print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
 
         # run capturing output
         stdout, stderr = subprocess.Popen(
@@ -81,7 +93,9 @@ if __name__ == "__main__":
 
                 print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
                         (ANSI_RED, bmark, param, variant, vm_name, ANSI_RESET))
-                exec_results = run_exec(vm_executable, bmark, variant,
+
+                bmark_path = os.path.join("benchmarks", bmark)
+                exec_results = run_exec(vm_executable, bmark_path, variant,
                         config.N_EXECUTIONS, config.N_ITERATIONS, param)
 
                 result_key = "%s:%s:%s" % (bmark, vm_name, variant)
