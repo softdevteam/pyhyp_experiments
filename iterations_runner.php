@@ -11,11 +11,11 @@ class BenchTimer {
 	private $end_time = -1.0;
 
 	function start() {
-		$this->start_time = microtime(true);
+		$this->start_time = clock_gettime_monotonic();
 	}
 
 	function stop() {
-		$this->stop_time = microtime(true);
+		$this->stop_time = clock_gettime_monotonic();
 		if ($this->start_time == -1) {
 			throw new RuntimeException("timer was not started");
 		}
