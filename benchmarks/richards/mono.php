@@ -157,6 +157,10 @@ function trace($a) {
 
 class TaskWorkArea {
 	function __construct() {
+		$this->reset();
+	}
+
+	function reset() {
 		$this->taskTab = array();
 		for ($i = 0; $i < TASKTABSIZE; $i++) {
 			$this->taskTab[] = null;
@@ -379,8 +383,7 @@ class Richards {
 		global $taskWorkArea;
 
 		for ($i = 0; $i < $iterations; $i++) {
-			$taskWorkArea->holdCount = 0;
-			$taskWorkArea->qpktCount = 0;
+			$taskWorkArea->reset();
 			$task_state = new TaskState();
 			new IdleTask(I_IDLE, 1, 10000, $task_state->running(),
 						 new IdleTaskRec());
