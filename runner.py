@@ -18,6 +18,12 @@ VARIANT_TO_FILENAME = {
     "composed": "comp.php",
 }
 
+VARIANT_TO_ITERATIONS_RUNNER = {
+    "mono-php": "iterations_runner.php",
+    "composed": "iterations_runner.php", # composed programs start in PHP
+    "mono-python": "iterations_runner.py",
+}
+
 BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
 
 def usage():
@@ -30,7 +36,8 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
     executions_results = []
 
     bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
-    args = [vm, "iterations_runner.php", bench_file,
+    iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
+    args = [vm, iterations_runner, bench_file,
             str(n_iterations), str(param)]
 
     for e in xrange(n_executions):
