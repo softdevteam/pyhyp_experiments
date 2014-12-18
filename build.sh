@@ -295,7 +295,7 @@ gen_config() {
 	# PyHyp
 	echo "\t'${PYHYP_BINARY}': {" >> ${CONFIG_FILE}
 	echo "\t\t'name': 'PyHyp'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['composed']," >> ${CONFIG_FILE}
+	echo "\t\t'variants': ['composed', 'mono-php']," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# HippyVM
