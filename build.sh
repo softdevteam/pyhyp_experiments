@@ -178,6 +178,10 @@ do_pypy() {
 	    cd ${WRKDIR}
 	    wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
 	    bunzip2 -c - ${PYPY_TARBALL} | tar xf -
+	    cd ${PYPY_DIR}
+	    # Patches in two parts from pypy-hippy-bridge repo
+	    patch -Ep1 < ${PATCH_DIR}/pypy.diff || exit $?
+	    patch -Ep1 < ${PATCH_DIR}/pypy2.diff || exit $?
 	    cd ${PYPY_GOAL_DIR}
 	    echo "\\n===> Build normal PyPy\\n"
 	    usession=`mktemp -d`
@@ -213,16 +217,15 @@ do_pyhyp() {
 	    fi
 	    if [ ! -d "${PYHYP_HIPPY_DIR}" ]; then
 		git clone ${PYHYP_HIPPY_GIT_URI}
+	        wget ${RPLY_DOWNLOAD_URI}
+	        tar xfz ${RPLY_TARBALL}
+	        cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR}
 	    fi
-	    wget ${RPLY_DOWNLOAD_URI}
-	    tar xfz ${RPLY_TARBALL}
-	    cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR}
-	    rm ${RPLY_TARBALL}
 	    cd ${PYHYP_PYPY_DIR}
 	    hg up ${PYHYP_PYPY_VERSION}
 	    cd ${PYHYP_HIPPY_DIR}
 	    git checkout ${PYHYP_HIPPY_VERSION}
-	    ${PYPY_BINARY} ../pypy-hippy-bridge/rpython/bin/rpython \
+	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
 		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
 	else
@@ -243,9 +246,13 @@ do_hippy() {
 	    cd ${WRKDIR}
 	    if [ ! -d "${HIPPY_DIR}" ]; then
 		git clone ${HIPPY_GIT_URI}
+	        wget ${RPLY_DOWNLOAD_URI}
+	        tar xfz ${RPLY_TARBALL}
+	        cp -r ${RPLY_DIR}/rply ${HIPPY_DIR}
 	    fi
 	    cd ${HIPPY_DIR}
 	    git checkout ${HIPPY_VERSION}
+	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
 	    # Here we re-use RPython from the earlier PyPy build
 	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit targethippy.py || exit $?
 	else
@@ -327,6 +334,8 @@ do_pyhyp;
 do_hippy;
 
 gen_config;
+
+# XXX install cffi someplace we can use it
 
 echo "We are done! Here are your interpreters:"
 echo "  HHVM:		${HHVM_BINARY}"
