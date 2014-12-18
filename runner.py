@@ -8,6 +8,7 @@ usage: runner.py <config_file.py>
 
 ANSI_RED = '\033[91m'
 ANSI_MAGENTA = '\033[95m'
+ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
 
 import os, subprocess, sys, subprocess, json
@@ -53,10 +54,17 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
         try:
             iterations_results = eval(stdout) # we should get a list of floats
         except SyntaxError:
+            print(ANSI_RED)
+            print("=ERROR=" * 8)
             print("*error: benchmark didn't print a parsable list.")
             print("We got:\n---\n%s\n---\n" % stdout)
             print("When running: %s" % " ".join(args))
-            sys.exit(1)
+            print("=ERROR=" * 8)
+            print(ANSI_RESET)
+            print("")
+
+            iterations_results = [] # no results, continue...
+
         executions_results.append(iterations_results)
 
     print("")
@@ -90,6 +98,7 @@ if __name__ == "__main__":
         raise
     print(config)
 
+    errors = False
     all_results = {} # stash results here
     for bmark, param in config.BENCHMARKS.items():
 
@@ -99,11 +108,15 @@ if __name__ == "__main__":
             for variant in vm_info["variants"]:
 
                 print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
-                        (ANSI_RED, bmark, param, variant, vm_name, ANSI_RESET))
+                        (ANSI_CYAN, bmark, param, variant,
+                         vm_name, ANSI_RESET))
 
                 bmark_path = os.path.join("benchmarks", bmark)
                 exec_results = run_exec(vm_executable, bmark_path, variant,
                         config.N_EXECUTIONS, config.N_ITERATIONS, param)
+
+                if not exec_results:
+                    errors = True
 
                 result_key = "%s:%s:%s" % (bmark, vm_name, variant)
                 all_results[result_key] = exec_results
@@ -113,3 +126,5 @@ if __name__ == "__main__":
                 dump_json(config_file, all_results)
 
     print("Done: Results dumped to %s" % config.OUT_FILE)
+    if errors:
+        print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
