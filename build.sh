@@ -337,6 +337,9 @@ gen_config;
 
 # XXX install cffi someplace we can use it
 
+# XXX make wrapper scripts with environments set.
+# (e.g. LD_LIBRARY_PATH, PYTHONPATH)
+
 echo "We are done! Here are your interpreters:"
 echo "  HHVM:		${HHVM_BINARY}"
 echo "  CPYTHON:	${CPYTHON_BINARY}"
