@@ -52,5 +52,7 @@ function heapsort($N = 20000) {
   //printf("%.10f\n", $ary[$N]);
 }
 
-heapsort();
+function run_iter($n):
+    heapsort($n);
+}
 ?>
