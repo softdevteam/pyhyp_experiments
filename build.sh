@@ -340,6 +340,8 @@ gen_config;
 # XXX make wrapper scripts with environments set.
 # (e.g. LD_LIBRARY_PATH, PYTHONPATH)
 
+# XXX separate out hippy and pyhyp clones.
+
 echo "We are done! Here are your interpreters:"
 echo "  HHVM:		${HHVM_BINARY}"
 echo "  CPYTHON:	${CPYTHON_BINARY}"
