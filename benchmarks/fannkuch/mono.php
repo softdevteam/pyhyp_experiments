@@ -1,4 +1,5 @@
-<?php{
+<?php
+{
 function Fannkuch_run($n){
 	$check = 0;
 	$perm = array();
@@ -55,4 +56,5 @@ function Fannkuch_run($n){
 function run_iter($n) {
 	Fannkuch_run($n);
 }
-}?>
+}
+?>
