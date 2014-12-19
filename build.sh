@@ -42,6 +42,24 @@ WRKDIR=${HERE}/work
 mkdir -p ${WRKDIR}
 PATCH_DIR=${HERE}/patches
 
+
+# We use rply in two separate places...
+RPLY_VERSION=0.5.1
+RPLY_TARBALL=rply-0.5.1.tar.gz
+RPLY_DOWNLOAD_URI=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
+RPLY_DIR=${WRKDIR}/rply-${RPLY_VERSION}
+
+fetch_rply() {
+    echo "install rply..."
+    if [ ! -e ${WRKDIR}/${RPLY_TARBALL} ]; then
+	cd ${WRKDIR}
+	wget ${RPLY_DOWNLOAD_URI}
+    fi
+    if [ ! -d ${RPLY_DIR} ]; then
+	tar xfz ${RPLY_TARBALL}
+    fi
+}
+
 # GCC
 GCC_VERSION_MAJOR=4.8
 GCC_VERSION=${GCC_VERSION_MAJOR}.3
@@ -195,36 +213,45 @@ do_pypy() {
 # PyHyP
 # Uses a patched PyPy and HippyVM
 
-PYHYP_PYPY_DIR=${WRKDIR}/pypy-hippy-bridge
+PYHYP_DIR=${WRKDIR}/pyhyp
+
+PYHYP_PYPY_DIR=${PYHYP_DIR}/pypy-hippy-bridge
 PYHYP_PYPY_VERSION=hippy_bridge # XXX freeze
-PYHYP_HIPPY_VERSION=pypy_bridge # XXX freeze
-PYHYP_HIPPY_DIR=${WRKDIR}/hippyvm
-PYHYP_BINARY=${PYHYP_HIPPY_DIR}/pyhyp
 PYHYP_PYPY_HG_URI=https://bitbucket.org/softdevteam/pypy-hippy-bridge
+
+PYHYP_HIPPY_VERSION=pypy_bridge # XXX freeze
+PYHYP_HIPPY_DIR=${PYHYP_DIR}/hippyvm
 PYHYP_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
 
-RPLY_VERSION=0.5.1
-RPLY_TARBALL=rply-0.5.1.tar.gz
-RPLY_DOWNLOAD_URI=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
-RPLY_DIR=rply-${RPLY_VERSION}
+PYHYP_BINARY=${PYHYP_HIPPY_DIR}/pyhyp
 
 do_pyhyp() {
+	mkdir -p ${PYHYP_DIR}
+
 	if [ ! -f "${PYHYP_BINARY}" ]; then
-	    echo "\\n===> Download  and build PyHyP\\n"
-	    cd ${WRKDIR}
+	    echo "\\n==> PyHyP\\n"
+
+	    cd ${PYHYP_DIR}
 	    if [ ! -d "${PYHYP_PYPY_DIR}" ]; then
 		hg clone ${PYHYP_PYPY_HG_URI}
 	    fi
+
 	    if [ ! -d "${PYHYP_HIPPY_DIR}" ]; then
 		git clone ${PYHYP_HIPPY_GIT_URI}
-	        wget ${RPLY_DOWNLOAD_URI}
-	        tar xfz ${RPLY_TARBALL}
-	        cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR}
 	    fi
+
+	    fetch_rply
+	    if [ ! -d "${PYHYP_HIPPY_DIR}/rply" ]; then
+	        cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR};
+            fi
+
+	    # Checkout correct versions
 	    cd ${PYHYP_PYPY_DIR}
 	    hg up ${PYHYP_PYPY_VERSION}
 	    cd ${PYHYP_HIPPY_DIR}
 	    git checkout ${PYHYP_HIPPY_VERSION}
+
+	    # Translate using the PyPy we built earlier
 	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
 		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
@@ -242,19 +269,24 @@ HIPPY_VERSION=master	# XXX freeze
 
 do_hippy() {
 	if [ ! -f "${HIPPY_BINARY}" ]; then
-	    echo "\\n===> Download and build Hippy\\n"
+	    echo "\\n===> HippyVM\\n"
 	    cd ${WRKDIR}
 	    if [ ! -d "${HIPPY_DIR}" ]; then
 		git clone ${HIPPY_GIT_URI}
-	        wget ${RPLY_DOWNLOAD_URI}
-	        tar xfz ${RPLY_TARBALL}
-	        cp -r ${RPLY_DIR}/rply ${HIPPY_DIR}
 	    fi
+
+	    fetch_rply
+	    if [ ! -d "${HIPPY_DIR}/rply" ]; then
+		    cp -r ${RPLY_DIR}/rply ${HIPPY_DIR}
+	    fi
+
 	    cd ${HIPPY_DIR}
 	    git checkout ${HIPPY_VERSION}
 	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
+
 	    # Here we re-use RPython from the earlier PyPy build
-	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit targethippy.py || exit $?
+	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
+		    targethippy.py || exit $?
 	else
 	    echo "\\n===> Hippy already done\\n"
 	fi
