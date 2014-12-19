@@ -11,7 +11,7 @@ ANSI_MAGENTA = '\033[95m'
 ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
 
-import os, subprocess, sys, subprocess, json
+import os, subprocess, sys, subprocess, json, time
 
 VARIANT_TO_FILENAME = {
     "mono-php": "mono.php",
@@ -78,7 +78,7 @@ def dump_json(config_file, all_results):
     to_write = {"config" : config_text, "data" : all_results}
 
     with open(config.OUT_FILE, "w") as f:
-        f.write(json.dumps(to_write, indent=1))
+        f.write(json.dumps(to_write, indent=1, sort_keys=True))
 
 if __name__ == "__main__":
 
@@ -100,6 +100,8 @@ if __name__ == "__main__":
 
     errors = False
     all_results = {} # stash results here
+
+    start_time = time.time() # rough overall timer, not used for actual results
     for bmark, param in config.BENCHMARKS.items():
 
         for vm_executable, vm_info in config.VMS.items():
@@ -125,6 +127,10 @@ if __name__ == "__main__":
                 # json file mid-run. It is overwritten each time.
                 dump_json(config_file, all_results)
 
+    end_time = time.time() # rough overall timer, not used for actual results
+
     print("Done: Results dumped to %s" % config.OUT_FILE)
     if errors:
         print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
+
+    print("Completed in (roughly) %f seconds" % (end_time - start_time))
