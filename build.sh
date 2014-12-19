@@ -90,8 +90,6 @@ do_gcc() {
 	    ../${GCC_DIR}/configure --prefix=${GCC_INST_DIR}
 	    make || exit $?
 	    make install || exit $?
-	else
-	    echo "\\n===> GCC ${GCC_VERSION} already done\\n"
 	fi
 }
 
@@ -131,8 +129,6 @@ do_hhvm() {
 	    export LD_LIBRARY_PATH=${GCC_INST_DIR}/lib64/
 	    cmake . -DCMAKE_CXX_COMPILER=${GXX_BINARY} -DCMAKE_C_COMPILER=${GCC_BINARY} || exit $?
 	    make || exit $?
-	else
-	    echo "\\n===> HHVM already done\\n"
 	fi
 }
 
@@ -185,8 +181,6 @@ do_zend() {
 	    ./configure || exit $?
 	    ${MYMAKE} || exit $?
 	    # Zend PHP can run out of the build dir, so no 'make install'.
-	else
-	    echo "\\n===> PHP already done\\n"
 	fi
 }
 
@@ -270,8 +264,6 @@ do_pyhyp() {
 	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
 		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
-	else
-	    echo "\\n===> PyHyp already done\\n"
 	fi
 }
 
@@ -302,8 +294,6 @@ do_hippy() {
 	    # Here we re-use RPython from the earlier PyPy build
 	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
 		    targethippy.py || exit $?
-	else
-	    echo "\\n===> Hippy already done\\n"
 	fi
 }
 
