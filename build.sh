@@ -20,6 +20,8 @@ check_for svn
 check_for unzip
 check_for xml2-config
 check_for cmake
+check_for virtualenv
+
 which pypy > /dev/null 2> /dev/null
 if [ $? -eq 0 ]; then
     PYTHON=`which pypy`
@@ -42,6 +44,8 @@ WRKDIR=${HERE}/work
 mkdir -p ${WRKDIR}
 PATCH_DIR=${HERE}/patches
 
+# Python VMs get installed into virtualenvs. Makes installing things easy.
+VENV_DIR=${WRKDIR}/virtualenv
 
 # We use rply in two separate places...
 RPLY_VERSION=0.5.1
@@ -138,21 +142,28 @@ CPYTHON_VERSION=2.7.7
 CPYTHON_DIR=${WRKDIR}/Python-${CPYTHON_VERSION}
 CPYTHON_TARBALL=Python-${CPYTHON_VERSION}.tgz
 CPYTHON_DOWNLOAD_URI=http://python.org/ftp/python/${CPYTHON_VERSION}/${CPYTHON_TARBALL}
-CPYTHON_BINARY=${CPYTHON_DIR}/python
+CPYTHON_INST_DIR=${WRKDIR}/cpython-inst
+CPYTHON_BINARY=${CPYTHON_INST_DIR}/bin/python
+CPYTHON_VENV=${VENV_DIR}/cpython
+CPYTHON_VENV_BINARY=${CPYTHON_VENV}/bin/python
+CPYTHON_VENV_PIP=${CPYTHON_VENV}/bin/pip
 
 do_cpython() {
+    if [ ! -d "${CPYTHON_VENV}" ]; then
 	if [ ! -f "${CPYTHON_BINARY}" ]; then
 	    echo "\\n===> Download and build CPython\\n"
 	    cd ${WRKDIR}
 	    wget ${CPYTHON_DOWNLOAD_URI} || exit $?
 	    tar xfz Python-${CPYTHON_VERSION}.tgz || exit $?
 	    cd ${CPYTHON_DIR}
-	    ./configure || exit $?
+	    ./configure --prefix=${CPYTHON_INST_DIR} || exit $?
 	    ${MYMAKE} || exit $?
-	    #cp ${WRKDIR}/cpython/Lib/test/pystone.py ${WRKDIR}/benchmarks/dhrystone.py
-	else
-	    echo "\\n===> CPython already done\\n"
+	    ${MYMAKE} install || exit $?
 	fi
+
+        virtualenv --python=${CPYTHON_BINARY} ${CPYTHON_VENV}
+	${CPYTHON_VENV_PIP} install cffi || exit $?
+    fi
 }
 
 # Zend PHP
@@ -292,6 +303,8 @@ do_hippy() {
 	fi
 }
 
+# Make config file
+
 CONFIG_FILE="${HERE}/config.py"
 
 gen_config() {
@@ -307,7 +320,7 @@ gen_config() {
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# CPython
-	echo "\t'${CPYTHON_BINARY}': {" >> ${CONFIG_FILE}
+	echo "\t'${CPYTHON_VENV_BINARY}': {" >> ${CONFIG_FILE}
 	echo "\t\t'name': 'CPython'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
@@ -374,11 +387,12 @@ gen_config;
 
 # XXX separate out hippy and pyhyp clones.
 
-echo "We are done! Here are your interpreters:"
-echo "  HHVM:		${HHVM_BINARY}"
-echo "  CPYTHON:	${CPYTHON_BINARY}"
-echo "  ZEND PHP:	${ZEND_BINARY}"
-echo "  PyPy:		${PYPY_BINARY}"
-echo "  PyHyp:	${PYHYP_BINARY}"
-echo "  HippyVM:	${HIPPY_BINARY}"
+echo "\n-------------------------------------------------------"
+echo "HHVM:\n  ${HHVM_BINARY}\n"
+echo "CPython:\n  ${CPYTHON_VENV_BINARY}\n"
+echo "ZEND PHP:\n  ${ZEND_BINARY}\n"
+echo "PyPy:\n  ${PYPY_BINARY}\n"
+echo "PyHyp:\n  ${PYHYP_BINARY}\n"
+echo "HippyVM:\n ${HIPPY_BINARY}"
+echo "--------------------------------------------------------\n"
 
