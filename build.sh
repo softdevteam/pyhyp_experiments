@@ -174,7 +174,6 @@ ZEND_DOWNLOAD_URI=http://uk3.php.net/get/${ZEND_TARBALL}/from/this/mirror
 ZEND_DIR=php-${ZEND_VERSION}
 ZEND_BINARY=${WRKDIR}/${ZEND_DIR}/sapi/cli/php
 
-echo ${ZEND_BINARY}
 do_zend() {
 	if [ ! -f "${ZEND_BINARY}" ]; then
 	    echo "\\n===> Download and build Zend PHP\\n"
@@ -199,26 +198,31 @@ PYPY_DIR=${WRKDIR}/pypy-${PYPY_VERSION}-src
 PYPY_GOAL_DIR=${PYPY_DIR}/pypy/goal
 PYPY_BINARY=${PYPY_GOAL_DIR}/pypy
 PYPY_DOWNLOAD_URI=https://bitbucket.org/pypy/pypy/downloads/${PYPY_TARBALL}
+PYPY_VENV=${VENV_DIR}/pypy
+PYPY_VENV_BINARY=${PYPY_VENV}/bin/pypy
+PYPY_VENV_PIP=${PYPY_VENV}/bin/pip
 
 do_pypy() {
-	if [ ! -f "${PYPY_BINARY}" ]; then
-	    echo "\\n===> Download PyPy\\n"
-	    sleep 3
-	    cd ${WRKDIR}
-	    wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
-	    bunzip2 -c - ${PYPY_TARBALL} | tar xf -
-	    cd ${PYPY_DIR}
-	    # Patches in two parts from pypy-hippy-bridge repo
-	    patch -Ep1 < ${PATCH_DIR}/pypy.diff || exit $?
-	    patch -Ep1 < ${PATCH_DIR}/pypy2.diff || exit $?
-	    cd ${PYPY_GOAL_DIR}
-	    echo "\\n===> Build normal PyPy\\n"
-	    usession=`mktemp -d`
-	    PYPY_USESSION_DIR=${usession} ${PYTHON} ../../rpython/bin/rpython -Ojit --output=pypy || exit $?
-	    rm -rf ${usession}
-	else
-	    echo "\\n===> PyPy already done\\n"
-	fi
+	if [ ! -d ${PYPY_VENV} ]; then
+	    if [ ! -f "${PYPY_BINARY}" ]; then
+	        echo "\\n===> Download PyPy\\n"
+	        cd ${WRKDIR}
+	        wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
+	        bunzip2 -c - ${PYPY_TARBALL} | tar xf -
+	        cd ${PYPY_DIR}
+	        # Patches in two parts from pypy-hippy-bridge repo
+	        patch -Ep1 < ${PATCH_DIR}/pypy.diff || exit $?
+	        patch -Ep1 < ${PATCH_DIR}/pypy2.diff || exit $?
+	        cd ${PYPY_GOAL_DIR}
+	        echo "\\n===> Build normal PyPy\\n"
+	        usession=`mktemp -d`
+	        PYPY_USESSION_DIR=${usession} ${PYTHON} ../../rpython/bin/rpython -Ojit --output=pypy || exit $?
+	        rm -rf ${usession}
+	    fi
+
+        virtualenv --python=${PYPY_BINARY} ${PYPY_VENV} || exit $?
+	${PYPY_VENV_PIP} install rply || exit $?
+    fi
 }
 
 # PyHyP
@@ -332,7 +336,7 @@ gen_config() {
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# PyPy
-	echo "\t'${PYPY_BINARY}': {" >> ${CONFIG_FILE}
+	echo "\t'${PYPY_VENV_BINARY}': {" >> ${CONFIG_FILE}
 	echo "\t\t'name': 'PyPy'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
@@ -391,7 +395,7 @@ echo "\n-------------------------------------------------------"
 echo "HHVM:\n  ${HHVM_BINARY}\n"
 echo "CPython:\n  ${CPYTHON_VENV_BINARY}\n"
 echo "ZEND PHP:\n  ${ZEND_BINARY}\n"
-echo "PyPy:\n  ${PYPY_BINARY}\n"
+echo "PyPy:\n  ${PYPY_VENV_BINARY}\n"
 echo "PyHyp:\n  ${PYHYP_BINARY}\n"
 echo "HippyVM:\n ${HIPPY_BINARY}"
 echo "--------------------------------------------------------\n"
