@@ -325,10 +325,6 @@ gen_config() {
 
 	# Output
 	echo "OUT_FILE = 'output.json'" >> ${CONFIG_FILE}
-	sync; sync;
-
-	# check syntax
-	${CPYTHON_BINARY} -c 'import config'
 }
 
 #
