@@ -47,22 +47,6 @@ PATCH_DIR=${HERE}/patches
 # Python VMs get installed into virtualenvs. Makes installing things easy.
 VENV_DIR=${WRKDIR}/virtualenv
 
-# We use rply in two separate places...
-RPLY_VERSION=0.5.1
-RPLY_TARBALL=rply-0.5.1.tar.gz
-RPLY_DOWNLOAD_URI=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
-RPLY_DIR=${WRKDIR}/rply-${RPLY_VERSION}
-
-fetch_rply() {
-    if [ ! -e ${WRKDIR}/${RPLY_TARBALL} ]; then
-	cd ${WRKDIR}
-	wget ${RPLY_DOWNLOAD_URI}
-    fi
-    if [ ! -d ${RPLY_DIR} ]; then
-	tar xfz ${RPLY_TARBALL}
-    fi
-}
-
 # GCC
 GCC_VERSION_MAJOR=4.8
 GCC_VERSION=${GCC_VERSION_MAJOR}.3
@@ -245,11 +229,6 @@ do_pyhyp() {
 		git clone ${PYHYP_HIPPY_GIT_URI}
 	    fi
 
-	    fetch_rply
-	    if [ ! -d "${PYHYP_HIPPY_DIR}/rply" ]; then
-	        cp -r ${RPLY_DIR}/rply ${PYHYP_HIPPY_DIR};
-            fi
-
 	    # Checkout correct versions
 	    cd ${PYHYP_PYPY_DIR}
 	    hg up ${PYHYP_PYPY_VERSION}
@@ -257,7 +236,7 @@ do_pyhyp() {
 	    git checkout ${PYHYP_HIPPY_VERSION}
 
 	    # Translate using the PyPy we built earlier
-	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
+	    ${PYPY_VENV_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
 		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
 	fi
@@ -278,17 +257,12 @@ do_hippy() {
 		git clone ${HIPPY_GIT_URI}
 	    fi
 
-	    fetch_rply
-	    if [ ! -d "${HIPPY_DIR}/rply" ]; then
-		    cp -r ${RPLY_DIR}/rply ${HIPPY_DIR}
-	    fi
-
 	    cd ${HIPPY_DIR}
 	    git checkout ${HIPPY_VERSION}
 	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
 
 	    # Here we re-use RPython from the earlier PyPy build
-	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
+	    ${PYPY_VENV_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
 		    targethippy.py || exit $?
 	fi
 }
@@ -351,6 +325,7 @@ gen_config() {
 
 	# Output
 	echo "OUT_FILE = 'output.json'" >> ${CONFIG_FILE}
+	sync; sync;
 
 	# check syntax
 	${CPYTHON_BINARY} -c 'import config'
