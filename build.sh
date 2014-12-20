@@ -93,7 +93,7 @@ do_hhvm() {
 	    cd hhvm
 	    git checkout ${HHVM_VERSION}
 	    git submodule update --init --recursive
-	    patch -Ep1 < ${PATCH_DIR}/hhvm.diff
+	    patch -Ep1 < ${PATCH_DIR}/hhvm.diff || exit $?
 	    cd ..
 
 	    export CMAKE_PREFIX_PATH=`pwd`/glog
@@ -158,7 +158,7 @@ do_zend() {
 	    wget -O ${ZEND_TARBALL} ${ZEND_DOWNLOAD_URI} || exit $?
 	    bunzip2 -c - ${ZEND_TARBALL} | tar xf - || exit $?
 	    cd ${ZEND_DIR}
-	    patch -Ep1 < ${PATCH_DIR}/zend.diff
+	    patch -Ep1 < ${PATCH_DIR}/zend.diff || exit $?
 	    ./configure || exit $?
 	    ${MYMAKE} || exit $?
 	    # Zend PHP can run out of the build dir, so no 'make install'.
