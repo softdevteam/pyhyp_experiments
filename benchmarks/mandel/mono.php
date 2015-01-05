@@ -1,7 +1,14 @@
-<?php{
-function mandelPHP() {
-  $w1=50;
-  $h1=150;
+<?php
+{
+
+define("H1", 150);
+
+# $n is the number of lines
+function mandelPHP($n) {
+  $lines = array();
+
+  $w1=$n;
+  $h1=H1;
   $recen=-0.45;
   $imcen=0.0;
   $r=0.7;
@@ -11,6 +18,7 @@ function mandelPHP() {
   $w2=40;
   $h2=12;
   for ($y=0 ; $y<=$w1; $y=$y+1) {
+    $line = array();
     $imc=$s*($y-$h2)+$imcen;
     for ($x=0 ; $x<=$h1; $x=$x+1) {
       $rec=$s*($x-$w2)+$recen;
@@ -27,17 +35,24 @@ function mandelPHP() {
         $color=$color-1;
       }
       if ( $color==0 ) {
-        print "_";
+        $line[] = "_";
       } else {
-        print "#";
+        $line[] = "#";
       }
     }
-    print "\n";
-    //flush();
+    $lines[] = join("", $line);
   }
+  $out = join("\n", $lines) . "\n";
+  return $out;
 }
 
 function run_iter($n){
-    mandelPHP();
+    $out = mandelPHP($n);
+    assert(strlen($out) == (H1 + 2) * ($n + 1));
+    //echo $out;
 }
-}?>
+
+run_iter(50);
+
+}
+?>
