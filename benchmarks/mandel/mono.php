@@ -1,14 +1,16 @@
 <?php
 {
 
-define("H1", 150);
+$H1 = 150;
 
 # $n is the number of lines
 function mandelPHP($n) {
+  global $H1;
+
   $lines = array();
 
   $w1=$n;
-  $h1=H1;
+  $h1=$H1;
   $recen=-0.45;
   $imcen=0.0;
   $r=0.7;
@@ -47,8 +49,9 @@ function mandelPHP($n) {
 }
 
 function run_iter($n){
+    global $H1;
     $out = mandelPHP($n);
-    assert(strlen($out) == (H1 + 2) * ($n + 1));
+    assert(strlen($out) == ($H1 + 2) * ($n + 1));
     //echo $out;
 }
 
