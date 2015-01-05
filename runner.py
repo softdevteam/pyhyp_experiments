@@ -106,16 +106,22 @@ if __name__ == "__main__":
 
         for vm_executable, vm_info in config.VMS.items():
             vm_name = vm_info["name"]
+            n_iterations = vm_info["n_iterations"]
 
             for variant in vm_info["variants"]:
 
                 print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
                         (ANSI_CYAN, bmark, param, variant,
                          vm_name, ANSI_RESET))
+                print("%s%s executions, %s iterations%s" % (
+                    ANSI_CYAN,
+                    config.N_EXECUTIONS,
+                    n_iterations,
+                    ANSI_RESET))
 
                 bmark_path = os.path.join("benchmarks", bmark)
                 exec_results = run_exec(vm_executable, bmark_path, variant,
-                        config.N_EXECUTIONS, config.N_ITERATIONS, param)
+                        config.N_EXECUTIONS, n_iterations, param)
 
                 if not exec_results:
                     errors = True
