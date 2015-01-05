@@ -54,7 +54,10 @@ function Fannkuch_run($n){
 }
 
 function run_iter($n) {
-	Fannkuch_run($n);
+	$res = Fannkuch_run($n);
+	#echo "$res\n";
+
 }
+
 }
 ?>
