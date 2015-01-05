@@ -106,7 +106,7 @@ do_hhvm() {
 	    make install || exit $?
 	    cd ${WRKDIR}
 
-	    cd hhvm 
+	    cd hhvm
 	    export LD_LIBRARY_PATH=${GCC_INST_DIR}/lib64/
 	    cmake . -DCMAKE_CXX_COMPILER=${GXX_BINARY} -DCMAKE_C_COMPILER=${GCC_BINARY} || exit $?
 	    make || exit $?
@@ -328,7 +328,7 @@ gen_config() {
 	echo "}\n" >> ${CONFIG_FILE}
 
 	# Repetitions
-	echo "N_EXECUTIONS = 1" >> ${CONFIG_FILE}	
+	echo "N_EXECUTIONS = 1" >> ${CONFIG_FILE}
 
 	# Output
 	echo "OUT_FILE = 'output.json'" >> ${CONFIG_FILE}
