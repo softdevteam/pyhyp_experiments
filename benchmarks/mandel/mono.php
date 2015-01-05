@@ -52,7 +52,5 @@ function run_iter($n){
     //echo $out;
 }
 
-run_iter(50);
-
 }
 ?>
