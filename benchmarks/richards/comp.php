@@ -127,14 +127,14 @@ embed_py_meth("Task", "def qpkt(self, pkt):\n        t = self.findtcb(pkt.ident)
 embed_py_meth("Task", "def release(self, i):\n        t = self.findtcb(i)\n        t.task_holding = False\n        if t.priority > self.priority:\n            return t\n        else:\n            return self");
 embed_py_meth("Task", "def hold(self):\n        taskWorkArea.holdCount += 1\n        self.task_holding = True\n        return self.link");
 embed_py_meth("Task", "def waitTask(self):\n        self.task_waiting = True\n        return self");
-embed_py_meth("Task", "def runTasks(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetpending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
+embed_py_meth("Task", "def runTasks(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetPending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
 embed_py_meth("Task", "def addPacket(self, p, old):\n        if self.input is None:\n            self.input = p\n            self.packet_pending = True\n            if self.priority > old.priority:\n                return self\n        else:\n            p.append_to(self.input)\n        return old");
 embed_py_meth("Task", "def __construct(self, i, p, w, initialState, r):\n        self.link = taskWorkArea.taskList\n        self.ident = i\n        self.priority = p\n        self.input = w\n        \n        self.packet_pending = initialState.isPacketPending()\n        self.task_waiting = initialState.isTaskWaiting()\n        self.task_holding = initialState.isTaskHolding()\n        \n        self.handle = r\n        \n        taskWorkArea.taskList = self\n        taskWorkArea.taskTab[i] = self");
 
 class DeviceTask extends Task {
     
 }
-embed_py_meth("DeviceTask", "def fn(self, pkt, r):\n        d = r\n        if not isinstance(d, DeviceTaskRec):\n            raise Exception(\"not a DeviceTaskRec\")\n        if not pkt:\n            pkt = d.pending\n            if pkt is None:\n                return self.waittask()\n            d.pending = None\n            return self.qpkt(pkt)\n        d.pending = pkt\n        if TRACING:\n            trace(pkt.datum)\n        return self.hold()");
+embed_py_meth("DeviceTask", "def fn(self, pkt, r):\n        d = r\n        if not isinstance(d, DeviceTaskRec):\n            raise Exception(\"not a DeviceTaskRec\")\n        if not pkt:\n            pkt = d.pending\n            if pkt is None:\n                return self.waitTask()\n            else:\n                d.pending = None\n                return self.qpkt(pkt)\n        else:\n            d.pending = pkt\n            if TRACING:\n                trace(pkt.datum)\n            return self.hold()");
 
 class HandlerTask extends Task {
     
@@ -144,7 +144,7 @@ embed_py_meth("HandlerTask", "def fn(self, pkt, r):\n        h = r\n        if n
 class IdleTask extends Task {
     
 }
-embed_py_meth("IdleTask", "def fn(self, pkt, r):\n        i = r\n        if not isinstance(i, IdleTaskRec):\n            raise Exception(\"not an IdleTaskRec\")\n        i.count -= 1\n        if i.count == 0:\n            return self.hold()\n        elif (i.control & 1) == 0:\n            i.control = i.control / 2\n            return self.release(I_DEVA)\n        i.control = (i.control / 2) ^ 53256 # 0xd008\n        return self.release(I_DEVB)");
+embed_py_meth("IdleTask", "def fn(self, pkt, r):\n        i = r\n        if not isinstance(i, IdleTaskRec):\n            raise Exception(\"not an IdleTaskRec\")\n        i.count -= 1\n        if i.count == 0:\n            return self.hold()\n        elif (i.control & 1) == 0:\n            i.control = i.control / 2\n            return self.release(I_DEVA)\n        else:\n            i.control = (i.control / 2) ^ 53256 # 0xd008\n            return self.release(I_DEVB)");
 
 class WorkTask extends Task {
     
@@ -164,7 +164,7 @@ class Richards {
 
     
 }
-embed_py_meth("Richards", "def run(self, iterations):\n        for i in xrange(0, iterations):\n            taskWorkArea.reset()\n            task_state = TaskState()\n            IdleTask(I_IDLE, 1, 10000, task_state.running(), IdleTaskRec())\n            \n            wkq = Packet(None, 0, K_WORK)\n            wkq = Packet(wkq, 0, K_WORK)\n            task_state = TaskState()\n            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkTaskRec())\n            \n            wkq = Packet(None, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = Packet(None, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = None\n            \n            task_state = TaskState()\n            DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec())\n            task_state = TaskState()\n            DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec())\n            \n            schedule()\n            \n            if not (taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246):\n                return False\n        return True");
+embed_py_meth("Richards", "def run(self, iterations):\n        for i in xrange(0, iterations):\n            taskWorkArea.reset()\n            \n            task_state = TaskState()\n            IdleTask(I_IDLE, 1, 10000, task_state.running(), IdleTaskRec())\n            \n            wkq = Packet(None, 0, K_WORK)\n            wkq = Packet(wkq, 0, K_WORK)\n            task_state = TaskState()\n            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkTaskRec())\n            \n            wkq = Packet(None, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = Packet(None, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = None\n            \n            task_state = TaskState()\n            DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec())\n            task_state = TaskState()\n            DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec())\n            \n            schedule()\n            \n            if not (taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246):\n                return False\n        return True");
 
 $taskWorkArea = NULL;
 
@@ -175,4 +175,6 @@ function run_iter($n) {
     $res = $r->run($n);
     assert($res);
 }
+
+run_iter(100);
 }?>

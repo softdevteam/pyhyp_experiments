@@ -102,13 +102,13 @@ class TaskState(object):
         self.task_waiting = False
         self.task_holding = False
         return self
-        
+
     def waitingWithPacket(self):
         self.packet_pending = True
         self.task_waiting = True
         self.task_holding = False
         return self
-        
+
     def isPacketPending(self):
         return self.packet_pending
 
@@ -174,10 +174,6 @@ class Task(TaskState):
         taskWorkArea.taskList = self
         taskWorkArea.taskTab[i] = self
 
-    def fn(self,pkt,r):
-        raise NotImplementedError
-
-
     def addPacket(self,p,old):
         if self.input is None:
             self.input = p
@@ -236,14 +232,12 @@ class Task(TaskState):
         if t is None:
             raise Exception("Bad task id %d" % id)
         return t
-            
+
 
 # DeviceTask
 
 
 class DeviceTask(Task):
-    def __init__(self,i,p,w,s,r):
-        Task.__init__(self,i,p,w,s,r)
 
     def fn(self,pkt,r):
         d = r
@@ -295,8 +289,6 @@ class HandlerTask(Task):
 
 
 class IdleTask(Task):
-    def __init__(self,i,p,w,s,r):
-        Task.__init__(self,i,0,None,s,r)
 
     def fn(self,pkt,r):
         i = r
@@ -310,12 +302,9 @@ class IdleTask(Task):
         else:
             i.control = i.control/2 ^ 0xd008
             return self.release(I_DEVB)
-            
 
 # WorkTask
 
-
-A = ord('A')
 
 class WorkTask(Task):
     def __init__(self,i,p,w,s,r):
@@ -340,12 +329,9 @@ class WorkTask(Task):
             w.count += 1
             if w.count > 26:
                 w.count = 1
-            pkt.data[i] = A + w.count - 1
+            pkt.data[i] = ord("A") + w.count - 1
 
         return self.qpkt(pkt)
-
-import time
-
 
 
 def schedule():
@@ -368,26 +354,27 @@ class Richards(object):
         for i in xrange(iterations):
             taskWorkArea.reset()
 
-            IdleTask(I_IDLE, 1, 10000, TaskState().running(), IdleTaskRec())
+            task_state = TaskState()
+            IdleTask(I_IDLE, 1, 10000, task_state.running(), IdleTaskRec())
 
             wkq = Packet(None, 0, K_WORK)
             wkq = Packet(wkq , 0, K_WORK)
-            WorkTask(I_WORK, 1000, wkq, TaskState().waitingWithPacket(), WorkerTaskRec())
+            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkerTaskRec())
 
             wkq = Packet(None, I_DEVA, K_DEV)
             wkq = Packet(wkq , I_DEVA, K_DEV)
             wkq = Packet(wkq , I_DEVA, K_DEV)
-            HandlerTask(I_HANDLERA, 2000, wkq, TaskState().waitingWithPacket(), HandlerTaskRec())
+            HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())
 
             wkq = Packet(None, I_DEVB, K_DEV)
             wkq = Packet(wkq , I_DEVB, K_DEV)
             wkq = Packet(wkq , I_DEVB, K_DEV)
-            HandlerTask(I_HANDLERB, 3000, wkq, TaskState().waitingWithPacket(), HandlerTaskRec())
+            HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())
 
             wkq = None;
-            DeviceTask(I_DEVA, 4000, wkq, TaskState().waiting(), DeviceTaskRec());
-            DeviceTask(I_DEVB, 5000, wkq, TaskState().waiting(), DeviceTaskRec());
-            
+            DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec());
+            DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec());
+
             schedule()
 
             if taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246:
@@ -397,9 +384,9 @@ class Richards(object):
 
         return True
 
-def run_iter(param):
+def run_iter(n):
     global taskWorkArea;
-    taskWorkArea = new TaskWorkArea();
-    r = Richards();
-    res = r.run(param);
-    assert($res);
+    taskWorkArea = TaskWorkArea();
+    r = Richards()
+    res = r.run(n)
+    assert(res)
