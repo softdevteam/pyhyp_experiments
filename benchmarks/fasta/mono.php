@@ -1,4 +1,6 @@
-<?php{
+<?php
+{
+
 define ('IM', 139968);
 define ('IA', 3877);
 define ('IC', 29573);
@@ -40,6 +42,7 @@ function makeRandomFasta($id, $desc, &$genelist, $n) {
 			$m = LINE_LENGTH;
 		for ($i=0; $i < $m; $i++) $pick .= selectRandom($genelist);
 		$pick .= "\n";
+		echo $pick;
 	}
 }
 
@@ -48,9 +51,12 @@ function makeRepeatFasta($id, $desc, $s, $n) {
 	while ($n > 0) {
 		if ($n < $lineLength) $lineLength = $n;
 		if ($i + $lineLength < $sLength){
+			echo substr($s,$i,$lineLength)."\n";
 			$i += $lineLength;
 		} else {
+			echo substr($s,$i);
 			$i = $lineLength - ($sLength - $i);
+			echo substr($s,0,$i)."\n";
 		}
 		$n -= $lineLength;
 	}
@@ -102,12 +108,8 @@ function fasta($n) {
 }
 
 function run_iter($n){
-    $all = array();
-    for ($i = 0; $i < 10; $i++) {
-        $start = microtime(true);
-        fasta(100000);
-	       $all[] = microtime(true) - $start;
-    }
+	fasta($n);
 }
 
-}?>
+}
+?>
