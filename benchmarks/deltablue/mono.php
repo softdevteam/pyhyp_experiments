@@ -24,6 +24,10 @@
 // others have been modified more aggresively to make it feel
 // more like a JavaScript program.
 
+function alert($s) {
+  throw new Exception("Alert called with argument: $s");
+}
+
 // Global variable holding the current planner.
 $planner = null;
 
