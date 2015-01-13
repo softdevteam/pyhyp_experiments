@@ -27,58 +27,29 @@
 // Global variable holding the current planner.
 $planner = null;
 
+
+$__pyhyp__alert = embed_py_func("def __pyhyp__alert(s):\n    raise Exception(\"Alert called with argument %s\" % s)");
+function alert($s){
+    global $__pyhyp__alert;
+    return $__pyhyp__alert( $s);
+}
+
 class OrderedCollection {
   public $elms; // was private before
-
-  function asd__construct() {
-    $this->elms = array();
-  }
+  
+  
   
   
 
-  function asdgadd($elm) {
-    array_push($this->elms, $elm);
-  }
+  
   
   
 
-  function asat($index) {
-    return $this->elms[$index];
-  }
   
-  
-
-  function asdsize() {
-    return count($this->elms);
-  }
-  
-  
-
-  function asdremoveFirst() {
-    return array_pop($this->elms);
-  }
-
-  
-
-  function asremove($elm) {
-    $index = 0;
-    $skipped = 0;
-    for ($i = 0; $i < count($this->elms); $i++) {
-      $value = $this->elms[$i];
-      if ($value != $elm) {
-        $this->elms[$index] = $value;
-        $index++;
-      } else {
-        $skipped++;
-      }
-    }
-    for ($i = 0; $i < $skipped; $i++)
-      array_pop($this->elms);
-  }
   
   
 }
-embed_py_meth("OrderedCollection", "def remove(self, elm):\n    index = 0\n    skipped = 0\n    for i in range(0, len(self.elms)):\n        value = self.elms[i]\n        if value != elm:\n            self.elms[index] = value\n            index += 1\n        else:\n            skipped += 1\n            \n    for i in range(0, skipped):\n        self.elms.as_list().pop()");
+embed_py_meth("OrderedCollection", "def remove(self, elm):\n    index = 0\n    skipped = 0\n    for i in xrange(0, len(self.elms)):\n        value = self.elms[i]\n        if value != elm:\n            self.elms[index] = value\n            index += 1\n        else:\n            skipped += 1\n            \n    for i in xrange(0, skipped):\n        self.elms.as_list().pop()");
 embed_py_meth("OrderedCollection", "def removeFirst(self):\n    return self.elms.as_list().pop()");
 embed_py_meth("OrderedCollection", "def size(self):\n    return len(self.elms)");
 embed_py_meth("OrderedCollection", "def at(self, index):\n    return self.elms[index]");
@@ -95,44 +66,56 @@ class Strength {
   private static $WEAK_DEFAULT   = null;
   private static $WEAKEST      = null;
 
-  public static function Required()
+
+  public static function OLD_Required()
   {
     if (!Strength::$REQUIRED)
       Strength::$REQUIRED = new Strength(0, "required");
     return Strength::$REQUIRED;
   }
 
-  public static function StrongPreferred()
+
+  public static function OLD_StrongPreferred()
   {
     if (!Strength::$STRONG_PREFERRED)
       Strength::$STRONG_PREFERRED = new Strength(1, "strongPreferred");
     return Strength::$STRONG_PREFERRED;
   }
-  public static function Preferred()
+  
+
+  public static function OLD_Preferred()
   {
     if (!Strength::$PREFERRED)
       Strength::$PREFERRED = new Strength(2, "preferred");
     return Strength::$PREFERRED;
   }
-  public static function StrongDefault()
+  
+
+  public static function OLD_StrongDefault()
   {
     if (!Strength::$STRONG_DEFAULT)
       Strength::$STRONG_DEFAULT = new Strength(3, "strongDefault");
     return Strength::$STRONG_DEFAULT;
   }
-  public static function Normal()
+  
+
+  public static function OLD_Normal()
   {
     if (!Strength::$NORMAL)
       Strength::$NORMAL = new Strength(4, "normal");
     return Strength::$NORMAL;
   }
-  public static function WeakDefault()
+  
+
+  public static function OLD_WeakDefault()
   {
     if (!Strength::$WEAK_DEFAULT)
       Strength::$WEAK_DEFAULT = new Strength(5, "weakDefault");
     return Strength::$WEAK_DEFAULT;
   }
-  public static function Weakest()
+  
+
+  public static function OLD_Weakest()
   {
     if (!Strength::$WEAKEST)
       Strength::$WEAKEST = new Strength(6, "weakest");
@@ -141,11 +124,6 @@ class Strength {
 
   public $strengthValue; // was private before
   public $name;
-
-  function as__construct($strengthValue, $name) {
-    $this->strengthValue = $strengthValue;
-    $this->name = $name;
-  }
   
   
 
@@ -177,23 +155,19 @@ class Strength {
   }
 }
 embed_py_meth("Strength", "def __construct(self, strengthValue, name):\n    self.strengthValue = strengthValue\n    self.name = name");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Weakest():\n    if not Strength.WEAKEST:\n        Strength.WEAKEST = Strength(6, \"weakest\")\n    return Strength.WEAKEST");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef WeakDefault():\n    if not Strength.WEAK_DEFAULT:\n        Strength.WEAK_DEFAULT = Strength(5, \"weakDefault\")\n    return Strength.WEAK_DEFAULT");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Normal():\n    if not Strength.NORMAL:\n        Strength.NORMAL = Strength(4, \"normal\")\n    return Strength.NORMAL");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef StrongDefault():\n    if not Strength.STRONG_DEFAULT:\n        Strength.STRONG_DEFAULT = Strength(3, \"strongDefault\")\n    return Strength.STRONG_DEFAULT");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Preferred():\n    if not Strength.PREFERRED:\n        Strength.PREFERRED = Strength(2, \"preferred\")\n    return Strength.PREFERRED;");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef StrongPreferred():\n    if not Strength.STRONG_PREFERRED:\n        Strength.STRONG_PREFERRED = Strength(1, \"strongPreferred\")\n    return Strength.STRONG_PREFERRED;");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Required():\n  if not Strength.REQUIRED:\n    Strength.REQUIRED = Strength(0, \"required\");\n  return Strength.REQUIRED");
 
 
 class Constraint {
   public $strength;
 
-  function asda__construct($strength) {
-    $this->strength = $strength;
-  }
-
   
-
-  function asdaddConstraint() {
-    global $planner;
-
-    $this->addToGraph();
-    $planner->incrementalAdd($this);
-  }
   
   
 
@@ -221,21 +195,7 @@ class Constraint {
   
   
 
-  function olddestroyConstraint() {
-    global $planner;
-
-    if ($this->isSatisfied())
-      $planner->incrementalRemove($this);
-    else
-      $this->removeFromGraph();
-  }
   
-  
-
-
-  function oldisInput() {
-    return false;
-  }
   
   
 }
@@ -251,21 +211,8 @@ embed_py_meth("Constraint", "def __construct(self, strength):\n    self.strength
 class UnaryConstraint extends Constraint {
   public $myOutput;
   public $satisfied;
-
-  function ss__construct($v, $strength) {
-    parent::__construct($strength);
-    $this->myOutput = $v;
-    $this->satisfied = false;
-    $this->addConstraint();
-  }
   
   
-
-
-  function sdaddToGraph() {
-    $this->myOutput->addConstraint($this);
-    $this->satisfied = false;
-  }
   
   
 
@@ -276,53 +223,18 @@ class UnaryConstraint extends Constraint {
         $this->strength,
         $this->myOutput->walkStrength);
   }
-
-  function asdisSatisfied() {
-    return $this->satisfied;
-  }
   
   
 
-  function asdmarkInputs($mark) {
-    // has no inputs
-  }
+  
 
   
 
-
-  function asoutput() {
-    return $this->myOutput;
-  }
+  
 
   
 
-
-  function oldrecalculate() {
-    $this->myOutput->walkStrength = $this->strength;
-    $this->myOutput->stay = !$this->isInput();
-    if ($this->myOutput->stay)
-      $this->execute(); // Stay optimization
-  }
-
   
-
-  function OLDmarkUnsatisfied() {
-    $this->satisfied = false;
-  }
-
-  
-
-  function asdinputsKnown() {
-    return true;
-  }
-
-  
-
-  function asdremoveFromGraph() {
-    if ($this->myOutput != null)
-      $this->myOutput->removeConstraint($this);
-    $this->satisfied = false;
-  }
 
     
 
@@ -337,19 +249,9 @@ embed_py_meth("UnaryConstraint", "def isSatisfied(self):\n    return self.satisf
 embed_py_meth("UnaryConstraint", "def addToGraph(self):\n    self.myOutput.addConstraint(self)\n    self.satisfied = False");
 embed_py_meth("UnaryConstraint", "def __construct(self, v, strength):\n    Constraint.__construct(self, strength)\n    self.myOutput = v\n    self.satisfied = False\n    self.addConstraint()");
 
-
-
-
 class StayConstraint extends UnaryConstraint {
-  function OLD__construct($v, $str) {
-    parent::__construct($v, $str);
-  }
   
   
-
-  function asdexecute() {
-    // Stay constraints do nothing
-  }
   
   
 }
@@ -357,22 +259,11 @@ embed_py_meth("StayConstraint", "def execute(self):\n    pass");
 embed_py_meth("StayConstraint", "def __construct(self, v, str):\n    UnaryConstraint.__construct(self, v, str)");
 
 class EditConstraint extends UnaryConstraint {
-  function OLD__construct($v, $str) {
-    parent::__construct($v, $str);
-  }
 
   
 
-  function OLDisInput() {
-    return true;
-  }
-  
   
 
-  function OLDexecute() {
-    // Edit constraints do nothing
-  }
-  
   
 }
 embed_py_meth("EditConstraint", "def execute(self):\n    pass");
@@ -442,11 +333,6 @@ class BinaryConstraint extends Constraint {
     return $this->direction != Direction::NONE;
   }
 
-
-  function OLDmarkInputs($mark) {
-    $this->input()->mark = $mark;
-  }
-  
   
 
   function input() {
@@ -474,11 +360,6 @@ class BinaryConstraint extends Constraint {
 
   function markUnsatisfied() {
     $this->direction = Direction::NONE;
-  }
-
-  function OLDinputsKnown($mark) {
-    $i = $this->input();
-    return $i->mark == $mark || $i->stay || $i->determinedBy == null;
   }
 
   
@@ -527,12 +408,6 @@ class ScaleConstraint extends BinaryConstraint {
     if ($this->offset != null)
       $this->offset->removeConstraint($this);
   }
-
-  function OLDmarkInputs($mark) {
-    parent::markInputs($mark);
-    $this->scale->mark = $mark;
-    $this->offset->mark = $mark;
-  }
   
   
 
@@ -564,10 +439,6 @@ class EqualityConstraint extends BinaryConstraint {
   function __construct($var1, $var2, $strength) {
     parent::__construct($var1, $var2, $strength);
   }
-
-  function OLDexecute() {
-    $this->output()->value = $this->input()->value;
-  }
   
   
 
@@ -592,18 +463,8 @@ class Variable {
     $this->stay = true;
     $this->name = $name;
   }
-
-  function OLDaddConstraint($c) {
-    $this->constraints->add($c);
-  }
   
   
-
-  function OLDremoveConstraint($c) {
-    $this->constraints->remove($c);
-    if ($this->determinedBy == $c)
-      $this->determinedBy = null;
-  }
 
     
 
@@ -612,18 +473,8 @@ embed_py_meth("Variable", "def removeConstraint(self, c):\n    self.constraints.
 embed_py_meth("Variable", "def addConstraint(self, c):\n    self.constraints.add(c)");
 
 class Planner {
-  function OLD__construct() {
-    $this->currentMark = 0;
-  }
   
   
-
-  function OLDincrementalAdd($c) {
-    $mark = $this->newMark();
-    $overridden = $c->satisfy($mark);
-    while ($overridden != null)
-      $overridden = $overridden->satisfy($mark);
-  }
   
   
 
@@ -643,56 +494,11 @@ class Planner {
     } while ($strength != Strength::Weakest());
   }
 
-  function OLDnewMark() {
-    return ++$this->currentMark;
-  }
-
-  
-
-  function OLDmakePlan($sources) {
-    $mark = $this->newMark();
-    $plan = new Plan();
-    $todo = $sources;
-    while ($todo->size() > 0) {
-      $c = $todo->removeFirst();
-      if ($c->output()->mark != $mark && $c->inputsKnown($mark)) {
-        $plan->addConstraint($c);
-        $c->output()->mark = $mark;
-        $this->addConstraintsConsumingTo($c->output(), $todo);
-      }
-    }
-    return $plan;
-  }
   
   
-
-  function OLDextractPlanFromConstraints($constraints) {
-    $sources = new OrderedCollection();
-    for ($i = 0; $i < $constraints->size(); $i++) {
-      $c = $constraints->at($i);
-      // not in plan already and eligible for inclusion
-      if ($c->isInput() && $c->isSatisfied())
-        $sources->add($c);
-    }
-    return $this->makePlan($sources);
-  }
   
   
-
-  function OLDaddPropagate($c, $mark) {
-    $todo = new OrderedCollection();
-    $todo->add($c);
-    while ($todo->size() > 0) {
-      $d = $todo->removeFirst();
-      if ($d->output()->mark == $mark) {
-        $this->incrementalRemove($c);
-        return false;
-      }
-      $d->recalculate();
-      $this->addConstraintsConsumingTo($d->output(), $todo);
-    }
-    return true;
-  }
+  
 
   
 
@@ -722,16 +528,6 @@ class Planner {
     }
     return $unsatisfied;
   }
-
-  function OLDaddConstraintsConsumingTo($v, $coll) {
-    $determining = $v->determinedBy;
-    $cc = $v->constraints;
-    for ($i = 0; $i < $cc->size(); $i++) {
-      $c = $cc->at($i);
-      if ($c != $determining && $c->isSatisfied())
-        $coll->add($c);
-    }
-  }
   
   
 
@@ -747,36 +543,13 @@ embed_py_meth("Planner", "def __construct(self):\n    self.currentMark = 0");
 class Plan {
   public $v; // XXX formerly private
 
-  function OLD__construct() {
-    $this->v = new OrderedCollection();
-  }
-  
   
 
-  function OLDaddConstraint($c) {
-    $this->v->add($c);
-  }
-
-  
-
-  function OLDsize() {
-    return $this->v->size();
-  }
   
   
-
-  function constraintAt($index) {
-    return $this->v->at($index);
-  }
   
   
-
-  function OLDexecute() {
-    for ($i = 0; $i < $this->size(); $i++) {
-      $c = $this->constraintAt($i);
-      $c->execute();
-    }
-  }
+  
  
     
 
@@ -871,9 +644,10 @@ function change($v, $newValue) {
   $edit->destroyConstraint();
 }
 
-function run_iter($n){
+function run_iter($n) {
   chainTest($n);
   projectionTest($n);
 }
 
+run_iter(100);
 }?>
