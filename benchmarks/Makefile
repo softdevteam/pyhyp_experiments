@@ -13,4 +13,3 @@ ECO=			eco
 	${ECO} -e $< $@
 
 all: ${COMPOSED_OUTPUTS}
-	echo ${COMPOSED_OUTPUTS}
