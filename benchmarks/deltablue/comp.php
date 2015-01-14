@@ -67,95 +67,40 @@ class Strength {
   private static $WEAKEST      = null;
 
 
-  public static function OLD_Required()
-  {
-    if (!Strength::$REQUIRED)
-      Strength::$REQUIRED = new Strength(0, "required");
-    return Strength::$REQUIRED;
-  }
 
 
-  public static function OLD_StrongPreferred()
-  {
-    if (!Strength::$STRONG_PREFERRED)
-      Strength::$STRONG_PREFERRED = new Strength(1, "strongPreferred");
-    return Strength::$STRONG_PREFERRED;
-  }
   
 
-  public static function OLD_Preferred()
-  {
-    if (!Strength::$PREFERRED)
-      Strength::$PREFERRED = new Strength(2, "preferred");
-    return Strength::$PREFERRED;
-  }
   
 
-  public static function OLD_StrongDefault()
-  {
-    if (!Strength::$STRONG_DEFAULT)
-      Strength::$STRONG_DEFAULT = new Strength(3, "strongDefault");
-    return Strength::$STRONG_DEFAULT;
-  }
   
 
-  public static function OLD_Normal()
-  {
-    if (!Strength::$NORMAL)
-      Strength::$NORMAL = new Strength(4, "normal");
-    return Strength::$NORMAL;
-  }
   
 
-  public static function OLD_WeakDefault()
-  {
-    if (!Strength::$WEAK_DEFAULT)
-      Strength::$WEAK_DEFAULT = new Strength(5, "weakDefault");
-    return Strength::$WEAK_DEFAULT;
-  }
   
 
-  public static function OLD_Weakest()
-  {
-    if (!Strength::$WEAKEST)
-      Strength::$WEAKEST = new Strength(6, "weakest");
-    return Strength::$WEAKEST;
-  }
 
   public $strengthValue; // was private before
   public $name;
   
   
 
-  public static function stronger($s1, $s2) {
-    return $s1->strengthValue < $s2->strengthValue;
-  }
 
-  public static function weaker($s1, $s2) {
-    return $s1->strengthValue > $s2->strengthValue;
-  }
 
-  public static function weakestOf($s1, $s2) {
-    return Strength::weaker($s1, $s2) ? $s1 : $s2;
-  }
 
-  public static function strongest($s1, $s2) {
-    return Strength::stronger($s1, $s2) ? $s1 : $s2;
-  }
 
-  function nextWeaker() {
-    switch ($this->strengthValue) {
-      case 0: return Strength::Weakest();
-      case 1: return Strength::WeakDefault();
-      case 2: return Strength::Normal();
-      case 3: return Strength::StrongDefault();
-      case 4: return Strength::Preferred();
-      case 5: return Strength::Required();
-    }
-  }
+
+
+
+
 }
+embed_py_meth("Strength", "def nextWeaker(self):\n    sv = self.strengthValue\n    if sv == 0:\n        return Strength.Weakest()\n    elif sv == 1:\n        return Strength.WeakDefault()\n    elif sv == 2:\n        return Strength.Normal()\n    elif sv == 3:\n        return Strength.StrongDefault()\n    elif sv == 4:\n        return Strength.Preferred()\n    elif sv == 5:\n        return Strength.Required()");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef strongest(s1, s2):\n    return s1 if Strength.stronger(s1, s2) else s2");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef weakestOf(s1, s2):\n    return s1 if Strength.weaker(s1, s2) else s2\n");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef weaker(s1, s2):\n    return s1.strengthValue > s2.strengthValue");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef stronger(s1, s2):\n    return s1.strengthValue < s2.strengthValue");
 embed_py_meth("Strength", "def __construct(self, strengthValue, name):\n    self.strengthValue = strengthValue\n    self.name = name");
-embed_py_meth("Strength", "@php_decor(static=True)\ndef Weakest():\n    if not Strength.WEAKEST:\n        Strength.WEAKEST = Strength(6, \"weakest\")\n    return Strength.WEAKEST");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Weakest():\n    if not Strength.WEAKEST:\n        Strength.WEAKEST = Strength(6, \"weakest\")\n    print(\"WEAKEST %s\" % type(Strength.WEAKEST))\n    return Strength.WEAKEST");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef WeakDefault():\n    if not Strength.WEAK_DEFAULT:\n        Strength.WEAK_DEFAULT = Strength(5, \"weakDefault\")\n    return Strength.WEAK_DEFAULT");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef Normal():\n    if not Strength.NORMAL:\n        Strength.NORMAL = Strength(4, \"normal\")\n    return Strength.NORMAL");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef StrongDefault():\n    if not Strength.STRONG_DEFAULT:\n        Strength.STRONG_DEFAULT = Strength(3, \"strongDefault\")\n    return Strength.STRONG_DEFAULT");
@@ -490,7 +435,10 @@ class Planner {
         if ($u->strength == $strength)
           $this->incrementalAdd($u);
       }
+      echo "CALL\n";
+      var_dump($strength);
       $strength = $strength->nextWeaker();
+      echo "ENDCALL\n";
     } while ($strength != Strength::Weakest());
   }
 
