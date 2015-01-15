@@ -125,7 +125,7 @@ class Constraint {
 embed_py_meth("Constraint", "def isInput(self):\n    return False");
 embed_py_meth("Constraint", "def destroyConstraint(self):\n    if self.isSatisfied():\n        planner.incrementalRemove(self)\n    else:\n        self.removeFromGraph()");
 embed_py_meth("Constraint", "def satisfy(self, mark):\n    self.chooseMethod(mark)\n    if not self.isSatisfied():\n        if self.strength == Strength.Required():\n            alert(\"Could not satisfy a required constraint!\")\n        return None\n    self.markInputs(mark)\n    out = self.output()\n    overridden = out.determinedBy\n    if overridden != None:\n        overridden.markUnsatisfied()\n    out.determinedBy = self\n    if not planner.addPropagate(self, mark):\n        alert(\"Cycle encountered\")\n    out.mark = mark\n    return overridden");
-embed_py_meth("Constraint", "def addConstraint(self):\n    self.addToGraph()\n    planner.incrementalAdd(self)");
+embed_py_meth("Constraint", "def addConstraint(self):\n    print(\"HIHI\")\n    self.addToGraph()\n    print(\"HOHO\")\n    planner.incrementalAdd(self)\n    print(\"HAHA\")\n");
 embed_py_meth("Constraint", "def __construct(self, strength):\n    self.strength = strength");
 
 
@@ -234,9 +234,9 @@ embed_py_meth("BinaryConstraint", "def output(self):\n    return self.v2 if self
 embed_py_meth("BinaryConstraint", "def input(self):\n    return self.v1 if self.direction == Direction.FORWARD else self.v2");
 embed_py_meth("BinaryConstraint", "def markInputs(self, mark):\n    self.input().mark = mark");
 embed_py_meth("BinaryConstraint", "def isSatisfied(self):\n    return self.direction != Direction.NONE");
-embed_py_meth("BinaryConstraint", "def addToGraph(self):\n    self.v1.addConstraint(self)\n    self.v2.addConstraint(self)\n    self.direction = Direction.NONE");
+embed_py_meth("BinaryConstraint", "def addToGraph(self):\n    print(\"JJJ\")\n    self.v1.addConstraint(self)\n    print(\"KKL\")\n    print(type(self.v2))\n    self.v2.addConstraint(self)\n    print(\"LLL\")\n    self.direction = Direction.NONE");
 embed_py_meth("BinaryConstraint", "def chooseMethod(self, mark):\n    if not self.v1.mark == mark:\n        c1 = self.v2.mark != mark and Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c1 else Direction.NONE\n    \n    if self.v2.mark == mark:\n        c2 = self.v1.mark != mark and Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c2 else Direction.NONE\n        \n    if Strength.weaker(self.v1.walkStrength, self.v2.walkStrength):\n        c3 = Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c3 else Direction.NONE\n    else:\n        c4 = Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c4 else Direction.BACKWARD\n");
-embed_py_meth("BinaryConstraint", "def __construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    self.v2 = var2\n    self.direction = Direction.NONE\n    self.addConstraint()\n");
+embed_py_meth("BinaryConstraint", "def __construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    print(\"IN CTOR:\")\n    print(type(var2))\n    self.v2 = var2\n    self.direction = Direction.NONE\n    print(\"XXX\")\n    print(type(self))\n    self.addConstraint()\n    print(\"YYY\")\n");
 
 class ScaleConstraint extends BinaryConstraint {
   public $direction;
@@ -303,22 +303,6 @@ class Planner {
 
 
 
-  function OLD_incrementalRemove($c) {
-    $out = $c->output();
-    $c->markUnsatisfied();
-    $c->removeFromGraph();
-    $unsatisfied = $this->removePropagateFrom($out);
-    $strength = Strength::Required();
-    do {
-      for ($i = 0; $i < $unsatisfied->size(); $i++) {
-        $u = $unsatisfied->at($i);
-        if ($u->strength == $strength)
-          $this->incrementalAdd($u);
-      }
-      $strength = $strength->nextWeaker();
-    } while ($strength != Strength::Weakest());
-  }
-
   
   
   
@@ -327,36 +311,13 @@ class Planner {
 
   
 
-  function removePropagateFrom($out) {
-    $out->determinedBy = null;
-    $out->walkStrength = Strength::Weakest();
-    $out->stay = true;
-    $unsatisfied = new OrderedCollection();
-    $todo = new OrderedCollection();
-    $todo->add($out);
-    while ($todo->size() > 0) {
-      $v = $todo->removeFirst();
-      for ($i = 0; $i < $v->constraints->size(); $i++) {
-        $c = $v->constraints->at($i);
-        if (!$c->isSatisfied())
-          $unsatisfied->add($c);
-      }
-      $determining = $v->determinedBy;
-      for ($i = 0; $i < $v->constraints->size(); $i++) {
-        $next = $v->constraints->at($i);
-        if ($next != $determining && $next->isSatisfied()) {
-          $next->recalculate();
-          $todo->add($next->output());
-        }
-      }
-    }
-    return $unsatisfied;
-  }
+
   
   
 
 }
 embed_py_meth("Planner", "def addConstraintsConsumingTo(self, v, coll):\n    determining = v.determinedBy\n    cc = v.constraints\n    for i in xrange(0, cc.size()):\n        c = cc.at(i)\n        if c != determining and c.isSatisfied():\n            coll.add(c)");
+embed_py_meth("Planner", "def removePropagateFrom(self, out):\n    out.determinedBy = None\n    out.walkStrength = Strength.Weakest()\n    out.stay = True\n    unsatisfied = OrderedCollection()\n    todo = OrderedCollection();\n    todo.add(out)\n    while todo.size() > 0:\n        v = todo.removeFirst()\n        for i in xrange(v.constraints.size()):\n            c = v.constraints.at(i)\n            if not c.isSatisfied():\n                unsatisfied.add(c)\n        determining = v.determinedBy\n        for i in xrange(v.constraints.size()):\n            next = v.constraints.at(i)\n            if next != determining and next.isSatisfied():\n                next.recalculate()\n                todo.add(next.output())\n    return unsatisfied\n");
 embed_py_meth("Planner", "def addPropagate(self, c, mark):\n    todo = OrderedCollection()\n    todo.add(c)\n    while todo.size() > 0:\n        d = todo.removeFirst()\n        if d.output().mark == mark:\n            self.incrementalRemove(c)\n            return False\n        d.recalculate()\n        self.addConstraintsConsumingTo(d.output(), todo)\n    return True");
 embed_py_meth("Planner", "def extractPlanFromConstraints(self, constraints):\n    sources = OrderedCollection()\n    for i in xrange(0, constraints.size()):\n        c = constraints.at(i)\n        # not in plan already and eligible for inclusion\n        if c.isInput() and c.isSatisfied():\n            sources.add(c)\n    return self.makePlan(sources)");
 embed_py_meth("Planner", "def makePlan(self, sources):\n    mark = self.newMark()\n    plan = Plan()\n    todo = sources\n    while todo.size() > 0:\n        c = todo.removeFirst()\n        if c.output().mark != mark and c.inputsKnown(mark):\n            plan.addConstraint(c)\n            c.output().mark = mark\n            self.addConstraintsConsumingTo(c.output(), todo)\n    return plan");
@@ -385,40 +346,26 @@ embed_py_meth("Plan", "def size(self):\n    return self.v.size()");
 embed_py_meth("Plan", "def addConstraint(self, c):\n    self.v.add(c)");
 embed_py_meth("Plan", "def __construct(self):\n    self.v = OrderedCollection()");
 
-function chainTest($n) {
-  global $planner;
-
-  $planner = new Planner();
-  $prev = null;
-  $first = null;
-  $last = null;
-
-  // Build chain of n equality constraints
-  for ($i = 0; $i <= $n; $i++) {
-    $name = "v$i";
-    $v = new Variable($name);
-    if ($prev != null)
-      new EqualityConstraint($prev, $v, Strength::Required());
-    if ($i == 0)
-      $first = $v;
-    if ($i == $n)
-      $last = $v;
-    $prev = $v;
-  }
-
-  new StayConstraint($last, Strength::StrongDefault());
-  $edit = new EditConstraint($first, Strength::Preferred());
-  $edits = new OrderedCollection();
-  $edits->add($edit);
-  $plan = $planner->extractPlanFromConstraints($edits);
-  for ($i = 0; $i < 100; $i++) {
-    $first->value = $i;
-    $plan->execute();
-    if ($last->value != $i)
-      alert("Chain test failed.");
-  }
+// XXX needed becuase there is currently no way to modify a global PHP var from Python
+function set_planner($p) {
+    global $planner;
+    $planner = $p;
 }
 
+
+$__pyhyp__chainTest = embed_py_func("def __pyhyp__chainTest(n):\n    \n    #planner = Planner()\n    set_planner(Planner())\n    prev = first = last = None\n    \n    for i in xrange(n + 1):\n        name = \"v%s\" % i\n        v = Variable(name)\n        if prev is not None:\n            EqualityConstraint(prev, v, Strength.Required())\n        if i == 0:\n            first = v\n        if i == n:\n            last = v\n        prev = v\n    \n    StayConstraint(last, Strength.StrongDefault())\n    edit = EditConstraint(first, Strength.Preferred())\n    edits = OrderedCollection()\n    edits.add(edit)\n    plan = planner.extractPlanFromConstraints(edits)\n    for i in xrange(100):\n        first.value = i\n        plan.execute()\n        if last.value != i:\n            alert(\"Chain test failed\")");
+function chainTest($n){
+    global $__pyhyp__chainTest;
+    return $__pyhyp__chainTest( $n);
+}
+
+
+
+$__pyhyp__PY_projectionTest = embed_py_func("def __pyhyp__PY_projectionTest(n):\n    set_planner(Planner())\n    \n    scale = Variable(\"scale\", 10)\n    offset = Variable(\"offset\", 1000)\n    src = dst = None\n    \n    dests = OrderedCollection()\n    for i in xrange(n):\n        src = Variable(\"src%d\" % i, i)\n        dst = Variable(\"dst%d\" % i, i)\n        dests.add(dst)\n        StayConstraint(src, Strength.Normal())\n        ScaleConstraint(src, scale, offset, dst, Strength.Required())\n        \n    change(src, 17)\n    if dst.value != 1170:\n        alert(\"Projection 1 failed\")\n    change(dst, 1050)\n    if src.value != 5:\n        alert(\"Projection 2 failed\")\n    change(scale, 5)\n    for i in xrange(n - 1):\n        print(i * 5 + 1000)\n        print(dests.at(i).value)\n        if dests.at(i).value != i * 5 + 1000:\n            alert(\"Projection 3 failed\")\n");
+function PY_projectionTest($n){
+    global $__pyhyp__PY_projectionTest;
+    return $__pyhyp__PY_projectionTest( $n);
+}
 function projectionTest($n) {
   global $planner;
 
