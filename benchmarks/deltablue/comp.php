@@ -207,54 +207,28 @@ class BinaryConstraint extends Constraint {
 
 
 
-  function OLD_isSatisfied() {
-    return $this->direction != Direction::NONE;
-  }
 
   
 
 
-  function OLD_input() {
-    return ($this->direction == Direction::FORWARD) ?
-      $this->v1 : $this->v2;
-  }
 
 
-  function OLD_output() {
-    return ($this->direction == Direction::FORWARD) ?
-      $this->v2 : $this->v1;
-  }
-  
-  function OLD_recalculate() {
-    $ihn = $this->input();
-    $out = $this->output();
-    $out->walkStrength = Strength::weakestOf($this->strength,
-      $ihn->walkStrength);
-    $out->stay = $ihn->stay;
-    if ($out->stay)
-      $this->execute();
-  }
+
   
   
 
-  function markUnsatisfied() {
-    $this->direction = Direction::NONE;
-  }
+
 
   
 
-  function removeFromGraph() {
-    if ($this->v1 != null)
-      $this->v1->removeConstraint($this);
-    if ($this->v2 != null)
-      $this->v2->removeConstraint($this);
-    $this->direction = Direction::NONE;
-  }
+
   
   
 }
 embed_py_meth("BinaryConstraint", "def PYremoveFromGraph(self):\n    if self.v1 is not None:\n        self.v1.removeConstraint(self)\n    if self.v2 is not None:\n        self.v2.removeConstraints(self)\n    self.direction = Direction.None");
+embed_py_meth("BinaryConstraint", "def removeFromGraph(self):\n    if self.v1 is not None:\n        self.v1.removeConstraint(self)\n    if self.v2 is not None:\n        self.v2.removeConstraint(self)\n    self.direction= Direction.NONE");
 embed_py_meth("BinaryConstraint", "def inputsKnown(self, mark):\n    i = self.input()\n    return i.mark == mark or i.stay or i.determinedBy == None");
+embed_py_meth("BinaryConstraint", "def markUnsatisfied(self):\n    self.direction = Direction.NONE");
 embed_py_meth("BinaryConstraint", "def recalculate(self):\n    ihn = self.input()\n    out = self.output()\n    out.walkStrength = Strength.weakestOf(self.strength, ihn.walkStrength)\n    out.stay = ihn.stay\n    if out.stay:\n        self.execute()");
 embed_py_meth("BinaryConstraint", "def output(self):\n    return self.v2 if self.direction == Direction.FORWARD else self.v1");
 embed_py_meth("BinaryConstraint", "def input(self):\n    return self.v1 if self.direction == Direction.FORWARD else self.v2");
@@ -269,58 +243,29 @@ class ScaleConstraint extends BinaryConstraint {
   public $scale;
   public $offset;
 
-  function __construct($src, $scale, $offset, $dest, $strength) {
-    $this->direction = Direction::NONE;
-    $this->scale = $scale;
-    $this->offset = $offset;
-    parent::__construct($src, $dest, $strength);
-  }
 
 
-  function addToGraph() {
-    parent::addToGraph();
-    $this->scale->addConstraint($this);
-    $this->offset->addConstraint($this);
-  }
-  
   
 
-  function removeFromGraph() {
-    parent::removeFromGraph();
-    if ($this->scale != null)
-      $this->scale->removeConstraint($this);
-    if ($this->offset != null)
-      $this->offset->removeConstraint($this);
-  }
-  
+
+
   
 
-  function execute() {
-    if ($this->direction == Direction::FORWARD) {
-      $this->v2->value = $this->v1->value * $this->scale->value +
-        $this->offset->value;
-    } else {
-      $this->v1->value = ($this->v2->value - $this->offset->value) /
-        $this->scale->value;
-    }
-  }
 
 
-  function recalculate() {
-    $ihn = $this->input();
-    $out = $this->output();
-    $out->walkStrength = Strength::weakestOf($this->strength,
-      $ihn->walkStrength);
-    $out->stay = $ihn->stay && $this->scale->stay && $this->offset->stay;
-    if ($out->stay)
-      $this->execute();
-  }
+
 }
+embed_py_meth("ScaleConstraint", "def recalculate(self):\n    ihn = self.input()\n    out = self.output()\n    out.walkStrength = Strength.weakestOf(self.strength, ihn.walkStrength)\n    out.stay = ihn.stay and self.scale.stay and self.offset.stay\n    \n    if out.stay:\n        self.execute()");
+embed_py_meth("ScaleConstraint", "def execute(self):\n    if self.direction == Direction.FORWARD:\n        self.v2.value = self.v1.value * self.scale.value + self.offset.value\n    else:\n        self.v1.value = (self.v2.value - self.offset.value) / self.scale.value");
 embed_py_meth("ScaleConstraint", "def markInputs(self, mark):\n    BinaryConstraint.markInputs(self, mark)\n    self.scale.mark = mark\n    self.offset.mark = mark");
-embed_py_meth("ScaleConstraint", "def PYaddToGraph(self):\n    BinaryConstraint.addToGraph(self)   # this doesn\'t work when addToGraph is a PHP function that uses \$this \n    self.scale.addConstraint(self)\n    self.offset.addConstraint(self)");
+embed_py_meth("ScaleConstraint", "def removeFromGraph(self):\n    BinaryConstraint.removeFromGraph(self)\n    if self.scale is not None:\n        self.scale.removeConstraint(self)\n    if self.offset is not None:\n        self.offset.removeConstraint(self)");
+embed_py_meth("ScaleConstraint", "def addToGraph(self):\n    BinaryConstraint.addToGraph(self)\n    self.scale.addConstraint(self)\n    self.offset.addConstraint(self)");
+embed_py_meth("ScaleConstraint", "def __construct(self, src, scale, offset, dest, strength):\n    self.direction = Direction.NONE\n    self.scale = scale\n    self.offset = offset\n    BinaryConstraint.__construct(self, src, dest, strength)");
 
 class EqualityConstraint extends BinaryConstraint {
-  function __construct($var1, $var2, $strength) {
+
+
+  function OLD__construct($var1, $var2, $strength) {
     parent::__construct($var1, $var2, $strength);
   }
   
@@ -328,6 +273,7 @@ class EqualityConstraint extends BinaryConstraint {
 
 }
 embed_py_meth("EqualityConstraint", "def execute(self):\n    self.output().value = self.input().value");
+embed_py_meth("EqualityConstraint", "def __construct(self, v1, v2, strength):\n    BinaryConstraint.__construct(self, v1, v2, strength)");
 
 class Variable {
   public $value;
@@ -338,15 +284,7 @@ class Variable {
   public $stay;
   public $name;
 
-  function Variable($name, $initialValue = null) {
-    $this->value = $initialValue == null ? 0 : $initialValue;
-    $this->constraints = new OrderedCollection();
-    $this->determinedBy = null;
-    $this->mark = 0;
-    $this->walkStrength = Strength::Weakest();
-    $this->stay = true;
-    $this->name = $name;
-  }
+
   
   
 
@@ -355,6 +293,7 @@ class Variable {
 }
 embed_py_meth("Variable", "def removeConstraint(self, c):\n    self.constraints.remove(c)\n    if self.determinedBy == c:\n        self.determinedBy = None");
 embed_py_meth("Variable", "def addConstraint(self, c):\n    self.constraints.add(c)");
+embed_py_meth("Variable", "def __construct(self, name, initialValue=None):\n    self.value = 0 if initialValue is None else initialValue\n    self.constraints = OrderedCollection()\n    self.determinedBy = None\n    self.mark = 0\n    self.walkStrength = Strength.Weakest()\n    self.stay = True\n    self.name = name");
 
 class Planner {
   
@@ -362,7 +301,9 @@ class Planner {
   
   
 
-  function incrementalRemove($c) {
+
+
+  function OLD_incrementalRemove($c) {
     $out = $c->output();
     $c->markUnsatisfied();
     $c->removeFromGraph();
@@ -385,7 +326,6 @@ class Planner {
   
 
   
-
 
   function removePropagateFrom($out) {
     $out->determinedBy = null;
@@ -421,6 +361,7 @@ embed_py_meth("Planner", "def addPropagate(self, c, mark):\n    todo = OrderedCo
 embed_py_meth("Planner", "def extractPlanFromConstraints(self, constraints):\n    sources = OrderedCollection()\n    for i in xrange(0, constraints.size()):\n        c = constraints.at(i)\n        # not in plan already and eligible for inclusion\n        if c.isInput() and c.isSatisfied():\n            sources.add(c)\n    return self.makePlan(sources)");
 embed_py_meth("Planner", "def makePlan(self, sources):\n    mark = self.newMark()\n    plan = Plan()\n    todo = sources\n    while todo.size() > 0:\n        c = todo.removeFirst()\n        if c.output().mark != mark and c.inputsKnown(mark):\n            plan.addConstraint(c)\n            c.output().mark = mark\n            self.addConstraintsConsumingTo(c.output(), todo)\n    return plan");
 embed_py_meth("Planner", "def newMark(self):\n    self.currentMark += 1\n    return self.currentMark");
+embed_py_meth("Planner", "def incrementalRemove(self, c):\n    out = c.output()\n    c.markUnsatisfied()\n    c.removeFromGraph()\n    unsatisfied = self.removePropagateFrom(out)\n    strength = Strength.Required()\n    while True:\n        for i in xrange(unsatisfied.size()):\n            u = unsatisfied.at(i)\n            if u.strength == strength:\n                self.incrementalAdd(u)\n        strength = strength.nextWeaker()\n        if strength == Strength.Weakest():\n            break");
 embed_py_meth("Planner", "def incrementalAdd(self, c):\n    mark = self.newMark()\n    overridden = c.satisfy(mark)\n    while overridden is not None:\n        overridden = overridden.satisfy(mark)");
 embed_py_meth("Planner", "def __construct(self):\n    self.currentMark = 0");
 
@@ -533,5 +474,5 @@ function run_iter($n) {
   projectionTest($n);
 }
 
-run_iter(10);
+run_iter(100);
 }?>
