@@ -100,7 +100,7 @@ embed_py_meth("Strength", "@php_decor(static=True)\ndef weakestOf(s1, s2):\n    
 embed_py_meth("Strength", "@php_decor(static=True)\ndef weaker(s1, s2):\n    return s1.strengthValue > s2.strengthValue");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef stronger(s1, s2):\n    return s1.strengthValue < s2.strengthValue");
 embed_py_meth("Strength", "def __construct(self, strengthValue, name):\n    self.strengthValue = strengthValue\n    self.name = name");
-embed_py_meth("Strength", "@php_decor(static=True)\ndef Weakest():\n    if not Strength.WEAKEST:\n        Strength.WEAKEST = Strength(6, \"weakest\")\n    print(\"WEAKEST %s\" % type(Strength.WEAKEST))\n    return Strength.WEAKEST");
+embed_py_meth("Strength", "@php_decor(static=True)\ndef Weakest():\n    if not Strength.WEAKEST:\n        Strength.WEAKEST = Strength(6, \"weakest\")\n    return Strength.WEAKEST");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef WeakDefault():\n    if not Strength.WEAK_DEFAULT:\n        Strength.WEAK_DEFAULT = Strength(5, \"weakDefault\")\n    return Strength.WEAK_DEFAULT");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef Normal():\n    if not Strength.NORMAL:\n        Strength.NORMAL = Strength(4, \"normal\")\n    return Strength.NORMAL");
 embed_py_meth("Strength", "@php_decor(static=True)\ndef StrongDefault():\n    if not Strength.STRONG_DEFAULT:\n        Strength.STRONG_DEFAULT = Strength(3, \"strongDefault\")\n    return Strength.STRONG_DEFAULT");
@@ -117,28 +117,6 @@ class Constraint {
   
 
 
-  function satisfy($mark) {
-    global $planner;
-
-    $this->chooseMethod($mark);
-    if (!$this->isSatisfied()) {
-      if ($this->strength == Strength::Required())
-        alert("Could not satisfy a required constraint!");
-      return null;
-    }
-    $this->markInputs($mark);
-    $out = $this->output();
-    $overridden = $out->determinedBy;
-    if ($overridden != null)
-      $overridden->markUnsatisfied();
-    $out->determinedBy = $this;
-    if (!$planner->addPropagate($this, $mark))
-      alert("Cycle encountered");
-    $out->mark = $mark;
-    return $overridden;
-  }
-  
-  
 
   
   
@@ -146,7 +124,7 @@ class Constraint {
 }
 embed_py_meth("Constraint", "def isInput(self):\n    return False");
 embed_py_meth("Constraint", "def destroyConstraint(self):\n    if self.isSatisfied():\n        planner.incrementalRemove(self)\n    else:\n        self.removeFromGraph()");
-embed_py_meth("Constraint", "def PYsatisfy(self, mark): # calling static methods on classes not supported yet\n    self.chooseMethod(mark)\n    if not self.isSatisfied():\n        if self.strength == Strength.Required():\n            alert(\"Could not satisfy a required constraint!\")\n        return None\n    self.markInputs(mark)\n    out = self.output()\n    overridden = out.determinedBy\n    if overridden is not None:\n        overridden.markUnsatisfied()\n    out.determinedBy = self\n    if not planner.addPropagate(self, mark):\n        alert(\"Cycle encountered\")\n    out.mark = mark\n    return overridden");
+embed_py_meth("Constraint", "def satisfy(self, mark):\n    self.chooseMethod(mark)\n    if not self.isSatisfied():\n        if self.strength == Strength.Required():\n            alert(\"Could not satisfy a required constraint!\")\n        return None\n    self.markInputs(mark)\n    out = self.output()\n    overridden = out.determinedBy\n    if overridden != None:\n        overridden.markUnsatisfied()\n    out.determinedBy = self\n    if not planner.addPropagate(self, mark):\n        alert(\"Cycle encountered\")\n    out.mark = mark\n    return overridden");
 embed_py_meth("Constraint", "def addConstraint(self):\n    self.addToGraph()\n    planner.incrementalAdd(self)");
 embed_py_meth("Constraint", "def __construct(self, strength):\n    self.strength = strength");
 
@@ -162,12 +140,6 @@ class UnaryConstraint extends Constraint {
   
 
 
-  function chooseMethod($mark) {
-    $this->satisfied = ($this->myOutput->mark != $mark)
-      && Strength::stronger(
-        $this->strength,
-        $this->myOutput->walkStrength);
-  }
   
   
 
@@ -191,6 +163,7 @@ embed_py_meth("UnaryConstraint", "def recalculate(self):\n    self.myOutput.walk
 embed_py_meth("UnaryConstraint", "def output(self):\n    return self.myOutput");
 embed_py_meth("UnaryConstraint", "def markInputs(self, mark):\n    pass");
 embed_py_meth("UnaryConstraint", "def isSatisfied(self):\n    return self.satisfied");
+embed_py_meth("UnaryConstraint", "def chooseMethod(self, mark):\n    self.satisfied = (self.myOutput.mark != mark) and Strength.stronger(self.strength, self.myOutput.walkStrength)");
 embed_py_meth("UnaryConstraint", "def addToGraph(self):\n    self.myOutput.addConstraint(self)\n    self.satisfied = False");
 embed_py_meth("UnaryConstraint", "def __construct(self, v, strength):\n    Constraint.__construct(self, strength)\n    self.myOutput = v\n    self.satisfied = False\n    self.addConstraint()");
 
@@ -228,70 +201,31 @@ class BinaryConstraint extends Constraint {
   public $v2;
   public $direction;
 
-  function __construct($var1, $var2, $strength) {
-    parent::__construct($strength);
-    $this->v1 = $var1;
-    $this->v2 = $var2;
-    $this->direction = Direction::NONE;
-    $this->addConstraint();
-  }
-  
-  
 
 
-  function chooseMethod($mark) {
-    if ($this->v1->mark == $mark) {
-      $this->direction = ($this->v2->mark != $mark
-        && Strength::stronger($this->strength, $this->v2->walkStrength))
-        ? Direction::FORWARD
-        : Direction::NONE;
-    }
-    if ($this->v2->mark == $mark) {
-      $this->direction = ($this->v1->mark != $mark
-        && Strength::stronger($this->strength, $this->v1->walkStrength))
-        ? Direction::BACKWARD
-        : Direction::NONE;
-    }
-    if (Strength::weaker(
-      $this->v1->walkStrength,
-      $this->v2->walkStrength)) {
-      $this->direction = Strength::stronger($this->strength,
-        $this->v1->walkStrength)
-        ? Direction::BACKWARD
-        : Direction::NONE;
-    } else {
-      $this->direction = Strength::stronger($this->strength,
-        $this->v2->walkStrength)
-        ? Direction::FORWARD
-        : Direction::BACKWARD;
-    }
-  }
-
-  function addToGraph() {
-    $this->v1->addConstraint($this);
-    $this->v2->addConstraint($this);
-    $this->direction = Direction::NONE;
-  }
 
 
-  function isSatisfied() {
+
+
+  function OLD_isSatisfied() {
     return $this->direction != Direction::NONE;
   }
 
   
 
-  function input() {
+
+  function OLD_input() {
     return ($this->direction == Direction::FORWARD) ?
       $this->v1 : $this->v2;
   }
 
-  function output() {
+
+  function OLD_output() {
     return ($this->direction == Direction::FORWARD) ?
       $this->v2 : $this->v1;
   }
-
-
-  function recalculate() {
+  
+  function OLD_recalculate() {
     $ihn = $this->input();
     $out = $this->output();
     $out->walkStrength = Strength::weakestOf($this->strength,
@@ -321,9 +255,14 @@ class BinaryConstraint extends Constraint {
 }
 embed_py_meth("BinaryConstraint", "def PYremoveFromGraph(self):\n    if self.v1 is not None:\n        self.v1.removeConstraint(self)\n    if self.v2 is not None:\n        self.v2.removeConstraints(self)\n    self.direction = Direction.None");
 embed_py_meth("BinaryConstraint", "def inputsKnown(self, mark):\n    i = self.input()\n    return i.mark == mark or i.stay or i.determinedBy == None");
-embed_py_meth("BinaryConstraint", "def PYrecalculate(self):\n    ihn = self.input()\n    out = self.output()\n    out.walkStrength = Strength.weakestOf(self.strength, ihn.walkStrength)\n    out.stay = ihn.stay\n    if out.stay:\n        self.execute()");
+embed_py_meth("BinaryConstraint", "def recalculate(self):\n    ihn = self.input()\n    out = self.output()\n    out.walkStrength = Strength.weakestOf(self.strength, ihn.walkStrength)\n    out.stay = ihn.stay\n    if out.stay:\n        self.execute()");
+embed_py_meth("BinaryConstraint", "def output(self):\n    return self.v2 if self.direction == Direction.FORWARD else self.v1");
+embed_py_meth("BinaryConstraint", "def input(self):\n    return self.v1 if self.direction == Direction.FORWARD else self.v2");
 embed_py_meth("BinaryConstraint", "def markInputs(self, mark):\n    self.input().mark = mark");
-embed_py_meth("BinaryConstraint", "def PY__construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    self.v2 = var2\n    self.direction = Direction.NONE\n    self.addConstraint()");
+embed_py_meth("BinaryConstraint", "def isSatisfied(self):\n    return self.direction != Direction.NONE");
+embed_py_meth("BinaryConstraint", "def addToGraph(self):\n    self.v1.addConstraint(self)\n    self.v2.addConstraint(self)\n    self.direction = Direction.NONE");
+embed_py_meth("BinaryConstraint", "def chooseMethod(self, mark):\n    if not self.v1.mark == mark:\n        c1 = self.v2.mark != mark and Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c1 else Direction.NONE\n    \n    if self.v2.mark == mark:\n        c2 = self.v1.mark != mark and Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c2 else Direction.NONE\n        \n    if Strength.weaker(self.v1.walkStrength, self.v2.walkStrength):\n        c3 = Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c3 else Direction.NONE\n    else:\n        c4 = Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c4 else Direction.BACKWARD\n");
+embed_py_meth("BinaryConstraint", "def __construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    self.v2 = var2\n    self.direction = Direction.NONE\n    self.addConstraint()\n");
 
 class ScaleConstraint extends BinaryConstraint {
   public $direction;
@@ -435,10 +374,7 @@ class Planner {
         if ($u->strength == $strength)
           $this->incrementalAdd($u);
       }
-      echo "CALL\n";
-      var_dump($strength);
       $strength = $strength->nextWeaker();
-      echo "ENDCALL\n";
     } while ($strength != Strength::Weakest());
   }
 
@@ -597,5 +533,5 @@ function run_iter($n) {
   projectionTest($n);
 }
 
-run_iter(100);
+run_iter(10);
 }?>
