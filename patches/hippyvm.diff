@@ -1,0 +1,32 @@
+NB: This is only for vanilla hippy, pyhyp already has this in-tree.
+
+From 4355eadccc69adc77e84efc6bfd023b7261f4398 Mon Sep 17 00:00:00 2001
+From: Edd Barrett <vext01@gmail.com>
+Date: Wed, 3 Dec 2014 16:50:32 +0000
+Subject: [PATCH] Add support for getting at the system monotonic clock.
+
+---
+ hippy/module/standard/misc/funcs.py | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/hippy/module/standard/misc/funcs.py b/hippy/module/standard/misc/funcs.py
+index 858a37d..b11953b 100644
+--- a/hippy/module/standard/misc/funcs.py
++++ b/hippy/module/standard/misc/funcs.py
+@@ -2,6 +2,7 @@
+ from rpython.rtyper.lltypesystem import lltype, rffi
+ from rpython.rlib.rarithmetic import intmask
+ from rpython.rlib.rrandom import Random
++from rpython.rlib.rtime import _clock_gettime_monotonic
+ from hippy.builtin import wrap, Optional, BoolArg, StringArg
+ from hippy.objects.base import W_Root
+ from hippy.module.date import timelib
+@@ -190,3 +191,8 @@ def usleep(interp, microseconds):
+ 
+     import time
+     time.sleep(microseconds / 1000000.0)
++
++@wrap(['interp'])
++def clock_gettime_monotonic(interp):
++    """Read the monotonic system clock and return a Python float"""
++    return interp.space.wrap(_clock_gettime_monotonic())

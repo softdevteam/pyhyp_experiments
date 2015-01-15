@@ -1,0 +1,59 @@
+# HG changeset patch
+# User Edd Barrett <vext01@gmail.com>
+# Date 1417694860 0
+# Branch hippy_bridge_clock
+# Node ID 340d1bd21460e2a6ed97c717d2e018a9ee21a12e
+# Parent  b91bf6e276b3ea4bd8bf9696b12de03ee7adc87e
+Add prototype, add linker flag, rename vars.
+
+Fixes translation and linux support.
+
+diff --git a/rpython/rlib/rtime.py b/rpython/rlib/rtime.py
+--- a/rpython/rlib/rtime.py
++++ b/rpython/rlib/rtime.py
+@@ -1,19 +1,23 @@
++import sys
++
+ from rpython.rtyper.tool import rffi_platform as platform
+ from rpython.rtyper.lltypesystem import lltype, rffi
+ from rpython.translator.tool.cbuild import ExternalCompilationInfo
+ 
+-C_DEFINES = """
++POST_INCLUDE_BITS = """
+ #ifdef __linux__
+ #define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC_RAW
+ #else
+ #define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC
+ #endif
++
++double _clock_gettime_monotonic();
+ """
+ 
+ # We are using pure C instead of a direct RFFI call to clock_gettime so
+ # we don't have to allocate our timespec on the heap. RPython currently only
+ # supports heap allocation of structs.
+-C_FUNCS = """
++SEPARATE_MODULE_SOURCES = """
+ double
+ _clock_gettime_monotonic()
+ {
+@@ -30,10 +34,16 @@
+ }
+ """
+ 
++if sys.platform.startswith("linux"):
++    LIBS = ["rt"]
++else:
++    LIBS = []
++
+ eci = ExternalCompilationInfo(includes=['time.h', 'math.h', 'stdlib.h'],
+-                              post_include_bits=[C_DEFINES],
+-                              separate_module_sources=[C_FUNCS],
+-                              export_symbols=['_clock_gettime_monotonic'])
++                              post_include_bits=[POST_INCLUDE_BITS],
++                              separate_module_sources=[SEPARATE_MODULE_SOURCES],
++                              export_symbols=['_clock_gettime_monotonic'],
++                              libraries=LIBS)
+ 
+ _clock_gettime_monotonic = rffi.llexternal('_clock_gettime_monotonic', [],
+                                 rffi.DOUBLE, compilation_info=eci)

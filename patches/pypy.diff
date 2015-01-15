@@ -1,0 +1,54 @@
+NB: This is only for building vanilla hippyvm, pyhyp already has this in-tree.
+
+# HG changeset patch
+# User Edd Barrett <vext01@gmail.com>
+# Date 1417625263 0
+# Branch hippy_bridge_clock
+# Node ID b91bf6e276b3ea4bd8bf9696b12de03ee7adc87e
+# Parent  f0429cb431046e799c1c33975e46796ddea50487
+Add rudimentary support for accessing the system monotonic clock.
+
+diff --git a/rpython/rlib/rtime.py b/rpython/rlib/rtime.py
+new file mode 100644
+--- /dev/null
++++ b/rpython/rlib/rtime.py
+@@ -0,0 +1,39 @@
++from rpython.rtyper.tool import rffi_platform as platform
++from rpython.rtyper.lltypesystem import lltype, rffi
++from rpython.translator.tool.cbuild import ExternalCompilationInfo
++
++C_DEFINES = """
++#ifdef __linux__
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC_RAW
++#else
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC
++#endif
++"""
++
++# We are using pure C instead of a direct RFFI call to clock_gettime so
++# we don't have to allocate our timespec on the heap. RPython currently only
++# supports heap allocation of structs.
++C_FUNCS = """
++double
++_clock_gettime_monotonic()
++{
++    struct timespec		ts;
++    double				result;
++
++    if ((clock_gettime(ACTUAL_MONOTONIC_CLOCK, &ts)) < 0) {
++        perror("clock_gettime");
++        exit(1); // ideally raise
++    }
++
++    result = ts.tv_sec + ts.tv_nsec * pow(10, -9);
++    return (result);
++}
++"""
++
++eci = ExternalCompilationInfo(includes=['time.h', 'math.h', 'stdlib.h'],
++                              post_include_bits=[C_DEFINES],
++                              separate_module_sources=[C_FUNCS],
++                              export_symbols=['_clock_gettime_monotonic'])
++
++_clock_gettime_monotonic = rffi.llexternal('_clock_gettime_monotonic', [],
++                                rffi.DOUBLE, compilation_info=eci)
