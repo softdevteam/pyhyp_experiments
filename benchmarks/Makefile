@@ -3,7 +3,9 @@ COMPOSED_OUTPUTS=	fannkuch/comp.php \
 			mandel/comp.php \
 			fasta/comp.php \
 			richards/comp.php \
-			deltablue/comp.php
+			deltablue/comp.php \
+			gcbench/comp.php \
+			heapsort/comp.php
 
 ECO=			eco
 

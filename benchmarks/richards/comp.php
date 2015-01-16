@@ -175,6 +175,4 @@ function run_iter($n) {
     $res = $r->run($n);
     assert($res);
 }
-
-run_iter(100);
 }?>

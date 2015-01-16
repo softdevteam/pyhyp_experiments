@@ -44,7 +44,7 @@ function make_tree($depth){
 $__pyhyp__time_construction = embed_py_func("def __pyhyp__time_construction(depth, debug=False):\n    niters = num_iters(depth)\n    if debug:\n        print \"Creating %d trees of depth %d\\n\" % niters, depth\n    t_start = microtime(True)\n    for i in xrange(niters):\n        temp_tree = Node()\n        populate(depth, temp_tree)\n    t_finish = microtime(True)\n    if debug:\n        printf(\"\\tTop down construction took %f ms\\n\", ((t_finish - t_start)*1000))\n    t_start = microtime(True)\n    for i in xrange(niters):\n        temp_tree = make_tree(depth)\n    t_finish = microtime(True)\n    if debug:\n        printf(\"\\tBottom down construction took %f ms\\n\", ((t_finish - t_start)*1000))");
 function time_construction($depth, $debug=False){
     global $__pyhyp__time_construction;
-    return $__pyhyp__time_construction( $depth, $debug=False);
+    return $__pyhyp__time_construction( $depth, $debug);
 }
 
 $DEFAULT_DEPTHS = array();
