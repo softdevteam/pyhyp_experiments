@@ -38,9 +38,13 @@ clock_gettime_monotonic()
 }
 """
 
+LINK_LIBS = []
+if sys.platform.startswith("linux"):
+    LINK_LIBS += ["rt"]
+
 ffi = cffi.FFI()
 ffi.cdef(CDEFS)
-our_lib = ffi.verify(CSRC)
+our_lib = ffi.verify(CSRC, libraries=LINK_LIBS)
 
 clock_gettime_monotonic = our_lib.clock_gettime_monotonic
 
