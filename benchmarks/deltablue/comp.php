@@ -35,7 +35,7 @@ function alert($s){
 }
 
 class OrderedCollection {
-  public $elms; // was private before
+  private $elms;
   
   
   
@@ -80,7 +80,7 @@ class Strength {
   
 
 
-  public $strengthValue; // was private before
+  private $strengthValue;
   public $name;
   
   
@@ -125,7 +125,7 @@ class Constraint {
 embed_py_meth("Constraint", "def isInput(self):\n    return False");
 embed_py_meth("Constraint", "def destroyConstraint(self):\n    if self.isSatisfied():\n        planner.incrementalRemove(self)\n    else:\n        self.removeFromGraph()");
 embed_py_meth("Constraint", "def satisfy(self, mark):\n    self.chooseMethod(mark)\n    if not self.isSatisfied():\n        if self.strength == Strength.Required():\n            alert(\"Could not satisfy a required constraint!\")\n        return None\n    self.markInputs(mark)\n    out = self.output()\n    overridden = out.determinedBy\n    if overridden != None:\n        overridden.markUnsatisfied()\n    out.determinedBy = self\n    if not planner.addPropagate(self, mark):\n        alert(\"Cycle encountered\")\n    out.mark = mark\n    return overridden");
-embed_py_meth("Constraint", "def addConstraint(self):\n    print(\"HIHI\")\n    self.addToGraph()\n    print(\"HOHO\")\n    planner.incrementalAdd(self)\n    print(\"HAHA\")\n");
+embed_py_meth("Constraint", "def addConstraint(self):\n    self.addToGraph()\n    planner.incrementalAdd(self)\n");
 embed_py_meth("Constraint", "def __construct(self, strength):\n    self.strength = strength");
 
 
@@ -234,9 +234,9 @@ embed_py_meth("BinaryConstraint", "def output(self):\n    return self.v2 if self
 embed_py_meth("BinaryConstraint", "def input(self):\n    return self.v1 if self.direction == Direction.FORWARD else self.v2");
 embed_py_meth("BinaryConstraint", "def markInputs(self, mark):\n    self.input().mark = mark");
 embed_py_meth("BinaryConstraint", "def isSatisfied(self):\n    return self.direction != Direction.NONE");
-embed_py_meth("BinaryConstraint", "def addToGraph(self):\n    print(\"JJJ\")\n    self.v1.addConstraint(self)\n    print(\"KKL\")\n    print(type(self.v2))\n    self.v2.addConstraint(self)\n    print(\"LLL\")\n    self.direction = Direction.NONE");
+embed_py_meth("BinaryConstraint", "def addToGraph(self):\n    self.v1.addConstraint(self)\n    self.v2.addConstraint(self)\n    self.direction = Direction.NONE");
 embed_py_meth("BinaryConstraint", "def chooseMethod(self, mark):\n    if not self.v1.mark == mark:\n        c1 = self.v2.mark != mark and Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c1 else Direction.NONE\n    \n    if self.v2.mark == mark:\n        c2 = self.v1.mark != mark and Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c2 else Direction.NONE\n        \n    if Strength.weaker(self.v1.walkStrength, self.v2.walkStrength):\n        c3 = Strength.stronger(self.strength, self.v1.walkStrength)\n        self.direction = Direction.BACKWARD if c3 else Direction.NONE\n    else:\n        c4 = Strength.stronger(self.strength, self.v2.walkStrength)\n        self.direction = Direction.FORWARD if c4 else Direction.BACKWARD\n");
-embed_py_meth("BinaryConstraint", "def __construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    print(\"IN CTOR:\")\n    print(type(var2))\n    self.v2 = var2\n    self.direction = Direction.NONE\n    print(\"XXX\")\n    print(type(self))\n    self.addConstraint()\n    print(\"YYY\")\n");
+embed_py_meth("BinaryConstraint", "def __construct(self, var1, var2, strength):\n    Constraint.__construct(self, strength)\n    self.v1 = var1\n    self.v2 = var2\n    self.direction = Direction.NONE\n    self.addConstraint()\n");
 
 class ScaleConstraint extends BinaryConstraint {
   public $direction;
@@ -265,10 +265,7 @@ embed_py_meth("ScaleConstraint", "def __construct(self, src, scale, offset, dest
 class EqualityConstraint extends BinaryConstraint {
 
 
-  function OLD__construct($var1, $var2, $strength) {
-    parent::__construct($var1, $var2, $strength);
-  }
-  
+
   
 
 }
@@ -327,7 +324,7 @@ embed_py_meth("Planner", "def incrementalAdd(self, c):\n    mark = self.newMark(
 embed_py_meth("Planner", "def __construct(self):\n    self.currentMark = 0");
 
 class Plan {
-  public $v; // XXX formerly private
+  private $v;
 
   
 
@@ -361,7 +358,7 @@ function chainTest($n){
 
 
 
-$__pyhyp__projectionTest = embed_py_func("def __pyhyp__projectionTest(n):\n    set_planner(Planner())\n    \n    scale = Variable(\"scale\", 10)\n    offset = Variable(\"offset\", 1000)\n    src = dst = None\n    \n    dests = OrderedCollection()\n    for i in xrange(n):\n        src = Variable(\"src%d\" % i, i)\n        dst = Variable(\"dst%d\" % i, i)\n        dests.add(dst)\n        StayConstraint(src, Strength.Normal())\n        ScaleConstraint(src, scale, offset, dst, Strength.Required())\n        \n    change(src, 17)\n    if dst.value != 1170:\n        alert(\"Projection 1 failed\")\n    change(dst, 1050)\n    if src.value != 5:\n        alert(\"Projection 2 failed\")\n    change(scale, 5)\n    for i in xrange(n - 1):\n        print(i * 5 + 1000)\n        print(dests.at(i).value)\n        if dests.at(i).value != i * 5 + 1000:\n            alert(\"Projection 3 failed\")");
+$__pyhyp__projectionTest = embed_py_func("def __pyhyp__projectionTest(n):\n    set_planner(Planner())\n    \n    scale = Variable(\"scale\", 10)\n    offset = Variable(\"offset\", 1000)\n    src = dst = None\n    \n    dests = OrderedCollection()\n    for i in xrange(n):\n        src = Variable(\"src%d\" % i, i)\n        dst = Variable(\"dst%d\" % i, i)\n        dests.add(dst)\n        StayConstraint(src, Strength.Normal())\n        ScaleConstraint(src, scale, offset, dst, Strength.Required())\n        \n    change(src, 17)\n    if dst.value != 1170:\n        alert(\"Projection 1 failed\")\n    change(dst, 1050)\n    if src.value != 5:\n        alert(\"Projection 2 failed\")\n    change(scale, 5)\n    for i in xrange(n - 1):\n        if dests.at(i).value != i * 5 + 1000:\n            alert(\"Projection 3 failed\")");
 function projectionTest($n){
     global $__pyhyp__projectionTest;
     return $__pyhyp__projectionTest( $n);
@@ -378,6 +375,4 @@ function run_iter($n) {
   chainTest($n);
   projectionTest($n);
 }
-
-run_iter(100);
 }?>
