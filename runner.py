@@ -15,7 +15,7 @@ import os, subprocess, sys, subprocess, json, time
 
 VARIANT_TO_FILENAME = {
     "mono-php": "mono.php",
-    "mono-python": "mono.ppy",
+    "mono-python": "mono.py",
     "composed": "comp.php",
 }
 
@@ -26,6 +26,7 @@ VARIANT_TO_ITERATIONS_RUNNER = {
 }
 
 BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
+BENCH_DRYRUN = os.environ.get("BENCH_DRYRUN", False)
 
 def usage():
     print(__doc__)
@@ -46,6 +47,9 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
 
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
+
+        if BENCH_DRYRUN:
+            continue # don't actually do any benchmarks
 
         # run capturing output
         stdout, stderr = subprocess.Popen(
@@ -123,7 +127,7 @@ if __name__ == "__main__":
                 exec_results = run_exec(vm_executable, bmark_path, variant,
                         config.N_EXECUTIONS, n_iterations, param)
 
-                if not exec_results:
+                if not exec_results and not BENCH_DRYRUN:
                     errors = True
 
                 result_key = "%s:%s:%s" % (bmark, vm_name, variant)
