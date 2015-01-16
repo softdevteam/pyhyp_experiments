@@ -361,59 +361,17 @@ function chainTest($n){
 
 
 
-$__pyhyp__PY_projectionTest = embed_py_func("def __pyhyp__PY_projectionTest(n):\n    set_planner(Planner())\n    \n    scale = Variable(\"scale\", 10)\n    offset = Variable(\"offset\", 1000)\n    src = dst = None\n    \n    dests = OrderedCollection()\n    for i in xrange(n):\n        src = Variable(\"src%d\" % i, i)\n        dst = Variable(\"dst%d\" % i, i)\n        dests.add(dst)\n        StayConstraint(src, Strength.Normal())\n        ScaleConstraint(src, scale, offset, dst, Strength.Required())\n        \n    change(src, 17)\n    if dst.value != 1170:\n        alert(\"Projection 1 failed\")\n    change(dst, 1050)\n    if src.value != 5:\n        alert(\"Projection 2 failed\")\n    change(scale, 5)\n    for i in xrange(n - 1):\n        print(i * 5 + 1000)\n        print(dests.at(i).value)\n        if dests.at(i).value != i * 5 + 1000:\n            alert(\"Projection 3 failed\")\n");
-function PY_projectionTest($n){
-    global $__pyhyp__PY_projectionTest;
-    return $__pyhyp__PY_projectionTest( $n);
+$__pyhyp__projectionTest = embed_py_func("def __pyhyp__projectionTest(n):\n    set_planner(Planner())\n    \n    scale = Variable(\"scale\", 10)\n    offset = Variable(\"offset\", 1000)\n    src = dst = None\n    \n    dests = OrderedCollection()\n    for i in xrange(n):\n        src = Variable(\"src%d\" % i, i)\n        dst = Variable(\"dst%d\" % i, i)\n        dests.add(dst)\n        StayConstraint(src, Strength.Normal())\n        ScaleConstraint(src, scale, offset, dst, Strength.Required())\n        \n    change(src, 17)\n    if dst.value != 1170:\n        alert(\"Projection 1 failed\")\n    change(dst, 1050)\n    if src.value != 5:\n        alert(\"Projection 2 failed\")\n    change(scale, 5)\n    for i in xrange(n - 1):\n        print(i * 5 + 1000)\n        print(dests.at(i).value)\n        if dests.at(i).value != i * 5 + 1000:\n            alert(\"Projection 3 failed\")");
+function projectionTest($n){
+    global $__pyhyp__projectionTest;
+    return $__pyhyp__projectionTest( $n);
 }
-function projectionTest($n) {
-  global $planner;
+            
 
-  $planner = new Planner();
-  $scale = new Variable("scale", 10);
-  $offset = new Variable("offset", 1000);
-  $src = null;
-  $dst = null;
-
-  $dests = new OrderedCollection();
-  for ($i = 0; $i < $n; $i++) {
-    $src = new Variable("src$i", $i);
-    $dst = new Variable("dst$i", $i);
-    $dests->add($dst);
-    new StayConstraint($src, Strength::Normal());
-    new ScaleConstraint($src, $scale, $offset, $dst, Strength::Required());
-  }
-
-  change($src, 17);
-  if ($dst->value != 1170)
-    alert("Projection 1 failed");
-  change($dst, 1050);
-  if ($src->value != 5)
-    alert("Projection 2 failed");
-  change($scale, 5);
-  for ($i = 0; $i < $n - 1; $i++) {
-    if ($dests->at($i)->value != $i * 5 + 1000)
-      alert("Projection 3 failed");
-  }
-  change($offset, 2000);
-  for ($i = 0; $i < $n - 1; $i++) {
-    if ($dests->at($i)->value != $i * 5 + 2000)
-      alert("Projection 4 failed");
-  }
-}
-
-function change($v, $newValue) {
-  global $planner;
-
-  $edit = new EditConstraint($v, Strength::Preferred());
-  $edits = new OrderedCollection();
-  $edits->add($edit);
-  $plan = $planner->extractPlanFromConstraints($edits);
-  for ($i = 0; $i < 10; $i++) {
-    $v->value = $newValue;
-    $plan->execute();
-  }
-  $edit->destroyConstraint();
+$__pyhyp__change = embed_py_func("def __pyhyp__change(v, newValue):\n    edit = EditConstraint(v, Strength.Preferred())\n    edits = OrderedCollection()\n    edits.add(edit)\n    plan = planner.extractPlanFromConstraints(edits)\n    for i in xrange(10):\n        v.value = newValue\n        plan.execute()\n    edit.destroyConstraint()");
+function change($v, $newValue){
+    global $__pyhyp__change;
+    return $__pyhyp__change( $v, $newValue);
 }
 
 function run_iter($n) {
