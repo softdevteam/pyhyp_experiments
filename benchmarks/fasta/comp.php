@@ -83,10 +83,6 @@ function fasta($n) {
 
 	makeCumulative($iub);
 	makeCumulative($homosapiens);
- 
- //var_dump($iub);
- //var_dump($homosapiens);
- //exit(1);
 
 	makeRepeatFasta('ONE', 'Homo sapiens alu', $alu, $n*2);
 	makeRandomFasta('TWO', 'IUB ambiguity codes', $iub, $n*3);
@@ -96,8 +92,6 @@ function fasta($n) {
 function run_iter($n) {
 	       fasta($n);
 }
-
-run_iter(1000);
 
 
 }?>
