@@ -570,5 +570,3 @@ def change(v, newValue):
 def run_iter(n):
     chainTest(n)
     projectionTest(n)
-
-run_iter(10000);
