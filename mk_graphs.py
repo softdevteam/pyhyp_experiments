@@ -138,6 +138,11 @@ def report(json_filename, warmup, n_graphs, data_dct):
     page, body = emit_report_header(json_filename, warmup, n_graphs)
     emit_quick_links(data_dct, body)
 
+    try:
+        os.mkdir(OUTDIR)
+    except OSError:
+        pass
+
     # Iterate over keys in the json file drawing some graphs
     keys = sorted(data_dct["data"].keys())
     for key in keys:
