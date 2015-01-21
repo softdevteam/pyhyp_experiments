@@ -10,16 +10,6 @@ from pykalibera.data import Data
 CONF_SIZE = "0.99"  # intentionally str
 ITERATIONS = 10000
 
-# XXX I would like to put this info in the config file at some point.
-WARM_AFTER = {
-    "PyPy":     5,
-    "HippyVM":  5,
-    "PyHyp":    5,
-    "HHVM":     5,
-    "CPython":  2,
-    "Zend":     2,
-}
-
 def error(data):
     # lower, median, upper
     a, b, c = data.bootstrap_confidence_interval(
@@ -40,21 +30,20 @@ def make_confidence(config):
         exp_data = results[exp_key]
 
         bench, vm, variant = exp_key.split(":")
+        vm_info = config.VMS[vm]
 
-        warmup = WARM_AFTER[vm]
+        warmup = vm_info["warm_upon_iter"]
 
         data_arg = {}
         total_execs = len(exp_data)
         for exec_n in range(total_execs):
             data_arg[(exec_n, )] = exp_data[exec_n][warmup:]
 
-        import pdb; pdb.set_trace()
-
         kdata = Data(data_arg, [total_execs, len(data_arg[(0, )])])
         mean = kdata.mean()
         err = error(kdata)
 
-        print("%30s (warm_after=%02d)\t: %10f (+/- %10f)" %
+        print("%30s (warm_upon_iter=%02d)\t: %10f (+/- %10f)" %
               (exp_key, warmup, mean, err))
 
 
