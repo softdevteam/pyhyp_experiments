@@ -108,8 +108,8 @@ if __name__ == "__main__":
     start_time = time.time() # rough overall timer, not used for actual results
     for bmark, param in config.BENCHMARKS.items():
 
-        for vm_executable, vm_info in config.VMS.items():
-            vm_name = vm_info["name"]
+        for vm_name, vm_info in config.VMS.items():
+            vm_executable = vm_info["path"]
             n_iterations = vm_info["n_iterations"]
 
             for variant in vm_info["variants"]:
