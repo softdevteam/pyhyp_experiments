@@ -1,7 +1,7 @@
 mandel			DONE
 fannkuch		DONE
-deltablue
-fasta			XXX composed gives wrong result.
-gcbench
-heapsort
+deltablue		DONE
 richards		DONE
+fasta			XXX bug in composed benchmark, gives wrong result.
+gcbench			NOT_READY
+heapsort		NOT READY

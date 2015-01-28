@@ -7,7 +7,7 @@ def f_call(n):
     for i in xrange(n):
         ct += f_rcv(n + 1, n + 2, n + 3, n + 4, n + 5)
 
-    # each iteration adds 5n + 15 + i.
+    # each iteration adds 5n + 15
     expect = n * (5 * n + 15)
     assert ct == expect
 
