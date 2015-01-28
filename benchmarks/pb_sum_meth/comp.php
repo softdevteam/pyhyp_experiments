@@ -1,12 +1,11 @@
-<?php
-
+<?php{
 // Same as pb_sum, just using a method
 
 class Sum {
-	function f_rcv($a1, $a2, $a3, $a4, $a5) {
-		return $a1 + $a2 + $a3 + $a4 + $a5;
-	}
+ 
+
 }
+embed_py_meth("Sum", "def f_rcv(self, a1, a2, a3, a4, a5):\n    return a1 + a2 + a3 + a4 + a5");
 
 function f_call($n) {
 	$s = new Sum();
@@ -25,5 +24,4 @@ function run_iter($n) {
 }
 
 run_iter(1000000000);
-
-?>
+}?>
