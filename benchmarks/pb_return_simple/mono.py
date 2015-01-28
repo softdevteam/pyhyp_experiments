@@ -12,5 +12,3 @@ def f_call(n):
 
 def run_iter(n):
     f_call(n)
-
-run_iter(1000000000)

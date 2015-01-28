@@ -12,7 +12,7 @@ function f_call($n) {
 	for ($i = 0; $i < $n; $i++) {
 		$x1 = -$i - $n + 3;
 		$x2 = $i + $n;
-		f_swap($x1, $x2);	
+		f_swap($x1, $x2);
 		$ct += $x1 + $x2;
 	}
 	// each loop iteration adds 3
@@ -23,7 +23,5 @@ function f_call($n) {
 function run_iter($n) {
 	f_call($n);
 }
-
-run_iter(500000000);
 
 ?>

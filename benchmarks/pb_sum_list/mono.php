@@ -19,7 +19,7 @@ function f_call($n) {
 	for ($i = 0; $i < $n; $i++) {
 		$v += f_rcv($a);
 	}
-	
+
 	$expect = 499500 * $n;
 	assert($v == $expect);
 }
@@ -27,7 +27,5 @@ function f_call($n) {
 function run_iter($n) {
 	f_call($n);
 }
-
-run_iter(900000);
 
 ?>

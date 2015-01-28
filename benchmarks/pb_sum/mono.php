@@ -19,6 +19,4 @@ function run_iter($n) {
 	f_call($n);
 }
 
-run_iter(900000000);
-
 ?>
