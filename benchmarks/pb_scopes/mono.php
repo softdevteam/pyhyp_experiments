@@ -1,7 +1,7 @@
 <?php
 
 function f_outer($n) {
-	$inc = 0;
+	$inc = 2;
 
 	$inner = function($x) use(&$inc) {
 		return $x + $inc;
@@ -9,12 +9,10 @@ function f_outer($n) {
 
 	$tot = 0;
 	for ($i = 0; $i < $n; $i++) {
-		$inc = $i;
 		$tot = $inner($tot);
 	}
 
-	// sum(0, 1, 2, ..., n - 1)
-	$expect = ($n / 2) * ($n - 1);
+	$expect = 2 * $n;
 	assert($tot == $expect);
 
 }
