@@ -11,7 +11,8 @@ COMPOSED_OUTPUTS=	fannkuch/comp.php \
 			pb_scopes/comp.php \
 			pb_sum/comp.php \
 			pb_sum_attr/comp.php \
-			pb_sum_list/comp.php
+			pb_sum_list/comp.php \
+			pb_sum_meth/comp.php
 
 ECO=			eco
 
