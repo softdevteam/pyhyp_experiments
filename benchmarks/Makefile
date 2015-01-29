@@ -1,24 +1,45 @@
 # BSD make!
-COMPOSED_OUTPUTS=	fannkuch/comp.php \
-			mandel/comp.php \
-			fasta/comp.php \
-			richards/comp.php \
-			deltablue/comp.php \
-			gcbench/comp.php \
-			heapsort/comp.php \
-			pb_ref_swap/comp.php \
-			pb_return_simple/comp.php \
-			pb_scopes/comp.php \
-			pb_sum/comp.php \
-			pb_sum_attr/comp.php \
-			pb_total_list/comp.php \
-			pb_sum_meth/comp.php
 
-ECO=			eco
+ECO =	eco
+
+# So-called larger benchmarks
+COMPOSED_OUTPUTS_LARGER =	fannkuch/comp.php \
+				mandel/comp.php \
+				richards/comp.php \
+				deltablue/comp.php
+# Gives wrong output. Bug in benchmark?
+#				fasta/comp.php
+# Not finished:
+#				heapsort/comp.php
+#				gcbench/comp.php\
+
+# New pico benchmarks
+COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
+				pb_return_simple/comp.php \
+				pb_scopes/comp.php \
+				pb_sum/comp.php \
+				pb_sum_attr/comp.php \
+				pb_total_list/comp.php \
+				pb_sum_meth/comp.php
+
+# Pico benchmarks ported from Unipycation
+COMPOSED_OUTPUTS_UNIPY_PICO = 	pb_l1a0r/comp.php \
+				pb_l1a1r/comp.php \
+				pb_lists/comp.php \
+				pb_pythoninstances/comp.php \
+				pb_smallfunc/comp.php \
+				pb_termconstruction/comp.php
+
+ALL_COMPOSED_OUTPUTS =	 	${COMPOSED_OUTPUTS_LARGER} \
+				${COMPOSED_OUTPUTS_NEW_PICO} \
+				${COMPOSED_OUTPUTS_UNIPY_PICO}
 
 .SUFFIXES:.eco .php
 
 .eco.php:
 	${ECO} -e $< $@
 
-all: ${COMPOSED_OUTPUTS}
+all: ${ALL_COMPOSED_OUTPUTS}
+
+clean:
+	-rm -f ${ALL_COMPOSED_OUTPUTS}
