@@ -21,7 +21,7 @@ function consume_chain($chain) {
 }
 
 function outer($outer, $inner) {
-	$correct = $inner * ($inner + 1) / 2;
+	$correct = floor($inner * ($inner + 1) / 2);
 
 	for ($i = 0; $i < $outer; $i++) {
 		$res = consume_chain(make_chain($inner));

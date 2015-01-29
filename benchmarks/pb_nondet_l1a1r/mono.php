@@ -1,6 +1,6 @@
 <?php
 
-// This benchmark isnot useful, since hippy doesn't support generators.
+// This benchmark is not useful, since hippy doesn't support generators.
 // In fact, only new PHP versions support generators.
 
 function gen1($x) {

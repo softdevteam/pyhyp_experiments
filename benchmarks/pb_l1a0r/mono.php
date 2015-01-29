@@ -16,6 +16,4 @@ function run_iter($n) {
 	outer($n, 10000);
 }
 
-run_iter(10000);
-
 ?>
