@@ -1,0 +1,58 @@
+diff -r 07bf50ea0b54 rpython/rlib/rtime.py
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/rpython/rlib/rtime.py	Tue Feb 03 09:57:29 2015 +0000
+@@ -0,0 +1,54 @@
++"""
++This function was added for soft-dev team's benchmarking.
++
++It is not intended for inclusion in RPython in its current state
++"""
++
++import sys
++
++from rpython.rtyper.tool import rffi_platform as platform
++from rpython.rtyper.lltypesystem import lltype, rffi
++from rpython.translator.tool.cbuild import ExternalCompilationInfo
++
++POST_INCLUDE_BITS = """
++#ifdef __linux__
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC_RAW
++#else
++#define ACTUAL_MONOTONIC_CLOCK CLOCK_MONOTONIC
++#endif
++
++double _clock_gettime_monotonic();
++"""
++
++# We are using pure C instead of a direct RFFI call to clock_gettime so
++# we don't have to allocate our timespec on the heap. RPython currently only
++# supports heap allocation of structs.
++SEPARATE_MODULE_SOURCES = """
++double
++RPY_EXPORTED _clock_gettime_monotonic()
++{
++    struct timespec		ts;
++    double				result;
++
++    if ((clock_gettime(ACTUAL_MONOTONIC_CLOCK, &ts)) < 0) {
++        perror("clock_gettime");
++        exit(1); // ideally raise
++    }
++
++    result = ts.tv_sec + ts.tv_nsec * pow(10, -9);
++    return (result);
++}
++"""
++
++if sys.platform.startswith("linux"):
++    LIBS = ["rt"]
++else:
++    LIBS = []
++
++eci = ExternalCompilationInfo(includes=['time.h', 'math.h', 'stdlib.h'],
++                              post_include_bits=[POST_INCLUDE_BITS],
++                              separate_module_sources=[SEPARATE_MODULE_SOURCES],
++                              libraries=LIBS)
++
++_clock_gettime_monotonic = rffi.llexternal('_clock_gettime_monotonic', [],
++                                rffi.DOUBLE, compilation_info=eci)
