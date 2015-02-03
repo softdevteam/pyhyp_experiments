@@ -26,7 +26,7 @@
 
 // used to check that different variants execute the same program statements.
 function dbg_print_php() {
-	//return;
+	return;
 
 	$ar = func_get_args();
 	$len = func_num_args();
@@ -827,7 +827,5 @@ function run_iter($n){
   chainTest($n);
   projectionTest($n);
 }
-
-run_iter(100);
 
 ?>

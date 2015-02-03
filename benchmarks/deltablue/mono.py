@@ -25,7 +25,7 @@
 
 
 def dbg_print_py(func, *args):
-    #return
+    return
 
     import sys
     sys.stdout.write("%s: " % func)
@@ -677,5 +677,3 @@ def change(v, newValue):
 def run_iter(n):
     chainTest(n)
     projectionTest(n)
-
-run_iter(100)
