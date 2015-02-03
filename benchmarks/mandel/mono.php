@@ -1,6 +1,20 @@
 <?php
 {
 
+// used to check that different variants execute the same program statements.
+function dbg_print_php() {
+	return;
+
+	$ar = func_get_args();
+	$len = func_num_args();
+
+	echo "{$ar[0]}: ";
+	for($i = 1; $i < $len; $i++) {
+		echo "{$ar[$i]} ";
+	}
+	echo "\n";
+}
+
 $H1 = 150;
 
 # $n is the number of lines
@@ -20,9 +34,11 @@ function mandelPHP($n) {
   $w2=40;
   $h2=12;
   for ($y=0 ; $y<=$w1; $y=$y+1) {
+    dbg_print_php("Outer loop 1", $y, $w1);
     $line = array();
     $imc=$s*($y-$h2)+$imcen;
     for ($x=0 ; $x<=$h1; $x=$x+1) {
+      dbg_print_php("Inner loop 1", $x, $h1);
       $rec=$s*($x-$w2)+$recen;
       $re=$rec;
       $im=$imc;
@@ -30,6 +46,7 @@ function mandelPHP($n) {
       $re2=$re*$re;
       $im2=$im*$im;
       while( ((($re2+$im2)<1000000) && $color>0)) {
+        dbg_print_php("Inner loop 2", $color);
         $im=$re*$im*2+$imc;
         $re=$re2-$im2+$rec;
         $re2=$re*$re;
@@ -37,8 +54,10 @@ function mandelPHP($n) {
         $color=$color-1;
       }
       if ( $color==0 ) {
+	dbg_print_php("Cond 1 True");
         $line[] = "_";
       } else {
+	dbg_print_php("Cond 1 False");
         $line[] = "#";
       }
     }
@@ -51,8 +70,8 @@ function mandelPHP($n) {
 function run_iter($n){
     global $H1;
     $out = mandelPHP($n);
+    dbg_print_php("run_iter\n", $out);
     assert(strlen($out) == ($H1 + 2) * ($n + 1));
-    //echo $out;
 }
 
 }
