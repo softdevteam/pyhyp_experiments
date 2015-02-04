@@ -104,7 +104,7 @@ class TaskState {
 		$this->task_holding = false;
 		return $this;
 	}
-	
+
 	function running() {
 		$this->packet_pending = false;
 		$this->task_waiting = false;
@@ -118,7 +118,7 @@ class TaskState {
 		$this->task_holding = false;
 		return $this;
 	}
-	
+
 	function isPacketPending() {
 		return $this->packet_pending;
 	}
@@ -203,7 +203,7 @@ class Task extends TaskState {
 		return $old;
 	}
 
-	function runTasks() {
+	function runTask() {
 		if ($this->isWaitingWithPacket()) {
 			$msg = $this->input;
 			$this->input = $msg->link;
@@ -372,7 +372,7 @@ function schedule() {
 		else {
 			if (TRACING)
 				trace(chr(ord("0") + $t->ident));
-			$t = $t->runTasks();
+			$t = $t->runTask();
 		}
 	}
 }
@@ -409,9 +409,9 @@ class Richards {
 			new HandlerTask(I_HANDLERB, 3000, $wkq,
 							$task_state->waitingWithPacket(),
 							new HandlerTaskRec());
-			
+
 			$wkq = null;
-			
+
 			$task_state = new TaskState();
 			new DeviceTask(I_DEVA, 4000, $wkq, $task_state->waiting(),
 						   new DeviceTaskRec());
@@ -437,4 +437,5 @@ function run_iter($n) {
     $res = $r->run($n);
     assert($res);
 }
+
 }?>

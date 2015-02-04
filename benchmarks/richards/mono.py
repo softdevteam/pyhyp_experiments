@@ -7,6 +7,7 @@
 #  Translation from C++, Mario Wolczko
 #  Outer loop added by Alex Jacoby
 
+
 # Task IDs
 I_IDLE = 1
 I_WORK = 2
@@ -73,7 +74,7 @@ class HandlerTaskRec(TaskRec):
         self.device_in = p.append_to(self.device_in)
         return self.device_in
 
-class WorkerTaskRec(TaskRec):
+class WorkTaskRec(TaskRec):
     def __init__(self):
         self.destination = I_HANDLERA
         self.count = 0
@@ -154,7 +155,7 @@ class TaskWorkArea(object):
         self.holdCount = 0
         self.qpktCount = 0
 
-taskWorkArea = TaskWorkArea()
+#taskWorkArea = TaskWorkArea()
 
 class Task(TaskState):
 
@@ -257,8 +258,6 @@ class DeviceTask(Task):
 
 
 class HandlerTask(Task):
-    def __init__(self,i,p,w,s,r):
-        Task.__init__(self,i,p,w,s,r)
 
     def fn(self,pkt,r):
         h = r
@@ -307,12 +306,10 @@ class IdleTask(Task):
 
 
 class WorkTask(Task):
-    def __init__(self,i,p,w,s,r):
-        Task.__init__(self,i,p,w,s,r)
 
     def fn(self,pkt,r):
         w = r
-        assert isinstance(w, WorkerTaskRec)
+        assert isinstance(w, WorkTaskRec)
         if pkt is None:
             return self.waitTask()
 
@@ -359,20 +356,25 @@ class Richards(object):
 
             wkq = Packet(None, 0, K_WORK)
             wkq = Packet(wkq , 0, K_WORK)
-            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkerTaskRec())
+            task_state = TaskState()
+            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkTaskRec())
 
             wkq = Packet(None, I_DEVA, K_DEV)
             wkq = Packet(wkq , I_DEVA, K_DEV)
             wkq = Packet(wkq , I_DEVA, K_DEV)
+            task_state = TaskState()
             HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())
 
             wkq = Packet(None, I_DEVB, K_DEV)
             wkq = Packet(wkq , I_DEVB, K_DEV)
             wkq = Packet(wkq , I_DEVB, K_DEV)
+            task_state = TaskState()
             HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())
 
             wkq = None;
+            task_state = TaskState()
             DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec());
+            task_state = TaskState()
             DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec());
 
             schedule()
