@@ -1,12 +1,3 @@
-def dbg_print_py(func, *args):
-    return
-
-    import sys
-    sys.stdout.write("%s: " % func)
-    for i in args:
-        sys.stdout.write("%s " % i)
-    sys.stdout.write("\n")
-
 H1 = 150
 
 def mandel_py(n):
@@ -34,11 +25,9 @@ def mandel_py(n):
     h2 = 12
 
     for y in xrange(w1 + 1):
-        dbg_print_py("Outer loop 1", y, w1)
         line = []
         imc = s * (y - h2) + imcen
         for x in xrange(h1 + 1):
-            dbg_print_py("Inner loop 1", x, h1)
             rec = s * (x - w2) + recen
             re = rec
             im = imc
@@ -46,7 +35,6 @@ def mandel_py(n):
             re2 = re * re
             im2 = im * im
             while re2 + im2 < 1000000 and color > 0:
-                dbg_print_py("Inner loop 2", color)
                 im = re * im * 2 + imc
                 re = re2 - im2 + rec
                 re2 = re * re
@@ -54,10 +42,8 @@ def mandel_py(n):
                 color = color - 1
 
             if color == 0:
-                dbg_print_py("Cond 1 True")
                 line.append("_")
             else:
-                dbg_print_py("Cond 1 False")
                 line.append("#")
         lines.append("".join(line))
     out = "\n".join(lines) + "\n"
@@ -67,4 +53,3 @@ def mandel_py(n):
 def run_iter(n):
     out = mandel_py(n)
     assert len(out) == (H1 + 2) * (n + 1)
-    dbg_print_py("run_iter\n", out)
