@@ -5,6 +5,4 @@ embed_py_func_global("def Fannkuch_run(n):\n    check = 0\n    perm = [None for 
 function run_iter($n) {
 	$res = Fannkuch_run($n);
 }
-
-run_iter(10);
 }?>
