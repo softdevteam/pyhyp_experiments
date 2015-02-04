@@ -24,20 +24,6 @@
 // others have been modified more aggresively to make it feel
 // more like a JavaScript program.
 
-// used to check that different variants execute the same program statements.
-function dbg_print_php() {
-	return;
-
-	$ar = func_get_args();
-	$len = func_num_args();
-
-	echo "{$ar[0]}: ";
-	for($i = 1; $i < $len; $i++) {
-		echo "{$ar[$i]} ";
-	}
-	echo "\n";
-}
-
 function alert($s) {
   throw new Exception("Alert called with argument: $s");
 }
@@ -49,32 +35,26 @@ class OrderedCollection {
   private $elms;
 
   function __construct() {
-    dbg_print_php("OrderedCollection::constructor");
     $this->elms = array();
   }
 
   function add($elm) {
-    dbg_print_php("OrderedCollection::add");
     array_push($this->elms, $elm);
   }
 
   function at($index) {
-    dbg_print_php("OrderedCollection::at", $index);
     return $this->elms[$index];
   }
 
   function size() {
-    dbg_print_php("OrderedCollection::size");
     return count($this->elms);
   }
 
   function removeFirst() {
-    dbg_print_php("OrderedCollection::removeFirst");
     return array_pop($this->elms);
   }
 
   function remove($elm) {
-    dbg_print_php("OrderedCollection::remove");
     $index = 0;
     $skipped = 0;
     for ($i = 0; $i < count($this->elms); $i++) {
@@ -103,49 +83,42 @@ class Strength {
 
   public static function Required()
   {
-    dbg_print_php("Strength::Required");
     if (!Strength::$REQUIRED)
       Strength::$REQUIRED = new Strength(0, "required");
     return Strength::$REQUIRED;
   }
   public static function StrongPreferred()
   {
-    dbg_print_php("Strength::StrongPreferred");
     if (!Strength::$STRONG_PREFERRED)
       Strength::$STRONG_PREFERRED = new Strength(1, "strongPreferred");
     return Strength::$STRONG_PREFERRED;
   }
   public static function Preferred()
   {
-    dbg_print_php("Strength::Preferred");
     if (!Strength::$PREFERRED)
       Strength::$PREFERRED = new Strength(2, "preferred");
     return Strength::$PREFERRED;
   }
   public static function StrongDefault()
   {
-    dbg_print_php("Strength::StrongDefault");
     if (!Strength::$STRONG_DEFAULT)
       Strength::$STRONG_DEFAULT = new Strength(3, "strongDefault");
     return Strength::$STRONG_DEFAULT;
   }
   public static function Normal()
   {
-    dbg_print_php("Strength::Normal");
     if (!Strength::$NORMAL)
       Strength::$NORMAL = new Strength(4, "normal");
     return Strength::$NORMAL;
   }
   public static function WeakDefault()
   {
-    dbg_print_php("Strength::WeakDefault");
     if (!Strength::$WEAK_DEFAULT)
       Strength::$WEAK_DEFAULT = new Strength(5, "weakDefault");
     return Strength::$WEAK_DEFAULT;
   }
   public static function Weakest()
   {
-    dbg_print_php("Strength::Weakest");
     if (!Strength::$WEAKEST)
       Strength::$WEAKEST = new Strength(6, "weakest");
     return Strength::$WEAKEST;
@@ -155,33 +128,27 @@ class Strength {
   public $name;
 
   function __construct($strengthValue, $name) {
-    dbg_print_php("Strength::constructor", $strengthValue, $name);
     $this->strengthValue = $strengthValue;
     $this->name = $name;
   }
 
   public static function stronger($s1, $s2) {
-    dbg_print_php("Strength::stronger");
     return $s1->strengthValue < $s2->strengthValue;
   }
 
   public static function weaker($s1, $s2) {
-    dbg_print_php("Strength::weaker");
     return $s1->strengthValue > $s2->strengthValue;
   }
 
   public static function weakestOf($s1, $s2) {
-    dbg_print_php("Strength::weakestOf");
     return Strength::weaker($s1, $s2) ? $s1 : $s2;
   }
 
   public static function strongest($s1, $s2) {
-    dbg_print_php("Strength::strongest");
     return Strength::stronger($s1, $s2) ? $s1 : $s2;
   }
 
   function nextWeaker() {
-    dbg_print_php("Strength::nextWeaker");
     switch ($this->strengthValue) {
       case 0: return Strength::Weakest();
       case 1: return Strength::WeakDefault();
@@ -198,13 +165,11 @@ class Constraint {
   public $strength;
 
   function __construct($strength) {
-    dbg_print_php("Constraint::constructor");
     $this->strength = $strength;
   }
 
 
   function addConstraint() {
-    dbg_print_php("Constraint::addConstraint");
     global $planner;
 
     $this->addToGraph();
@@ -213,7 +178,6 @@ class Constraint {
 
 
   function satisfy($mark) {
-    dbg_print_php("Constraint::satisfy", $mark);
     global $planner;
 
     $this->chooseMethod($mark);
@@ -235,7 +199,6 @@ class Constraint {
   }
 
   function destroyConstraint() {
-    dbg_print_php("Constraint::destroyConstraint");
     global $planner;
 
     if ($this->isSatisfied())
@@ -246,7 +209,6 @@ class Constraint {
 
 
   function isInput() {
-    dbg_print_php("Constraint::isInput");
     return false;
   }
 }
@@ -259,7 +221,6 @@ class UnaryConstraint extends Constraint {
   public $satisfied;
 
   function __construct($v, $strength) {
-    dbg_print_php("UnaryConstraint::constructor");
     parent::__construct($strength);
     $this->myOutput = $v;
     $this->satisfied = false;
@@ -268,14 +229,12 @@ class UnaryConstraint extends Constraint {
 
 
   function addToGraph() {
-    dbg_print_php("UnaryConstraint::addToGraph");
     $this->myOutput->addConstraint($this);
     $this->satisfied = false;
   }
 
 
   function chooseMethod($mark) {
-    dbg_print_php("UnaryConstraint::chooseMethod", $mark);
     $this->satisfied = ($this->myOutput->mark != $mark)
       && Strength::stronger(
         $this->strength,
@@ -284,24 +243,20 @@ class UnaryConstraint extends Constraint {
 
 
   function isSatisfied() {
-    dbg_print_php("UnaryConstraint::isSatisfied");
     return $this->satisfied;
   }
 
   function markInputs($mark) {
-    dbg_print_php("UnaryConstraint::markInputs", $mark);
     // has no inputs
   }
 
 
   function output() {
-    dbg_print_php("UnaryConstraint::output");
     return $this->myOutput;
   }
 
 
   function recalculate() {
-    dbg_print_php("UnaryConstraint::recalculate");
     $this->myOutput->walkStrength = $this->strength;
     $this->myOutput->stay = !$this->isInput();
     if ($this->myOutput->stay)
@@ -309,17 +264,14 @@ class UnaryConstraint extends Constraint {
   }
 
   function markUnsatisfied() {
-    dbg_print_php("UnaryConstraint::markUnsatisfied");
     $this->satisfied = false;
   }
 
   function inputsKnown() {
-    dbg_print_php("UnaryConstraint::inputsKnown");
     return true;
   }
 
   function removeFromGraph() {
-    dbg_print_php("UnaryConstraint::removeFromGraph");
     if ($this->myOutput != null)
       $this->myOutput->removeConstraint($this);
     $this->satisfied = false;
@@ -331,30 +283,25 @@ class UnaryConstraint extends Constraint {
 
 class StayConstraint extends UnaryConstraint {
   function __construct($v, $str) {
-    dbg_print_php("StayConstraint::constructor");
     parent::__construct($v, $str);
   }
 
   function execute() {
-    dbg_print_php("StayConstraint::execute");
     // Stay constraints do nothing
   }
 }
 
 class EditConstraint extends UnaryConstraint {
   function __construct($v, $str) {
-    dbg_print_php("EditConstraint::constructor");
     parent::__construct($v, $str);
   }
 
 
   function isInput() {
-    dbg_print_php("EditConstraint::isInput");
     return true;
   }
 
   function execute() {
-    dbg_print_php("EditConstraint::execute");
     // Edit constraints do nothing
   }
 }
@@ -373,7 +320,6 @@ class BinaryConstraint extends Constraint {
   public $direction;
 
   function __construct($var1, $var2, $strength) {
-    dbg_print_php("BinaryConstraint::constructor");
     parent::__construct($strength);
     $this->v1 = $var1;
     $this->v2 = $var2;
@@ -383,7 +329,6 @@ class BinaryConstraint extends Constraint {
 
 
   function chooseMethod($mark) {
-    dbg_print_php("BinaryConstraint::chooseMethod", $mark);
     if ($this->v1->mark == $mark) {
       $this->direction = ($this->v2->mark != $mark
         && Strength::stronger($this->strength, $this->v2->walkStrength))
@@ -412,7 +357,6 @@ class BinaryConstraint extends Constraint {
   }
 
   function addToGraph() {
-    dbg_print_php("BinaryConstraint::addToGraph");
     $this->v1->addConstraint($this);
     $this->v2->addConstraint($this);
     $this->direction = Direction::NONE;
@@ -420,31 +364,26 @@ class BinaryConstraint extends Constraint {
 
 
   function isSatisfied() {
-    dbg_print_php("BinaryConstraint::isSatisfied");
     return $this->direction != Direction::NONE;
   }
 
 
   function markInputs($mark) {
-    dbg_print_php("BinaryConstraint::markInputs", $mark);
     $this->input()->mark = $mark;
   }
 
   function input() {
-    dbg_print_php("BinaryConstraint::input");
     return ($this->direction == Direction::FORWARD) ?
       $this->v1 : $this->v2;
   }
 
   function output() {
-    dbg_print_php("BinaryConstraint::output");
     return ($this->direction == Direction::FORWARD) ?
       $this->v2 : $this->v1;
   }
 
 
   function recalculate() {
-    dbg_print_php("BinaryConstraint::recalculate");
     $ihn = $this->input();
     $out = $this->output();
     $out->walkStrength = Strength::weakestOf($this->strength,
@@ -455,18 +394,15 @@ class BinaryConstraint extends Constraint {
   }
 
   function markUnsatisfied() {
-    dbg_print_php("BinaryConstraint::markUnsatisfied");
     $this->direction = Direction::NONE;
   }
 
   function inputsKnown($mark) {
-    dbg_print_php("BinaryConstraint::inputsKnown", $mark);
     $i = $this->input();
     return $i->mark == $mark || $i->stay || $i->determinedBy == null;
   }
 
   function removeFromGraph() {
-    dbg_print_php("BinaryConstraint::removeFromGraph");
     if ($this->v1 != null)
       $this->v1->removeConstraint($this);
     if ($this->v2 != null)
@@ -481,7 +417,6 @@ class ScaleConstraint extends BinaryConstraint {
   public $offset;
 
   function __construct($src, $scale, $offset, $dest, $strength) {
-    dbg_print_php("ScaleConstraint::constructor");
     $this->direction = Direction::NONE;
     $this->scale = $scale;
     $this->offset = $offset;
@@ -490,14 +425,12 @@ class ScaleConstraint extends BinaryConstraint {
 
 
   function addToGraph() {
-    dbg_print_php("ScaleConstraint::addToGraph");
     parent::addToGraph();
     $this->scale->addConstraint($this);
     $this->offset->addConstraint($this);
   }
 
   function removeFromGraph() {
-    dbg_print_php("ScaleConstraint::removeFromGraph");
     parent::removeFromGraph();
     if ($this->scale != null)
       $this->scale->removeConstraint($this);
@@ -506,7 +439,6 @@ class ScaleConstraint extends BinaryConstraint {
   }
 
   function markInputs($mark) {
-    dbg_print_php("ScaleConstraint::markInputs", $mark);
     parent::markInputs($mark);
     $this->scale->mark = $mark;
     $this->offset->mark = $mark;
@@ -514,7 +446,6 @@ class ScaleConstraint extends BinaryConstraint {
 
 
   function execute() {
-    dbg_print_php("ScaleConstraint::execute");
     if ($this->direction == Direction::FORWARD) {
       $this->v2->value = $this->v1->value * $this->scale->value +
         $this->offset->value;
@@ -526,7 +457,6 @@ class ScaleConstraint extends BinaryConstraint {
 
 
   function recalculate() {
-    dbg_print_php("ScaleConstraint::recalculate");
     $ihn = $this->input();
     $out = $this->output();
     $out->walkStrength = Strength::weakestOf($this->strength,
@@ -539,12 +469,10 @@ class ScaleConstraint extends BinaryConstraint {
 
 class EqualityConstraint extends BinaryConstraint {
   function __construct($var1, $var2, $strength) {
-    dbg_print_php("EqualityConstraint::constructor");
     parent::__construct($var1, $var2, $strength);
   }
 
   function execute() {
-    dbg_print_php("EqualityConstraint::execute");
     //$this->output()->value = $this->input()->value;
     $new_v = $this->input()->value;
     $this->output()->value = $new_v;
@@ -561,7 +489,6 @@ class Variable {
   public $name;
 
   function Variable($name, $initialValue = null) {
-    dbg_print_php("Variable::constructor", $name);
     $this->value = $initialValue == null ? 0 : $initialValue;
     $this->constraints = new OrderedCollection();
     $this->determinedBy = null;
@@ -572,12 +499,10 @@ class Variable {
   }
 
   function addConstraint($c) {
-    dbg_print_php("Variable::addConstraint");
     $this->constraints->add($c);
   }
 
   function removeConstraint($c) {
-    dbg_print_php("Variable::removeConstraint");
     $this->constraints->remove($c);
     if ($this->determinedBy == $c)
       $this->determinedBy = null;
@@ -586,12 +511,10 @@ class Variable {
 
 class Planner {
   function __construct() {
-    dbg_print_php("Planner::constructor");
     $this->currentMark = 0;
   }
 
   function incrementalAdd($c) {
-    dbg_print_php("Planner::incrementalAdd");
     $mark = $this->newMark();
     $overridden = $c->satisfy($mark);
     while ($overridden != null)
@@ -599,7 +522,6 @@ class Planner {
   }
 
   function incrementalRemove($c) {
-    dbg_print_php("Planner::incrementalRemove");
     $out = $c->output();
     $c->markUnsatisfied();
     $c->removeFromGraph();
@@ -616,12 +538,10 @@ class Planner {
   }
 
   function newMark() {
-    dbg_print_php("Planner::newMark");
     return ++$this->currentMark;
   }
 
   function makePlan($sources) {
-    dbg_print_php("Planner::makePlan");
     $mark = $this->newMark();
     $plan = new Plan();
     $todo = $sources;
@@ -637,7 +557,6 @@ class Planner {
   }
 
   function extractPlanFromConstraints($constraints) {
-    dbg_print_php("Planner::extractPlanFromConstraints");
     $sources = new OrderedCollection();
     for ($i = 0; $i < $constraints->size(); $i++) {
       $c = $constraints->at($i);
@@ -649,7 +568,6 @@ class Planner {
   }
 
   function addPropagate($c, $mark) {
-    dbg_print_php("Planner::addPropagate", $mark);
     $todo = new OrderedCollection();
     $todo->add($c);
     while ($todo->size() > 0) {
@@ -666,7 +584,6 @@ class Planner {
 
 
   function removePropagateFrom($out) {
-    dbg_print_php("Planner::removePropagateFrom");
     $out->determinedBy = null;
     $out->walkStrength = Strength::Weakest();
     $out->stay = true;
@@ -693,7 +610,6 @@ class Planner {
   }
 
   function addConstraintsConsumingTo($v, $coll) {
-    dbg_print_php("Planner::addConstraintsConsumingTo");
     $determining = $v->determinedBy;
     $cc = $v->constraints;
     for ($i = 0; $i < $cc->size(); $i++) {
@@ -708,27 +624,22 @@ class Plan {
   private $v;
 
   function __construct() {
-    dbg_print_php("Plan::constructor");
     $this->v = new OrderedCollection();
   }
 
   function addConstraint($c) {
-    dbg_print_php("Plan::addConstraint");
     $this->v->add($c);
   }
 
   function size() {
-    dbg_print_php("Plan::size");
     return $this->v->size();
   }
 
   function constraintAt($index) {
-    dbg_print_php("Plan::constraintAt", $index);
     return $this->v->at($index);
   }
 
   function execute() {
-    dbg_print_php("Plan::execute");
     for ($i = 0; $i < $this->size(); $i++) {
       $c = $this->constraintAt($i);
       $c->execute();
@@ -737,7 +648,6 @@ class Plan {
 }
 
 function chainTest($n) {
-  dbg_print_php("chainTest", $n);
   global $planner;
 
   $planner = new Planner();
@@ -772,7 +682,6 @@ function chainTest($n) {
 }
 
 function projectionTest($n) {
-  dbg_print_php("projectionTest", $n);
   global $planner;
 
   $planner = new Planner();
@@ -809,7 +718,6 @@ function projectionTest($n) {
 }
 
 function change($v, $newValue) {
-  dbg_print_php("change", $newValue);
   global $planner;
 
   $edit = new EditConstraint($v, Strength::Preferred());
