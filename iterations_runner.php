@@ -1,5 +1,8 @@
 <?php
 
+define('ANSI_MAGENTA', "\033[95m");
+define('ANSI_RESET', "\033[0m");
+
 /* PHP has a very small memory limit by default, crank */
 ini_set('memory_limit', '8192M');
 
@@ -60,6 +63,8 @@ if (!function_exists("run_iter")) {
 
 echo "["; // we are going to print a Python eval-able list.
 for ($BM_i = 0; $BM_i < $BM_iters; $BM_i++) {
+        fprintf(STDERR, "%sIteration %3d/%3d%s\n", ANSI_MAGENTA, $BM_i + 1, $BM_iters, ANSI_RESET);
+
 	$timer = new BenchTimer();
 	$timer->start();
 	run_iter($BM_param);

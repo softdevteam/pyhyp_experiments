@@ -9,6 +9,9 @@ In Kalibera terms, this script represents one executions level run.
 
 import cffi, sys, imp
 
+ANSI_MAGENTA = '\033[95m'
+ANSI_RESET = '\033[0m'
+
 CDEFS = """
 double clock_gettime_monotonic();
 """
@@ -90,6 +93,8 @@ if __name__ == "__main__":
 
     sys.stdout.write("[") # we are going to print a Python eval-able list.
     for i in xrange(iters):
+        sys.stderr.write("%sIteration %3d/%3d%s\n" %
+                         (ANSI_MAGENTA, i + 1, iters, ANSI_RESET))
 
         timer = BenchTimer()
         timer.start()
