@@ -18,3 +18,4 @@ libxml2
 cmake
 wget
 GCC (and gcc-multilib).
+virtualenv
