@@ -293,7 +293,7 @@ gen_config() {
 
 	# HHVM
 	echo "\t'HHVM': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${HHVM_BINARY}'," >> ${CONFIG_FILE}
+	echo "\t\t'path': '${HHVM_WRAPPER}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
@@ -344,8 +344,8 @@ gen_config() {
 	echo "BENCHMARKS = {" >> ${CONFIG_FILE}
 
 	# new micro
-	echo "\t'pb_refswap': 1100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_returnsimple': 3000000000," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap': 1100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_return_simple': 3000000000," >> ${CONFIG_FILE}
 	echo "\t'pb_scopes': 1600000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum': 1380000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_attr': 1000000000," >> ${CONFIG_FILE}
@@ -354,11 +354,11 @@ gen_config() {
 	echo "\t'pb_instchain': 12000," >> ${CONFIG_FILE}
 
 	# unipycation micro
-	echo "\t'l1a0r': 440000," >> ${CONFIG_FILE}
-	echo "\t'l1a1r': 300000," >> ${CONFIG_FILE}
-	echo "\t'lists': 36000," >> ${CONFIG_FILE}
-	echo "\t'smallfunc': 450000000," >> ${CONFIG_FILE}
-	echo "\t'termconstruction': 3900," >> ${CONFIG_FILE}
+	echo "\t'pb_l1a0r': 440000," >> ${CONFIG_FILE}
+	echo "\t'pb_l1a1r': 300000," >> ${CONFIG_FILE}
+	echo "\t'pb_lists': 36000," >> ${CONFIG_FILE}
+	echo "\t'pb_smallfunc': 450000000," >> ${CONFIG_FILE}
+	echo "\t'pb_termconstruction': 3900," >> ${CONFIG_FILE}
 
 	# larger
 	echo "\t'fannkuch': 11," >> ${CONFIG_FILE}
