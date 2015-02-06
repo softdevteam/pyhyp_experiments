@@ -53,4 +53,3 @@ def mandel_py(n):
 def run_iter(n):
     out = mandel_py(n)
     assert len(out) == (H1 + 2) * (n + 1)
-    #print(out)

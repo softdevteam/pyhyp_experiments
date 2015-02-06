@@ -23,6 +23,7 @@
 # others have been modified more aggresively to make it feel
 # more like a JavaScript program.
 
+
 # Global variable holding the current planner.
 planner = None
 
@@ -259,7 +260,7 @@ class BinaryConstraint(Constraint):
         self.addConstraint()
 
     def chooseMethod(self, mark):
-        if not self.v1.mark == mark:
+        if self.v1.mark == mark:
             c1 = self.v2.mark != mark and \
                 Strength.stronger(self.strength, self.v2.walkStrength)
             self.direction = Direction.FORWARD if c1 else Direction.NONE
@@ -314,13 +315,6 @@ class BinaryConstraint(Constraint):
         if self.v2 is not None:
             self.v2.removeConstraint(self)
         self.direction= Direction.NONE
-
-    def PYremoveFromGraph(self):
-        if self.v1 is not None:
-            self.v1.removeConstraint(self)
-        if self.v2 is not None:
-            self.v2.removeConstraints(self)
-        self.direction = Direction.None
 
 class ScaleConstraint(BinaryConstraint):
 
@@ -408,10 +402,13 @@ class Planner(object):
         unsatisfied = self.removePropagateFrom(out)
         strength = Strength.Required()
         while True:
-            for i in xrange(unsatisfied.size()):
+            #for i in xrange(unsatisfied.size()):
+            i = 0
+            while i < unsatisfied.size():
                 u = unsatisfied.at(i)
                 if u.strength == strength:
                     self.incrementalAdd(u)
+                i += 1
             strength = strength.nextWeaker()
             if strength == Strength.Weakest():
                 break
@@ -434,11 +431,14 @@ class Planner(object):
 
     def extractPlanFromConstraints(self, constraints):
         sources = OrderedCollection()
-        for i in xrange(0, constraints.size()):
+        #for i in xrange(0, constraints.size()):
+        i = 0
+        while i < constraints.size():
             c = constraints.at(i)
             # not in plan already and eligible for inclusion
             if c.isInput() and c.isSatisfied():
                 sources.add(c)
+            i += 1
         return self.makePlan(sources)
 
     def addPropagate(self, c, mark):
@@ -462,25 +462,34 @@ class Planner(object):
         todo.add(out)
         while todo.size() > 0:
             v = todo.removeFirst()
-            for i in xrange(v.constraints.size()):
+            #for i in xrange(v.constraints.size()):
+            i = 0
+            while i < v.constraints.size():
                 c = v.constraints.at(i)
                 if not c.isSatisfied():
                     unsatisfied.add(c)
+                i += 1
             determining = v.determinedBy
-            for i in xrange(v.constraints.size()):
+            #for i in xrange(v.constraints.size()):
+            i = 0
+            while i < v.constraints.size():
                 next = v.constraints.at(i)
                 if next != determining and next.isSatisfied():
                     next.recalculate()
                     todo.add(next.output())
+                i += 1
         return unsatisfied
 
     def addConstraintsConsumingTo(self, v, coll):
         determining = v.determinedBy
         cc = v.constraints
-        for i in xrange(0, cc.size()):
+        # for i in xrange(0, cc.size()):
+        i = 0
+        while (i < cc.size()):
             c = cc.at(i)
             if c != determining and c.isSatisfied():
                 coll.add(c)
+            i += 1
 
 class Plan(object):
 
@@ -497,9 +506,12 @@ class Plan(object):
         return self.v.at(index)
 
     def execute(self):
-        for i in xrange(0, self.size()):
+        #for i in xrange(0, self.size()):
+        i = 0
+        while i < self.size():
             c = self.constraintAt(i)
             c.execute()
+            i += 1
 
 def chainTest(n):
     global planner
@@ -556,6 +568,10 @@ def projectionTest(n):
     for i in xrange(n - 1):
         if dests.at(i).value != i * 5 + 1000:
             alert("Projection 3 failed")
+    change(offset, 2000);
+    for i in xrange(n - 1):
+        if dests.at(i).value != i * 5 + 2000:
+            alert("Projection 4 failed");
 
 def change(v, newValue):
     edit = EditConstraint(v, Strength.Preferred())

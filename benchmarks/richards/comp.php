@@ -1,5 +1,6 @@
 <?php{
 // Ported by Maciej Fijalkowski to PHP (BSD license)
+
 // Task IDs
 define('I_IDLE', 1);
 define('I_WORK', 2);
@@ -90,12 +91,7 @@ define('TASKTABSIZE', 10);
 
 $layout = 0;
 
-
-$__pyhyp__trace = embed_py_func("def __pyhyp__trace(a):\n    global layout\n    layout = layout - 1\n    if layout <= 0:\n        print(\"\\n\")\n        layout = 50\n    print \"%s\" % a");
-function trace($a){
-    global $__pyhyp__trace;
-    return $__pyhyp__trace( $a);
-}
+embed_py_func_global("def trace(a):\n    global layout\n    layout = layout - 1\n    if layout <= 0:\n        print(\"\\n\")\n        layout = 50\n    print \"%s\" % a");
 
 class TaskWorkArea {
     
@@ -127,7 +123,7 @@ embed_py_meth("Task", "def qpkt(self, pkt):\n        t = self.findtcb(pkt.ident)
 embed_py_meth("Task", "def release(self, i):\n        t = self.findtcb(i)\n        t.task_holding = False\n        if t.priority > self.priority:\n            return t\n        else:\n            return self");
 embed_py_meth("Task", "def hold(self):\n        taskWorkArea.holdCount += 1\n        self.task_holding = True\n        return self.link");
 embed_py_meth("Task", "def waitTask(self):\n        self.task_waiting = True\n        return self");
-embed_py_meth("Task", "def runTasks(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetPending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
+embed_py_meth("Task", "def runTask(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetPending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
 embed_py_meth("Task", "def addPacket(self, p, old):\n        if self.input is None:\n            self.input = p\n            self.packet_pending = True\n            if self.priority > old.priority:\n                return self\n        else:\n            p.append_to(self.input)\n        return old");
 embed_py_meth("Task", "def __construct(self, i, p, w, initialState, r):\n        self.link = taskWorkArea.taskList\n        self.ident = i\n        self.priority = p\n        self.input = w\n        \n        self.packet_pending = initialState.isPacketPending()\n        self.task_waiting = initialState.isTaskWaiting()\n        self.task_holding = initialState.isTaskHolding()\n        \n        self.handle = r\n        \n        taskWorkArea.taskList = self\n        taskWorkArea.taskTab[i] = self");
 
@@ -153,12 +149,7 @@ embed_py_meth("WorkTask", "def fn(self, pkt, r):\n        w = r\n        if pkt 
 
 define('TRACING', 0);
 
-
-$__pyhyp__schedule = embed_py_func("def __pyhyp__schedule():\n    t = taskWorkArea.taskList\n    while t is not None:\n        pkt = None\n        if TRACING:\n            print \"tcp = %d\" % (t.indent)\n        if t.isTaskHoldingOrWaiting():\n            t = t.link\n        else:\n            if TRACING:\n                trace(chr(ord(\"0\") + t.indent))\n            t = t.runTasks()");
-function schedule(){
-    global $__pyhyp__schedule;
-    return $__pyhyp__schedule();
-}
+embed_py_func_global("def schedule():\n    t = taskWorkArea.taskList\n    while t is not None:\n        pkt = None\n        if TRACING:\n            print \"tcp = %d\" % (t.indent)\n        if t.isTaskHoldingOrWaiting():\n            t = t.link\n        else:\n            if TRACING:\n                trace(chr(ord(\"0\") + t.indent))\n            t = t.runTask()");
             
 class Richards {
 
@@ -175,4 +166,5 @@ function run_iter($n) {
     $res = $r->run($n);
     assert($res);
 }
+
 }?>

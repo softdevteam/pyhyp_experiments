@@ -21,6 +21,4 @@ function run_iter($n) {
 	f_outer($n);
 }
 
-run_iter(500000000);
-
 ?>

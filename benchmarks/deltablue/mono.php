@@ -473,7 +473,9 @@ class EqualityConstraint extends BinaryConstraint {
   }
 
   function execute() {
-    $this->output()->value = $this->input()->value;
+    //$this->output()->value = $this->input()->value;
+    $new_v = $this->input()->value;
+    $this->output()->value = $new_v;
   }
 }
 

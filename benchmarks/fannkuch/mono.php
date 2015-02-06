@@ -1,5 +1,6 @@
 <?php
 {
+
 function Fannkuch_run($n){
 	$check = 0;
 	$perm = array();
@@ -12,7 +13,9 @@ function Fannkuch_run($n){
 	for ($i=0; $i<$n; $i++) $perm1[$i] = $i;
 	$r = $n;
 	while (TRUE) {
-		while ($r != 1){ $count[$r-1] = $r; $r--; }
+		while ($r != 1) {
+			$count[$r-1] = $r; $r--;
+		}
 		if (! ($perm1[0]==0 || $perm1[$m] == $m)){
 			for($i=0; $i<$n; $i++) {
 				$perm[$i] = $perm1[$i];
@@ -31,12 +34,16 @@ function Fannkuch_run($n){
 
 			if ($flipsCount > $maxFlipsCount) {
 				$maxFlipsCount = $flipsCount;
-				for($i=0; $i<$n; $i++) $maxPerm[$i] = $perm1[$i];
+				for($i=0; $i<$n; $i++) {
+					$maxPerm[$i] = $perm1[$i];
+				}
 			}
 		}
 
 		while (TRUE) {
-			if ($r == $n) return $maxFlipsCount;
+			if ($r == $n) {
+				return $maxFlipsCount;
+			}
 			$perm0 = $perm1[0];
 			$i = 0;
 			while ($i < $r) {
@@ -47,7 +54,9 @@ function Fannkuch_run($n){
 			$perm1[$r] = $perm0;
 
 			$count[$r] = $count[$r] - 1;
-			if ($count[$r] > 0) break;
+			if ($count[$r] > 0) {
+				break;
+			}
 			$r++;
 		}
 	}
@@ -55,7 +64,6 @@ function Fannkuch_run($n){
 
 function run_iter($n) {
 	$res = Fannkuch_run($n);
-	#echo "$res\n";
 
 }
 

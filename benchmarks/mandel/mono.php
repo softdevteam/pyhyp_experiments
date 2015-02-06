@@ -52,7 +52,6 @@ function run_iter($n){
     global $H1;
     $out = mandelPHP($n);
     assert(strlen($out) == ($H1 + 2) * ($n + 1));
-    //echo $out;
 }
 
 }

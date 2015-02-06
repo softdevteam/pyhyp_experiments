@@ -10,6 +10,7 @@ def Fannkuch_run(n):
 
     r = n
     while True:
+
         while r != 1:
             count[r-1] = r
             r -= 1
@@ -25,6 +26,7 @@ def Fannkuch_run(n):
 
                 if k == 0:
                     break
+
 
                 k2 = (k + 1) >> 1
 
@@ -59,5 +61,4 @@ def Fannkuch_run(n):
 
 def run_iter(n):
     res = Fannkuch_run(n)
-    #print(res)
 
