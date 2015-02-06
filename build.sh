@@ -291,43 +291,43 @@ gen_config() {
 	echo "VMS = {" >> ${CONFIG_FILE}
 
 	# HHVM
-	echo "\t'${HHVM_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'HHVM'," >> ${CONFIG_FILE}
+	echo "\t'HHVM': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${HHVM_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# CPython
-	echo "\t'${CPYTHON_VENV_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'CPython'," >> ${CONFIG_FILE}
+	echo "\t'CPython': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${CPYTHON_VENV_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# Zend PHP
-	echo "\t'${ZEND_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'Zend'," >> ${CONFIG_FILE}
+	echo "\t'Zend': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${ZEND_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# PyPy
-	echo "\t'${PYPY_VENV_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'PyPy'," >> ${CONFIG_FILE}
+	echo "\t'PyPy': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${PYPY_VENV_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# PyHyp
-	echo "\t'${PYHYP_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'PyHyp'," >> ${CONFIG_FILE}
+	echo "\t'PyHyp': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${PYHYP_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['composed', 'mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# HippyVM
-	echo "\t'${HIPPY_BINARY}': {" >> ${CONFIG_FILE}
-	echo "\t\t'name': 'HippyVM'," >> ${CONFIG_FILE}
+	echo "\t'HippyVM': {" >> ${CONFIG_FILE}
+	echo "\t\t'path': '${HIPPY_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
@@ -349,9 +349,9 @@ gen_config() {
 	# unipycation micro
 	echo "\t'l1a0r': 440000," >> ${CONFIG_FILE}
 	echo "\t'l1a1r': 300000," >> ${CONFIG_FILE}
-	echo "\t'lists': i36000," >> ${CONFIG_FILE}
-	echo "\t'smallfunc': i450000000," >> ${CONFIG_FILE}
-	echo "\t'termconstruction': i3900," >> ${CONFIG_FILE}
+	echo "\t'lists': 36000," >> ${CONFIG_FILE}
+	echo "\t'smallfunc': 450000000," >> ${CONFIG_FILE}
+	echo "\t'termconstruction': 3900," >> ${CONFIG_FILE}
 
 	# larger
 	echo "\t'fannkuch': 11," >> ${CONFIG_FILE}
