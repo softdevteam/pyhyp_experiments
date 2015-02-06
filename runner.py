@@ -67,7 +67,7 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
             print(ANSI_RESET)
             print("")
 
-            iterations_results = [] # no results, continue...
+            return []
 
         executions_results.append(iterations_results)
 
