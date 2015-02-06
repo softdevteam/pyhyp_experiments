@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# XXX as soon as PyPY-2.5 is released, lock all versions.
-
 missing=0
 check_for () {
 	which $1 > /dev/null 2> /dev/null
@@ -175,11 +173,11 @@ do_zend() {
 
 # Download and build PyPy
 
-PYPY_VERSION=2.4.0
+PYPY_VERSION=2.5.0
 PYPY_TARBALL=pypy-${PYPY_VERSION}-src.tar.bz2
 PYPY_DIR=${WRKDIR}/pypy-${PYPY_VERSION}-src
 PYPY_GOAL_DIR=${PYPY_DIR}/pypy/goal
-PYPY_BINARY=${PYPY_GOAL_DIR}/pypy
+PYPY_BINARY=${PYPY_GOAL_DIR}/pypy-c
 PYPY_DOWNLOAD_URI=https://bitbucket.org/pypy/pypy/downloads/${PYPY_TARBALL}
 PYPY_VENV=${VENV_DIR}/pypy
 PYPY_VENV_BINARY=${PYPY_VENV}/bin/pypy
@@ -193,13 +191,12 @@ do_pypy() {
 	        wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
 	        bunzip2 -c - ${PYPY_TARBALL} | tar xf -
 	        cd ${PYPY_DIR}
-	        # Patches in two parts from pypy-hippy-bridge repo
-		# XXX update ince pypy-2.5 is released.
-	        patch -Ep1 < ${PATCH_DIR}/pypy.diff || exit $?
-	        patch -Ep1 < ${PATCH_DIR}/pypy2.diff || exit $?
+	        # Patch from pypy-hippy-bridge repo
+	        patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
 	        cd ${PYPY_GOAL_DIR}
 	        usession=`mktemp -d`
-	        PYPY_USESSION_DIR=${usession} ${PYTHON} ../../rpython/bin/rpython -Ojit --output=pypy || exit $?
+	        PYPY_USESSION_DIR=${usession} ${PYTHON} \
+			../../rpython/bin/rpython -Ojit || exit $?
 	        rm -rf ${usession}
 	    fi
 
@@ -259,11 +256,6 @@ HIPPY_HIPPY_DIR=${HIPPY_DIR}/hippyvm
 HIPPY_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
 HIPPY_HIPPY_VERSION=master	# XXX freeze
 
-# XXX all of this goes when 2.5 synced
-HIPPY_PYPY_DIR=${HIPPY_DIR}/pypy
-HIPPY_PYPY_HG_URI=https://vext01@bitbucket.org/pypy/pypy
-HIPPY_PYPY_VERSION=default	# XXX freeze
-
 HIPPY_BINARY=${HIPPY_HIPPY_DIR}/hippy-c
 
 do_hippy() {
@@ -277,29 +269,11 @@ do_hippy() {
 		git clone ${HIPPY_HIPPY_GIT_URI} || exit $?
 	    fi
 
-	    # XXX not needed when we sync 2.5
-	    if [ ! -d "${HIPPY_PYPY_DIR}" ]; then
-		hg clone ${HIPPY_PYPY_HG_URI} || exit $?
-	    fi
-
 	    cd ${HIPPY_HIPPY_DIR}
 	    git checkout ${HIPPY_HIPPY_VERSION}
 	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
 
-	    # XXX pathcing not necessary once 2.5 synced.
-	    cd ${HIPPY_PYPY_DIR}
-	    hg up ${HIPPY_PYPY_VERSION}
-	    patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
-
-	    # We used to re-use RPython from the 2.4 tarball, but this is now
-	    # too old to build hippyy (Armin's errno save changes
-	    # We can revert to this when pypy-2.5 is released XXX.
-	    #${PYPY_VENV_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
-	    #    targethippy.py || exit $?
-
-	    # So we use the newer rpython for now XXX
-	    cd ${HIPPY_HIPPY_DIR}
-	    ${PYPY_VENV_BINARY} ${HIPPY_PYPY_DIR}/rpython/bin/rpython -Ojit \
+	    ${PYPY_VENV_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
 	        targethippy.py || exit $?
 	fi
 }
@@ -384,8 +358,6 @@ do_pyhyp;
 do_hippy;
 
 gen_config;
-
-# XXX separate out hippy and pyhyp clones.
 
 echo "\n-------------------------------------------------------"
 echo "HHVM:\n  ${HHVM_WRAPPER}\n"
