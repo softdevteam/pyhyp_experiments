@@ -20,13 +20,13 @@ COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
 				pb_sum/comp.php \
 				pb_sum_attr/comp.php \
 				pb_total_list/comp.php \
-				pb_sum_meth/comp.php
+				pb_sum_meth/comp.php \
+				pb_instchain/comp.php # strictly from unipycation, but was unused
 
 # Pico benchmarks ported from Unipycation
 COMPOSED_OUTPUTS_UNIPY_PICO = 	pb_l1a0r/comp.php \
 				pb_l1a1r/comp.php \
 				pb_lists/comp.php \
-				pb_pythoninstances/comp.php \
 				pb_smallfunc/comp.php \
 				pb_termconstruction/comp.php
 
