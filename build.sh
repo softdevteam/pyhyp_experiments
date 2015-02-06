@@ -281,6 +281,7 @@ do_hippy() {
 # Make config file
 
 CONFIG_FILE="${HERE}/config.py"
+WARM_UPON_ITER=1 # user will need to tweak this
 
 gen_config() {
 	n_iterations=10 # default value tweaked by experimenter on a per-vm basis
@@ -295,6 +296,7 @@ gen_config() {
 	echo "\t\t'path': '${HHVM_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# CPython
@@ -302,6 +304,7 @@ gen_config() {
 	echo "\t\t'path': '${CPYTHON_VENV_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# Zend PHP
@@ -309,6 +312,7 @@ gen_config() {
 	echo "\t\t'path': '${ZEND_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# PyPy
@@ -316,6 +320,7 @@ gen_config() {
 	echo "\t\t'path': '${PYPY_VENV_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# PyHyp
@@ -323,6 +328,7 @@ gen_config() {
 	echo "\t\t'path': '${PYHYP_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['composed', 'mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 
 	# HippyVM
@@ -330,6 +336,7 @@ gen_config() {
 	echo "\t\t'path': '${HIPPY_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
 	echo "}\n" >> ${CONFIG_FILE}
 
