@@ -335,7 +335,31 @@ gen_config() {
 
 	# Add benchmarks
 	echo "BENCHMARKS = {" >> ${CONFIG_FILE}
-	echo "\t'richards': 11," >> ${CONFIG_FILE}
+
+	# new micro
+	echo "\t'pb_refswap': 1100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_returnsimple': 3000000000," >> ${CONFIG_FILE}
+	echo "\t'pb_scopes': 1600000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum': 1380000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum_attr': 1000000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum_meth': 1370000000," >> ${CONFIG_FILE}
+	echo "\t'pb_total_list': 2800000," >> ${CONFIG_FILE}
+	echo "\t'pb_instchain': 12000," >> ${CONFIG_FILE}
+
+	# unipycation micro
+	echo "\t'l1a0r': 440000," >> ${CONFIG_FILE}
+	echo "\t'l1a1r': 300000," >> ${CONFIG_FILE}
+	echo "\t'lists': i36000," >> ${CONFIG_FILE}
+	echo "\t'smallfunc': i450000000," >> ${CONFIG_FILE}
+	echo "\t'termconstruction': i3900," >> ${CONFIG_FILE}
+
+	# larger
+	echo "\t'fannkuch': 11," >> ${CONFIG_FILE}
+	echo "\t'mandel': 7500," >> ${CONFIG_FILE}
+	echo "\t'richards': 1000," >> ${CONFIG_FILE}
+	echo "\t'deltablue': 300000," >> ${CONFIG_FILE}
+
+
 	echo "}\n" >> ${CONFIG_FILE}
 
 	# Repetitions
