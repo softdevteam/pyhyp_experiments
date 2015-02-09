@@ -1,10 +1,6 @@
 <?php{
 
-$__pyhyp__f_swap = embed_py_func("def __pyhyp__f_swap(a_l, b_l):\n    # python has no notion of references.\n    # To get the desired effect, we must pass mutable args.\n    a, b = a_l[0], b_l[0]\n    a_l[0], b_l[0] = b, a");
-function f_swap($a_l, $b_l){
-    global $__pyhyp__f_swap;
-    return $__pyhyp__f_swap( $a_l, $b_l);
-}
+embed_py_func_global("@php_decor(refs=[0, 1])\ndef f_swap(a_ref, b_ref):\n    # python has no notion of references.\n    # To get the desired effect, we must pass mutable args.\n    a, b = a_ref.deref(), b_ref.deref()\n    a_ref.store(b)\n    b_ref.store(a)");
 
 function f_call($n) {
 
