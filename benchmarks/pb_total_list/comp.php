@@ -1,11 +1,6 @@
 <?php{
 
-
-$__pyhyp__f_rcv = embed_py_func("def __pyhyp__f_rcv(ary):\n    ct = 0\n    for i in ary:\n        ct += i\n    return ct");
-function f_rcv($ary){
-    global $__pyhyp__f_rcv;
-    return $__pyhyp__f_rcv( $ary);
-}
+embed_py_func_global("def f_rcv(ary):\n    ct = 0\n    for i in ary:\n        ct += i\n    return ct");
 
 function f_call($n) {
 

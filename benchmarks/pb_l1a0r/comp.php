@@ -1,11 +1,6 @@
 <?php{
 
-
-$__pyhyp__countdown = embed_py_func("def __pyhyp__countdown(x):\n    while x > 0:\n        x -= 1");
-function countdown($x){
-    global $__pyhyp__countdown;
-    return $__pyhyp__countdown( $x);
-}
+embed_py_func_global("def countdown(x):\n    while x > 0:\n        x -= 1");
 
 function outer($outer, $inner) {
 	for ($i = 0; $i < $outer; $i++) {

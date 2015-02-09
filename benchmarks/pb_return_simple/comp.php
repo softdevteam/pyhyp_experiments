@@ -1,10 +1,5 @@
 <?php{
-
-$__pyhyp__f_ret = embed_py_func("def __pyhyp__f_ret():\n    return 1");
-function f_ret(){
-    global $__pyhyp__f_ret;
-    return $__pyhyp__f_ret();
-}
+embed_py_func_global("def f_ret():\n    return 1");
 
 function f_call($n) {
 
