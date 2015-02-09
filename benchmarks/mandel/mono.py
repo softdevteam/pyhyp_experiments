@@ -1,5 +1,17 @@
 H1 = 150
 
+def inner_loop(re2, im2, color, re, im, imc, rec):
+
+    while re2 + im2 < 1000000 and color > 0:
+        im = re * im * 2 + imc
+        re = re2 - im2 + rec
+        re2 = re * re
+        im2 = im * im
+        color = color - 1
+
+    # python has no references, return new values
+    return re2, im2, color, re, im
+
 def mandel_py(n):
     lines = []
 
@@ -34,12 +46,9 @@ def mandel_py(n):
             color = 1000
             re2 = re * re
             im2 = im * im
-            while re2 + im2 < 1000000 and color > 0:
-                im = re * im * 2 + imc
-                re = re2 - im2 + rec
-                re2 = re * re
-                im2 = im * im
-                color = color - 1
+
+            re2, im2, color, re, im = \
+                inner_loop(re2, im2, color, re, im, imc, rec)
 
             if color == 0:
                 line.append("_")

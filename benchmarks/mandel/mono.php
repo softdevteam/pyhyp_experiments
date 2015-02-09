@@ -3,6 +3,16 @@
 
 $H1 = 150;
 
+function inner_loop(&$re2, &$im2, &$color, &$re, &$im, $imc, $rec) {
+      while( ((($re2+$im2)<1000000) && $color>0)) {
+        $im=$re*$im*2+$imc;
+        $re=$re2-$im2+$rec;
+        $re2=$re*$re;
+        $im2=$im*$im;
+        $color=$color-1;
+      }
+}
+
 # $n is the number of lines
 function mandelPHP($n) {
   global $H1;
@@ -29,13 +39,9 @@ function mandelPHP($n) {
       $color=1000;
       $re2=$re*$re;
       $im2=$im*$im;
-      while( ((($re2+$im2)<1000000) && $color>0)) {
-        $im=$re*$im*2+$imc;
-        $re=$re2-$im2+$rec;
-        $re2=$re*$re;
-        $im2=$im*$im;
-        $color=$color-1;
-      }
+
+      inner_loop($re2, $im2, $color, $re, $im, $imc, $rec);
+
       if ( $color==0 ) {
         $line[] = "_";
       } else {
