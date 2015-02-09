@@ -345,6 +345,7 @@ gen_config() {
 
 	# new micro
 	echo "\t'pb_ref_swap': 1100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap2': 1100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_return_simple': 3000000000," >> ${CONFIG_FILE}
 	echo "\t'pb_scopes': 1600000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum': 1380000000," >> ${CONFIG_FILE}
