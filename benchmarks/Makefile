@@ -15,6 +15,7 @@ COMPOSED_OUTPUTS_LARGER =	fannkuch/comp.php \
 
 # New pico benchmarks
 COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
+				pb_ref_swap2/comp.php \
 				pb_return_simple/comp.php \
 				pb_scopes/comp.php \
 				pb_sum/comp.php \
