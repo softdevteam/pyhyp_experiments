@@ -193,8 +193,12 @@ class ExecutionScheduler(object):
         start_time = time.time() # rough overall timer, not used for actual results
 
         while True:
+            jobs_left = self.num_jobs_left()
             print("%s%d jobs left in scheduler queue%s" %
-                        (ANSI_CYAN, self.num_jobs_left(), ANSI_RESET))
+                        (ANSI_CYAN, jobs_left, ANSI_RESET))
+
+            if jobs_left == 0:
+                break
 
             # Try to tell the user how long this might take
             overall_eta = self.get_overall_eta()
@@ -206,11 +210,7 @@ class ExecutionScheduler(object):
                                                 time.strftime("%H:%M:%S"),
                                                 overall_eta_str, ANSI_RESET))
 
-            try:
-                job = self.next_job()
-            except ScheduleEmpty:
-                break # done!
-
+            job = self.next_job()
             exec_result = job.run()
 
             if not exec_result and not BENCH_DRYRUN:
