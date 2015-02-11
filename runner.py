@@ -61,12 +61,8 @@ class ExecutionJob(object):
         # Used in results JSON and ETA dict
         self.key = "%s:%s:%s" % (bmark, vm_name, variant)
 
-    def eta(self):
-        previous_exec_times = self.sched.eta_estimates.get(self.key)
-        if previous_exec_times:
-            return mean(previous_exec_times)
-        else:
-            return None
+    def get_exec_eta(self):
+        return self.sched.get_exec_eta(self.key)
 
     def __str__(self):
         return self.key
@@ -75,7 +71,7 @@ class ExecutionJob(object):
 
     def add_exec_time(self, exec_time):
         """Feed back a rough execution time for ETA usage"""
-        self.sched.eta_estimates[self.key].append(exec_time)
+        self.sched.add_eta_info(self.key, exec_time)
 
     def run(self):
         """Runs this job (execution)"""
@@ -93,7 +89,7 @@ class ExecutionJob(object):
                 str(param)]
 
         # Print ETA for execution if available
-        this_exec_eta = self.eta()
+        this_exec_eta = self.get_exec_eta()
         if this_exec_eta: # could return None, meaning "no idea yet"
             exec_eta_str = "%fs" % this_exec_eta
         else:
@@ -167,8 +163,15 @@ class ExecutionScheduler(object):
     def num_jobs_left(self):
         return len(self.work_deque)
 
-    def eta(self):
-        etas = [j.eta() for j in self.work_deque]
+    def get_exec_eta(self, key):
+        previous_exec_times = self.eta_estimates.get(key)
+        if previous_exec_times:
+            return mean(previous_exec_times)
+        else:
+            return None
+
+    def get_overall_eta(self):
+        etas = [j.get_exec_eta() for j in self.work_deque]
         if None in etas:
             return None # we don't know
         return sum(etas)
@@ -188,7 +191,7 @@ class ExecutionScheduler(object):
                         (ANSI_CYAN, self.num_jobs_left(), ANSI_RESET))
 
             # Try to tell the user how long this might take
-            overall_eta = self.eta()
+            overall_eta = self.get_overall_eta()
             if overall_eta:
                 overall_eta_str = "%fs" % overall_eta
             else:
@@ -218,6 +221,9 @@ class ExecutionScheduler(object):
             print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
 
         print("Completed in (roughly) %f seconds" % (end_time - start_time))
+
+    def add_eta_info(self, key, exec_time):
+        self.eta_estimates[key].append(exec_time)
 
 if __name__ == "__main__":
 
