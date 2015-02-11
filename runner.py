@@ -11,7 +11,11 @@ ANSI_MAGENTA = '\033[95m'
 ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
 
+UNKNOWN_ETA = "?:??:??"
+
 import os, subprocess, sys, subprocess, json, time
+from collections import deque
+import datetime
 
 # XXX these bits are not very generic, shoudl we wish to release this
 # as a standalone benchmark runner.
@@ -91,9 +95,9 @@ class ExecutionJob(object):
         # Print ETA for execution if available
         this_exec_eta = self.get_exec_eta()
         if this_exec_eta: # could return None, meaning "no idea yet"
-            exec_eta_str = "%fs" % this_exec_eta
+            exec_eta_str = "%s" % datetime.timedelta(seconds=int(this_exec_eta))
         else:
-            exec_eta_str = "unknown"
+            exec_eta_str = UNKNOWN_ETA
 
         print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, exec_eta_str, ANSI_RESET))
 
@@ -193,9 +197,9 @@ class ExecutionScheduler(object):
             # Try to tell the user how long this might take
             overall_eta = self.get_overall_eta()
             if overall_eta:
-                overall_eta_str = "%fs" % overall_eta
+                overall_eta_str = "%s" % datetime.timedelta(seconds=int(overall_eta))
             else:
-                overall_eta_str = "unknown"
+                overall_eta_str = UNKNOWN_ETA
             print("%sOverall ETA %s%s" % (ANSI_CYAN, overall_eta_str, ANSI_RESET))
 
             try:
@@ -244,8 +248,6 @@ if __name__ == "__main__":
     print(config)
 
     # Build job queue -- each job is an execution
-    from collections import deque
-
     sched = ExecutionScheduler()
     for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
