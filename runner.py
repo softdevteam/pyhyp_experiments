@@ -99,7 +99,9 @@ class ExecutionJob(object):
         else:
             exec_eta_str = UNKNOWN_ETA
 
-        print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, exec_eta_str, ANSI_RESET))
+        print("    %sAt %s ETA for this execution: %s%s" % \
+              (ANSI_MAGENTA, time.strftime("%H:%M:%S"),
+               exec_eta_str, ANSI_RESET))
 
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
@@ -200,7 +202,9 @@ class ExecutionScheduler(object):
                 overall_eta_str = "%s" % datetime.timedelta(seconds=int(overall_eta))
             else:
                 overall_eta_str = UNKNOWN_ETA
-            print("%sOverall ETA %s%s" % (ANSI_CYAN, overall_eta_str, ANSI_RESET))
+            print("%sAt %s overall ETA %s%s" % (ANSI_CYAN,
+                                                time.strftime("%H:%M:%S"),
+                                                overall_eta_str, ANSI_RESET))
 
             try:
                 job = self.next_job()
