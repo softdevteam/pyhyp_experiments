@@ -15,8 +15,6 @@ UNKNOWN_TIME_DELTA = "?:??:??"
 ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
 
-OUT_FILE = None
-
 import os, subprocess, sys, subprocess, json, time
 from collections import deque
 import datetime
@@ -46,14 +44,14 @@ def usage():
 def mean(seq):
     return sum(seq) / float(len(seq))
 
-def dump_json(config_file, all_results):
+def dump_json(config_file, out_file, all_results):
     # dump out into json file, incluing contents of the config file
     with open(config_file, "r") as f:
         config_text = f.read()
 
     to_write = {"config" : config_text, "data" : all_results}
 
-    with open(OUT_FILE, "w") as f:
+    with open(out_file, "w") as f:
         f.write(json.dumps(to_write, indent=1, sort_keys=True))
 
 class ExecutionJob(object):
@@ -67,7 +65,7 @@ class ExecutionJob(object):
         self.parameter = parameter
 
         # Used in results JSON and ETA dict
-        self.key = "%s:%s:%s" % (bmark, vm_name, variant)
+        self.key = "%s:%s:%s" % (self.benchmark, self.vm_name, self.variant)
 
     def get_exec_eta(self):
         return self.sched.get_exec_eta(self.key)
@@ -88,13 +86,13 @@ class ExecutionJob(object):
                     (ANSI_CYAN, self.benchmark, self.parameter, self.variant,
                      self.vm_name, ANSI_RESET))
 
-        benchmark_dir = os.path.join("benchmarks", bmark)
+        benchmark_dir = os.path.join("benchmarks", self.benchmark)
 
-        bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
-        iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
+        bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[self.variant])
+        iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[self.variant]
         args = [self.vm_info["path"],
-                iterations_runner, bench_file, str(vm_info["n_iterations"]),
-                str(param)]
+                iterations_runner, bench_file, str(self.vm_info["n_iterations"]),
+                str(self.parameter)]
 
         # Print ETA for execution if available
         this_exec_eta = self.get_exec_eta()
@@ -154,7 +152,7 @@ class ScheduleEmpty(Exception):
 class ExecutionScheduler(object):
     """Represents our entire benchmarking session"""
 
-    def __init__(self):
+    def __init__(self, config_file, out_file):
         self.work_deque = deque()
 
         # Record how long processes are taking so we can make a
@@ -165,6 +163,10 @@ class ExecutionScheduler(object):
         # Maps key to results:
         # (bmark, vm, variant) -> [[e0i0, e0i1, ...], [e1i0, e1i1, ...], ...]
         self.results = {}
+
+        # file names
+        self.config_file = config_file
+        self.out_file = out_file
 
     def add_job(self, job):
         self.work_deque.append(job)
@@ -236,11 +238,11 @@ class ExecutionScheduler(object):
 
             # We dump the json after each experiment so we can monitor the
             # json file mid-run. It is overwritten each time.
-            dump_json(config_file, self.results)
+            dump_json(self.config_file, self.out_file, self.results)
 
         end_time = time.time() # rough overall timer, not used for actual results
 
-        print("Done: Results dumped to %s" % OUT_FILE)
+        print("Done: Results dumped to %s" % self.out_file)
         if errors:
             print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
 
@@ -266,8 +268,7 @@ def print_session_summary(config):
     print("Hit enter to proceed...")
     raw_input()
 
-if __name__ == "__main__":
-
+def main():
     try:
         config_file = sys.argv[1]
     except IndexError:
@@ -277,7 +278,7 @@ if __name__ == "__main__":
         usage()
 
     import_name = config_file[:-3]
-    OUT_FILE = import_name + "_results.json"
+    out_file = import_name + "_results.json"
     try:
         config = __import__(import_name)
     except:
@@ -285,7 +286,7 @@ if __name__ == "__main__":
         raise
 
     # Build job queue -- each job is an execution
-    sched = ExecutionScheduler()
+    sched = ExecutionScheduler(config_file, out_file)
     for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
             for bmark, param in config.BENCHMARKS.items():
@@ -299,3 +300,5 @@ if __name__ == "__main__":
 
     print("Time now is %s" % datetime.datetime.now().strftime(ABS_TIME_FORMAT))
 
+if __name__ == "__main__":
+    main()
