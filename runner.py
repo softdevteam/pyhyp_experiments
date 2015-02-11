@@ -28,10 +28,6 @@ VARIANT_TO_ITERATIONS_RUNNER = {
 BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
 BENCH_DRYRUN = os.environ.get("BENCH_DRYRUN", False)
 
-# Record how long processes are taking so we can make a rough ETA for the user.
-# Maps (benchmark, vm, variant) -> [t_0, t_1, ...]
-ETA_ESTIMATES = {}
-
 def usage():
     print(__doc__)
     sys.exit(1)
@@ -52,7 +48,8 @@ def dump_json(config_file, all_results):
 class ExecutionJob(object):
     """Represents a single executions level benchmark run"""
 
-    def __init__(self, vm_name, vm_info, benchmark, variant, parameter):
+    def __init__(self, sched, vm_name, vm_info, benchmark, variant, parameter):
+        self.sched = sched
         self.vm_name, self.vm_info = vm_name, vm_info
         self.benchmark = benchmark
         self.variant = variant
@@ -62,7 +59,7 @@ class ExecutionJob(object):
         self.key = "%s:%s:%s" % (bmark, vm_name, variant)
 
     def eta(self):
-        previous_exec_times = ETA_ESTIMATES.get(self.key)
+        previous_exec_times = self.sched.eta_estimates.get(self.key)
         if previous_exec_times:
             return mean(previous_exec_times)
         else:
@@ -75,13 +72,9 @@ class ExecutionJob(object):
 
     def add_exec_time(self, exec_time):
         """Feed back a rough execution time for ETA usage"""
-        # XXX scaffold keys up front?
-        if not ETA_ESTIMATES.has_key(self.key):
-            ETA_ESTIMATES[self.key] = [exec_time]
-        else:
-            ETA_ESTIMATES[self.key].append(exec_time)
+        self.sched.eta_estimates[self.key].append(exec_time)
 
-    def run(self, sched):
+    def run(self):
         """Runs this job (execution)"""
 
         print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
@@ -147,8 +140,20 @@ class ScheduleEmpty(Exception):
 class ExecutionScheduler(object):
     """Represents our entire benchmarking session"""
 
-    def __init__(self, work_deque):
-        self.work_deque = work_deque
+    def __init__(self):
+        self.work_deque = deque()
+
+        # Record how long processes are taking so we can make a
+        # rough ETA for the user.
+        # Maps (bmark, vm, variant) -> [t_0, t_1, ...]
+        self.eta_estimates = {}
+
+        # Maps key to results:
+        # (bmark, vm, variant) -> [[e0i0, e0i1, ...], [e1i0, e1i1, ...], ...]
+        self.results = {}
+
+    def add_job(self, job):
+        self.work_deque.append(job)
 
     def next_job(self):
         try:
@@ -166,12 +171,18 @@ class ExecutionScheduler(object):
         return sum(etas)
 
     def run(self):
+        """Benchmark execution starts here"""
+        # scaffold dicts
+        for j in self.work_deque:
+            self.eta_estimates[j.key] = []
+            self.results[j.key] = []
+
         errors = False
         start_time = time.time() # rough overall timer, not used for actual results
 
         while True:
             print("%s%d jobs left in scheduler queue%s" %
-                        (ANSI_CYAN, sched.num_jobs_left(), ANSI_RESET))
+                        (ANSI_CYAN, self.num_jobs_left(), ANSI_RESET))
 
             # Try to tell the user how long this might take
             overall_eta = self.eta()
@@ -186,16 +197,16 @@ class ExecutionScheduler(object):
             except ScheduleEmpty:
                 break # done!
 
-            exec_result = job.run(self)
+            exec_result = job.run()
 
             if not exec_result and not BENCH_DRYRUN:
                 errors = True
 
-            all_results[job.key].append(exec_result)
+            self.results[job.key].append(exec_result)
 
             # We dump the json after each experiment so we can monitor the
             # json file mid-run. It is overwritten each time.
-            dump_json(config_file, all_results)
+            dump_json(config_file, self.results)
 
         end_time = time.time() # rough overall timer, not used for actual results
 
@@ -225,18 +236,15 @@ if __name__ == "__main__":
 
     # Build job queue -- each job is an execution
     from collections import deque
-    exec_jobs = deque()
 
-    all_results = {} # stash results here
+    sched = ExecutionScheduler()
     for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
             for bmark, param in config.BENCHMARKS.items():
                 for variant in vm_info["variants"]:
-                    job = ExecutionJob(vm_name, vm_info, bmark, variant, param)
-                    exec_jobs.append(job)
+                    job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
+                    sched.add_job(job)
                     # scaffold dicts
-                    all_results[job.key] = []
-                    ETA_ESTIMATES[job.key] = []
-    sched = ExecutionScheduler(exec_jobs)
+
     sched.run() # does the benchmarking
 
