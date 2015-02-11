@@ -254,6 +254,7 @@ def print_session_summary(config):
 
     print("\nBecnchmarking Session Summary")
     print("==============================\n\n")
+    print("Now:         " + datetime.datetime.now().strftime(ABS_TIME_FORMAT))
     print("Platform:    " + sys.platform)
     print("Host:        " + socket.gethostname())
     print("Directory:   " + os.getcwd())
