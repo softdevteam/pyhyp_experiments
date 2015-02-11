@@ -39,73 +39,64 @@ def usage():
 def mean(seq):
     return sum(seq) / float(len(seq))
 
-def run_exec(vm_name, vm_info, bmark, variant, n_executions, param):
-    """ Runs multiple executions of a benchmark """
+def run_exec(sched, job):
+    """Runs a single job (execution) from the job queue"""
 
-    vm_executable = vm_info["path"]
-    n_iterations = vm_info["n_iterations"]
+    print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
+                (ANSI_CYAN, job.benchmark, job.parameter, job.variant,
+                 job.vm_name, ANSI_RESET))
 
-    executions_results = []
     benchmark_dir = os.path.join("benchmarks", bmark)
 
     bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
     iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
-    args = [vm_executable, iterations_runner, bench_file,
-            str(n_iterations), str(param)]
+    args = [job.vm_info["path"],
+            iterations_runner, bench_file, str(vm_info["n_iterations"]),
+            str(param)]
 
-    eta_key = "%s:%s:%s" % (bmark, vm_name, variant)
+    # ETA if available
+    this_exec_eta = job.eta()
+    if this_exec_eta: # could return None, meaning "no idea yet"
+        exec_eta_str = "%fs" % this_exec_eta
+    else:
+        exec_eta_str = "unknown"
 
-    for e in xrange(n_executions):
-        print("%sExecution %3d/%3d%s" % (ANSI_MAGENTA, e + 1, n_executions, ANSI_RESET))
+    print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, exec_eta_str, ANSI_RESET))
 
-        # ETA if available
-        execution_estimates = ETA_ESTIMATES.get(eta_key)
-        if execution_estimates:
-            eta_this_exec = "%fs" % mean(execution_estimates)
-        else:
-            eta_this_exec = "unknown"
+    if BENCH_DEBUG:
+        print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
 
-        print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, eta_this_exec, ANSI_RESET))
+    if BENCH_DRYRUN:
+        returne # don't actually do any benchmarks
 
-        if BENCH_DEBUG:
-            print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
+    # Rough ETA execution timer
+    exec_start_rough = time.time()
 
-        if BENCH_DRYRUN:
-            continue # don't actually do any benchmarks
+    # run capturing output
+    stdout, stderr = subprocess.Popen(
+            args, stdout=subprocess.PIPE).communicate()
 
-        # Rough ETA execution timer
-        exec_start_rough = time.time()
+    exec_time_rough = time.time() - exec_start_rough
 
-        # run capturing output
-        stdout, stderr = subprocess.Popen(
-                args, stdout=subprocess.PIPE).communicate()
+    try:
+        iterations_results = eval(stdout) # we should get a list of floats
+    except SyntaxError:
+        print(ANSI_RED)
+        print("=ERROR=" * 8)
+        print("*error: benchmark didn't print a parsable list.")
+        print("We got:\n---\n%s\n---\n" % stdout)
+        print("When running: %s" % " ".join(args))
+        print("=ERROR=" * 8)
+        print(ANSI_RESET)
+        print("")
 
-        exec_time_rough = time.time() - exec_start_rough
+        return []
 
-        try:
-            iterations_results = eval(stdout) # we should get a list of floats
-        except SyntaxError:
-            print(ANSI_RED)
-            print("=ERROR=" * 8)
-            print("*error: benchmark didn't print a parsable list.")
-            print("We got:\n---\n%s\n---\n" % stdout)
-            print("When running: %s" % " ".join(args))
-            print("=ERROR=" * 8)
-            print(ANSI_RESET)
-            print("")
-
-            return []
-
-        executions_results.append(iterations_results)
-
-        # Add to ETA estimation figures
-        if not ETA_ESTIMATES.has_key(eta_key):
-            ETA_ESTIMATES[eta_key] = [exec_time_rough]
-        else:
-            ETA_ESTIMATES[eta_key].append(exec_time_rough)
+    # Add to ETA estimation figures
+    job.add_exec_time(exec_time_rough)
 
     print("")
-    return executions_results
+    return iterations_results
 
 def dump_json(config_file, all_results):
     # dump out into json file, incluing contents of the config file
@@ -116,6 +107,62 @@ def dump_json(config_file, all_results):
 
     with open(config.OUT_FILE, "w") as f:
         f.write(json.dumps(to_write, indent=1, sort_keys=True))
+
+class ExecutionJob(object):
+    """Represents a single executions level benchmark run"""
+
+    def __init__(self, vm_name, vm_info, benchmark, variant, parameter):
+        self.vm_name, self.vm_info = vm_name, vm_info
+        self.benchmark = benchmark
+        self.variant = variant
+        self.parameter = parameter
+
+        # Used in results JSON and ETA dict
+        self.key = "%s:%s:%s" % (bmark, vm_name, variant)
+
+    def eta(self):
+        previous_exec_times = ETA_ESTIMATES.get(self.key)
+        if previous_exec_times:
+            return mean(previous_exec_times)
+        else:
+            return None
+
+    def __str__(self):
+        return self.key
+
+    __repr__ = __str__
+
+    def add_exec_time(self, exec_time):
+        """Feed back a rough execution time for ETA usage"""
+        # XXX scaffold keys up front?
+        if not ETA_ESTIMATES.has_key(self.key):
+            ETA_ESTIMATES[self.key] = [exec_time]
+        else:
+            ETA_ESTIMATES[self.key].append(exec_time)
+
+class ScheduleEmpty(Exception):
+    pass
+
+class ExecutionScheduler(object):
+    """Represents our entire benchmarking session"""
+
+    def __init__(self, work_deque):
+        self.work_deque = work_deque
+
+    def next_job(self):
+        try:
+            return self.work_deque.popleft()
+        except IndexError:
+            raise ScheduleEmpty() # we are done
+
+    def num_jobs_left(self):
+        return len(self.work_deque)
+
+    def eta(self):
+        etas = [j.eta() for j in self.work_deque]
+        if None in etas:
+            return None # we don't know
+        return sum(etas)
 
 if __name__ == "__main__":
 
@@ -135,36 +182,54 @@ if __name__ == "__main__":
         raise
     print(config)
 
-    errors = False
+    # Build job queue -- each job is an execution
+    from collections import deque
+    exec_jobs = deque()
+
     all_results = {} # stash results here
-
-    start_time = time.time() # rough overall timer, not used for actual results
-    for bmark, param in config.BENCHMARKS.items():
-
+    for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
-            for variant in vm_info["variants"]:
+            for bmark, param in config.BENCHMARKS.items():
+                for variant in vm_info["variants"]:
+                    job = ExecutionJob(vm_name, vm_info, bmark, variant, param)
+                    exec_jobs.append(job)
+                    # scaffold dicts
+                    all_results[job.key] = []
+                    ETA_ESTIMATES[job.key] = []
+    sched = ExecutionScheduler(exec_jobs)
 
-                print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
-                        (ANSI_CYAN, bmark, param, variant,
-                         vm_name, ANSI_RESET))
-                print("%s%s executions, %s iterations%s" % (
-                    ANSI_CYAN,
-                    config.N_EXECUTIONS,
-                    vm_info["n_iterations"],
-                    ANSI_RESET))
+    # Start running benchmarks here
 
-                exec_results = run_exec(vm_name, vm_info, bmark, variant,
-                        config.N_EXECUTIONS, param)
+    errors = False
+    start_time = time.time() # rough overall timer, not used for actual results
 
-                if not exec_results and not BENCH_DRYRUN:
-                    errors = True
+    while True:
+        print("%s%d jobs left in scheduler queue%s" %
+                    (ANSI_CYAN, sched.num_jobs_left(), ANSI_RESET))
 
-                result_key = "%s:%s:%s" % (bmark, vm_name, variant)
-                all_results[result_key] = exec_results
+        # Try to tell the user how long this might take
+        overall_eta = sched.eta()
+        if overall_eta:
+            overall_eta_str = "%fs" % overall_eta
+        else:
+            overall_eta_str = "unknown"
+        print("%sOverall ETA %s%s" % (ANSI_CYAN, overall_eta_str, ANSI_RESET))
 
-                # We dump the json after each experiment so we can monitor the
-                # json file mid-run. It is overwritten each time.
-                dump_json(config_file, all_results)
+        try:
+            job = sched.next_job()
+        except ScheduleEmpty:
+            break # done!
+
+        exec_result = run_exec(sched, job)
+
+        if not exec_result and not BENCH_DRYRUN:
+            errors = True
+
+        all_results[job.key].append(exec_result)
+
+        # We dump the json after each experiment so we can monitor the
+        # json file mid-run. It is overwritten each time.
+        dump_json(config_file, all_results)
 
     end_time = time.time() # rough overall timer, not used for actual results
 
