@@ -165,6 +165,46 @@ class ExecutionScheduler(object):
             return None # we don't know
         return sum(etas)
 
+    def run(self):
+        errors = False
+        start_time = time.time() # rough overall timer, not used for actual results
+
+        while True:
+            print("%s%d jobs left in scheduler queue%s" %
+                        (ANSI_CYAN, sched.num_jobs_left(), ANSI_RESET))
+
+            # Try to tell the user how long this might take
+            overall_eta = self.eta()
+            if overall_eta:
+                overall_eta_str = "%fs" % overall_eta
+            else:
+                overall_eta_str = "unknown"
+            print("%sOverall ETA %s%s" % (ANSI_CYAN, overall_eta_str, ANSI_RESET))
+
+            try:
+                job = self.next_job()
+            except ScheduleEmpty:
+                break # done!
+
+            exec_result = job.run(self)
+
+            if not exec_result and not BENCH_DRYRUN:
+                errors = True
+
+            all_results[job.key].append(exec_result)
+
+            # We dump the json after each experiment so we can monitor the
+            # json file mid-run. It is overwritten each time.
+            dump_json(config_file, all_results)
+
+        end_time = time.time() # rough overall timer, not used for actual results
+
+        print("Done: Results dumped to %s" % config.OUT_FILE)
+        if errors:
+            print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
+
+        print("Completed in (roughly) %f seconds" % (end_time - start_time))
+
 if __name__ == "__main__":
 
     try:
@@ -198,44 +238,5 @@ if __name__ == "__main__":
                     all_results[job.key] = []
                     ETA_ESTIMATES[job.key] = []
     sched = ExecutionScheduler(exec_jobs)
+    sched.run() # does the benchmarking
 
-    # Start running benchmarks here
-
-    errors = False
-    start_time = time.time() # rough overall timer, not used for actual results
-
-    while True:
-        print("%s%d jobs left in scheduler queue%s" %
-                    (ANSI_CYAN, sched.num_jobs_left(), ANSI_RESET))
-
-        # Try to tell the user how long this might take
-        overall_eta = sched.eta()
-        if overall_eta:
-            overall_eta_str = "%fs" % overall_eta
-        else:
-            overall_eta_str = "unknown"
-        print("%sOverall ETA %s%s" % (ANSI_CYAN, overall_eta_str, ANSI_RESET))
-
-        try:
-            job = sched.next_job()
-        except ScheduleEmpty:
-            break # done!
-
-        exec_result = job.run(sched)
-
-        if not exec_result and not BENCH_DRYRUN:
-            errors = True
-
-        all_results[job.key].append(exec_result)
-
-        # We dump the json after each experiment so we can monitor the
-        # json file mid-run. It is overwritten each time.
-        dump_json(config_file, all_results)
-
-    end_time = time.time() # rough overall timer, not used for actual results
-
-    print("Done: Results dumped to %s" % config.OUT_FILE)
-    if errors:
-        print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
-
-    print("Completed in (roughly) %f seconds" % (end_time - start_time))
