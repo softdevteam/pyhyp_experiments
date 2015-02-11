@@ -13,6 +13,9 @@ ANSI_RESET = '\033[0m'
 
 import os, subprocess, sys, subprocess, json, time
 
+# XXX these bits are not very generic, shoudl we wish to release this
+# as a standalone benchmark runner.
+# Devise an interface to specify variants.
 VARIANT_TO_FILENAME = {
     "mono-php": "mono.php",
     "mono-python": "mono.py",
