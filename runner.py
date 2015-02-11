@@ -39,65 +39,6 @@ def usage():
 def mean(seq):
     return sum(seq) / float(len(seq))
 
-def run_exec(sched, job):
-    """Runs a single job (execution) from the job queue"""
-
-    print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
-                (ANSI_CYAN, job.benchmark, job.parameter, job.variant,
-                 job.vm_name, ANSI_RESET))
-
-    benchmark_dir = os.path.join("benchmarks", bmark)
-
-    bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
-    iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
-    args = [job.vm_info["path"],
-            iterations_runner, bench_file, str(vm_info["n_iterations"]),
-            str(param)]
-
-    # ETA if available
-    this_exec_eta = job.eta()
-    if this_exec_eta: # could return None, meaning "no idea yet"
-        exec_eta_str = "%fs" % this_exec_eta
-    else:
-        exec_eta_str = "unknown"
-
-    print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, exec_eta_str, ANSI_RESET))
-
-    if BENCH_DEBUG:
-        print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
-
-    if BENCH_DRYRUN:
-        returne # don't actually do any benchmarks
-
-    # Rough ETA execution timer
-    exec_start_rough = time.time()
-
-    # run capturing output
-    stdout, stderr = subprocess.Popen(
-            args, stdout=subprocess.PIPE).communicate()
-
-    exec_time_rough = time.time() - exec_start_rough
-
-    try:
-        iterations_results = eval(stdout) # we should get a list of floats
-    except SyntaxError:
-        print(ANSI_RED)
-        print("=ERROR=" * 8)
-        print("*error: benchmark didn't print a parsable list.")
-        print("We got:\n---\n%s\n---\n" % stdout)
-        print("When running: %s" % " ".join(args))
-        print("=ERROR=" * 8)
-        print(ANSI_RESET)
-        print("")
-
-        return []
-
-    # Add to ETA estimation figures
-    job.add_exec_time(exec_time_rough)
-
-    print("")
-    return iterations_results
-
 def dump_json(config_file, all_results):
     # dump out into json file, incluing contents of the config file
     with open(config_file, "r") as f:
@@ -139,6 +80,66 @@ class ExecutionJob(object):
             ETA_ESTIMATES[self.key] = [exec_time]
         else:
             ETA_ESTIMATES[self.key].append(exec_time)
+
+    def run(self, sched):
+        """Runs this job (execution)"""
+
+        print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
+                    (ANSI_CYAN, self.benchmark, self.parameter, self.variant,
+                     self.vm_name, ANSI_RESET))
+
+        benchmark_dir = os.path.join("benchmarks", bmark)
+
+        bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
+        iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
+        args = [self.vm_info["path"],
+                iterations_runner, bench_file, str(vm_info["n_iterations"]),
+                str(param)]
+
+        # Print ETA for execution if available
+        this_exec_eta = self.eta()
+        if this_exec_eta: # could return None, meaning "no idea yet"
+            exec_eta_str = "%fs" % this_exec_eta
+        else:
+            exec_eta_str = "unknown"
+
+        print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, exec_eta_str, ANSI_RESET))
+
+        if BENCH_DEBUG:
+            print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
+
+        if BENCH_DRYRUN:
+            returne # don't actually do any benchmarks
+
+        # Rough ETA execution timer
+        exec_start_rough = time.time()
+
+        # run capturing output
+        stdout, stderr = subprocess.Popen(
+                args, stdout=subprocess.PIPE).communicate()
+
+        exec_time_rough = time.time() - exec_start_rough
+
+        try:
+            iterations_results = eval(stdout) # we should get a list of floats
+        except SyntaxError:
+            print(ANSI_RED)
+            print("=ERROR=" * 8)
+            print("*error: benchmark didn't print a parsable list.")
+            print("We got:\n---\n%s\n---\n" % stdout)
+            print("When running: %s" % " ".join(args))
+            print("=ERROR=" * 8)
+            print(ANSI_RESET)
+            print("")
+
+            return []
+
+        # Add to ETA estimation figures
+        self.add_exec_time(exec_time_rough)
+
+        print("")
+        return iterations_results
+
 
 class ScheduleEmpty(Exception):
     pass
@@ -220,7 +221,7 @@ if __name__ == "__main__":
         except ScheduleEmpty:
             break # done!
 
-        exec_result = run_exec(sched, job)
+        exec_result = job.run(sched)
 
         if not exec_result and not BENCH_DRYRUN:
             errors = True
