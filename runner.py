@@ -249,7 +249,6 @@ if __name__ == "__main__":
     except:
         print("*** error importing config file!\n")
         raise
-    print(config)
 
     # Build job queue -- each job is an execution
     sched = ExecutionScheduler()
