@@ -13,6 +13,8 @@ ANSI_RESET = '\033[0m'
 
 UNKNOWN_ETA = "?:??:??"
 
+OUT_FILE = None
+
 import os, subprocess, sys, subprocess, json, time
 from collections import deque
 import datetime
@@ -49,7 +51,7 @@ def dump_json(config_file, all_results):
 
     to_write = {"config" : config_text, "data" : all_results}
 
-    with open(config.OUT_FILE, "w") as f:
+    with open(OUT_FILE, "w") as f:
         f.write(json.dumps(to_write, indent=1, sort_keys=True))
 
 class ExecutionJob(object):
@@ -224,7 +226,7 @@ class ExecutionScheduler(object):
 
         end_time = time.time() # rough overall timer, not used for actual results
 
-        print("Done: Results dumped to %s" % config.OUT_FILE)
+        print("Done: Results dumped to %s" % OUT_FILE)
         if errors:
             print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
 
@@ -232,6 +234,22 @@ class ExecutionScheduler(object):
 
     def add_eta_info(self, key, exec_time):
         self.eta_estimates[key].append(exec_time)
+
+def print_session_summary(config):
+    import socket
+
+    print("\nBecnchmarking Session Summary")
+    print("==============================\n\n")
+    print("Platform:    " + sys.platform)
+    print("Host:        " + socket.gethostname())
+    print("Directory:   " + os.getcwd())
+    print("config file: " + sys.argv[1])
+    print("VMs:         " + str(config.VMS.keys()))
+    print("#benchmarks: " + str(len(config.BENCHMARKS)))
+    print("\n")
+
+    print("Hit enter to proceed...")
+    raw_input()
 
 if __name__ == "__main__":
 
@@ -244,6 +262,7 @@ if __name__ == "__main__":
         usage()
 
     import_name = config_file[:-3]
+    OUT_FILE = import_name + "_results.json"
     try:
         config = __import__(import_name)
     except:
@@ -258,6 +277,8 @@ if __name__ == "__main__":
                 for variant in vm_info["variants"]:
                     job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
                     sched.add_job(job)
+
+    print_session_summary(config)
 
     sched.run() # does the benchmarking
 

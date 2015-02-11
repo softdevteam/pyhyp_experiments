@@ -372,9 +372,6 @@ gen_config() {
 
 	# Repetitions
 	echo "N_EXECUTIONS = 1" >> ${CONFIG_FILE}
-
-	# Output
-	echo "OUT_FILE = 'output.json'" >> ${CONFIG_FILE}
 }
 
 #
