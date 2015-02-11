@@ -63,7 +63,7 @@ if (!function_exists("run_iter")) {
 
 echo "["; // we are going to print a Python eval-able list.
 for ($BM_i = 0; $BM_i < $BM_iters; $BM_i++) {
-        fprintf(STDERR, "%sIteration %3d/%3d%s\n", ANSI_MAGENTA, $BM_i + 1, $BM_iters, ANSI_RESET);
+        fprintf(STDERR, "    %sIteration %3d/%3d%s\n", ANSI_MAGENTA, $BM_i + 1, $BM_iters, ANSI_RESET);
 
 	$timer = new BenchTimer();
 	$timer->start();

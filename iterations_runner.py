@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     sys.stdout.write("[") # we are going to print a Python eval-able list.
     for i in xrange(iters):
-        sys.stderr.write("%sIteration %3d/%3d%s\n" %
+        sys.stderr.write("    %sIteration %3d/%3d%s\n" %
                          (ANSI_MAGENTA, i + 1, iters, ANSI_RESET))
 
         timer = BenchTimer()

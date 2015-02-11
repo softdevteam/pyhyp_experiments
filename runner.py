@@ -28,22 +28,44 @@ VARIANT_TO_ITERATIONS_RUNNER = {
 BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
 BENCH_DRYRUN = os.environ.get("BENCH_DRYRUN", False)
 
+# Record how long processes are taking so we can make a rough ETA for the user.
+# Maps (benchmark, vm, variant) -> [t_0, t_1, ...]
+ETA_ESTIMATES = {}
+
 def usage():
     print(__doc__)
     sys.exit(1)
 
-def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
+def mean(seq):
+    return sum(seq) / float(len(seq))
+
+def run_exec(vm_name, vm_info, bmark, variant, n_executions, param):
     """ Runs multiple executions of a benchmark """
 
+    vm_executable = vm_info["path"]
+    n_iterations = vm_info["n_iterations"]
+
     executions_results = []
+    benchmark_dir = os.path.join("benchmarks", bmark)
 
     bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[variant])
     iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[variant]
-    args = [vm, iterations_runner, bench_file,
+    args = [vm_executable, iterations_runner, bench_file,
             str(n_iterations), str(param)]
+
+    eta_key = "%s:%s:%s" % (bmark, vm_name, variant)
 
     for e in xrange(n_executions):
         print("%sExecution %3d/%3d%s" % (ANSI_MAGENTA, e + 1, n_executions, ANSI_RESET))
+
+        # ETA if available
+        execution_estimates = ETA_ESTIMATES.get(eta_key)
+        if execution_estimates:
+            eta_this_exec = "%fs" % mean(execution_estimates)
+        else:
+            eta_this_exec = "unknown"
+
+        print("    %sETA for this execution: %s%s" % (ANSI_MAGENTA, eta_this_exec, ANSI_RESET))
 
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
@@ -51,9 +73,14 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
         if BENCH_DRYRUN:
             continue # don't actually do any benchmarks
 
+        # Rough ETA execution timer
+        exec_start_rough = time.time()
+
         # run capturing output
         stdout, stderr = subprocess.Popen(
                 args, stdout=subprocess.PIPE).communicate()
+
+        exec_time_rough = time.time() - exec_start_rough
 
         try:
             iterations_results = eval(stdout) # we should get a list of floats
@@ -70,6 +97,12 @@ def run_exec(vm, benchmark_dir, variant, n_executions, n_iterations, param):
             return []
 
         executions_results.append(iterations_results)
+
+        # Add to ETA estimation figures
+        if not ETA_ESTIMATES.has_key(eta_key):
+            ETA_ESTIMATES[eta_key] = [exec_time_rough]
+        else:
+            ETA_ESTIMATES[eta_key].append(exec_time_rough)
 
     print("")
     return executions_results
@@ -109,9 +142,6 @@ if __name__ == "__main__":
     for bmark, param in config.BENCHMARKS.items():
 
         for vm_name, vm_info in config.VMS.items():
-            vm_executable = vm_info["path"]
-            n_iterations = vm_info["n_iterations"]
-
             for variant in vm_info["variants"]:
 
                 print("%sRunning '%s(%d)' (%s variant) under '%s'%s" %
@@ -120,12 +150,11 @@ if __name__ == "__main__":
                 print("%s%s executions, %s iterations%s" % (
                     ANSI_CYAN,
                     config.N_EXECUTIONS,
-                    n_iterations,
+                    vm_info["n_iterations"],
                     ANSI_RESET))
 
-                bmark_path = os.path.join("benchmarks", bmark)
-                exec_results = run_exec(vm_executable, bmark_path, variant,
-                        config.N_EXECUTIONS, n_iterations, param)
+                exec_results = run_exec(vm_name, vm_info, bmark, variant,
+                        config.N_EXECUTIONS, param)
 
                 if not exec_results and not BENCH_DRYRUN:
                     errors = True
