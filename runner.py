@@ -107,7 +107,7 @@ class ExecutionJob(object):
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
 
         if BENCH_DRYRUN:
-            returne # don't actually do any benchmarks
+            return # don't actually do any benchmarks
 
         # Rough ETA execution timer
         exec_start_rough = time.time()
@@ -258,7 +258,6 @@ if __name__ == "__main__":
                 for variant in vm_info["variants"]:
                     job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
                     sched.add_job(job)
-                    # scaffold dicts
 
     sched.run() # does the benchmarking
 
