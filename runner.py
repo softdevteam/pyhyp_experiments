@@ -11,7 +11,9 @@ ANSI_MAGENTA = '\033[95m'
 ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
 
-UNKNOWN_ETA = "?:??:??"
+UNKNOWN_TIME_DELTA = "?:??:??"
+ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
 
 OUT_FILE = None
 
@@ -97,13 +99,18 @@ class ExecutionJob(object):
         # Print ETA for execution if available
         this_exec_eta = self.get_exec_eta()
         if this_exec_eta: # could return None, meaning "no idea yet"
-            exec_eta_str = "%s" % datetime.timedelta(seconds=int(this_exec_eta))
+            delta = datetime.timedelta(seconds=this_exec_eta)
+            exec_eta_str = "%s" % delta
+            exec_eta_finish_str = "%s" % (datetime.datetime.now() + delta).strftime(ABS_TIME_FORMAT)
         else:
-            exec_eta_str = UNKNOWN_ETA
+            exec_eta_str = UNKNOWN_TIME_DELTA
+            exec_eta_finish_str = UNKNOWN_ABS_TIME
 
         print("    %sTime now is %s. ETA for this execution is %s%s" % \
-              (ANSI_MAGENTA, time.strftime("%H:%M:%S"),
+              (ANSI_MAGENTA, time.strftime(ABS_TIME_FORMAT),
                exec_eta_str, ANSI_RESET))
+        print("    %sExecution should finish around %s%s" % \
+              (ANSI_MAGENTA, exec_eta_finish_str, ANSI_RESET))
 
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
@@ -205,12 +212,19 @@ class ExecutionScheduler(object):
             # Try to tell the user how long this might take
             overall_eta = self.get_overall_eta()
             if overall_eta:
-                overall_eta_str = "%s" % datetime.timedelta(seconds=int(overall_eta))
+                delta = datetime.timedelta(seconds=overall_eta)
+                overall_eta_str = str(delta)
+                overall_eta_finish_str = \
+                       str((datetime.datetime.now() + delta).strftime(ABS_TIME_FORMAT))
             else:
-                overall_eta_str = UNKNOWN_ETA
+                overall_eta_str = UNKNOWN_TIME_DELTA
+                overall_eta_finish_str = UNKNOWN_ABS_TIME
+
             print("%sTime now is %s. Overall ETA is %s%s" % (ANSI_CYAN,
-                                                time.strftime("%H:%M:%S"),
+                                                time.strftime(ABS_TIME_FORMAT),
                                                 overall_eta_str, ANSI_RESET))
+            print("%sBenchmarking should finish around %s%s" % \
+                  (ANSI_CYAN, overall_eta_finish_str, ANSI_RESET))
 
             job = self.next_job()
             exec_result = job.run()
@@ -281,4 +295,6 @@ if __name__ == "__main__":
     print_session_summary(config)
 
     sched.run() # does the benchmarking
+
+    print("Time now is %s" % datetime.datetime.now().strftime(ABS_TIME_FORMAT))
 
