@@ -6,13 +6,12 @@ function f_rcv($a1, $a2, $a3, $a4, $a5) {
 
 function f_call($n) {
 
-	$ct = 0;
+	$x = 31415;
+	$expect = $x * 5 + 15;
 	for ($i = 0; $i < $n; $i++) {
-		$ct += f_rcv($n + 1, $n + 2, $n + 3, $n + 4, $n + 5);
+		$res = f_rcv($x + 1, $x + 2, $x + 3, $x + 4, $x + 5);
+		assert($res == $expect);
 	}
-	// each iteration adds 5n + 15
-	$expect = $n * (5 * $n + 15);
-	assert($ct == $expect);
 }
 
 function run_iter($n) {
