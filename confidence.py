@@ -22,10 +22,12 @@ def error(data):
     return avg([b - a, c - b])
 
 
-def make_confidence(config):
-    with open(config.OUT_FILE, "r") as output_fh:
+def make_confidence(config, out_file):
+
+    with open(out_file, "r") as output_fh:
         results = json.load(output_fh)["data"]
 
+    lines = []
     for exp_key in results.iterkeys():
         exp_data = results[exp_key]
 
@@ -36,25 +38,42 @@ def make_confidence(config):
 
         data_arg = {}
         total_execs = len(exp_data)
+        ok = False
         for exec_n in range(total_execs):
-            data_arg[(exec_n, )] = exp_data[exec_n][warmup:]
+            exec_nowarmup = exp_data[exec_n][warmup - 1:]
+            if not exec_nowarmup:
+                print("\nMissing data for %s\n" % exp_key)
+                break
+            data_arg[(exec_n, )] = exec_nowarmup
+        else:
+            ok = True
+
+        if not ok:
+            continue
 
         kdata = Data(data_arg, [total_execs, len(data_arg[(0, )])])
         mean = kdata.mean()
         err = error(kdata)
 
-        print("%30s (warm_upon_iter=%02d)\t: %10f (+/- %10f)" %
-              (exp_key, warmup, mean, err))
+        lines.append("{:<40} (warm={:2d})\t: {:3.6f} (+/- {:2.6f})".format(
+              exp_key, warmup, mean, err))
+        sys.stdout.write(".")
+        sys.stdout.flush()
+
+    sys.stdout.write("\n")
+    for i in sorted(lines):
+        print(i)
 
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
 
     import_name = config_file[:-3]
+    out_file = import_name + "_results.json"
     try:
         config = __import__(import_name)
     except:
         print("*** error importing config file!\n")
         raise
 
-    make_confidence(config)
+    make_confidence(config, out_file)
