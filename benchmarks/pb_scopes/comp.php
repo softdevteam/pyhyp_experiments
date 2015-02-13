@@ -9,7 +9,7 @@ function f_outer($n) {
 		$tot = $inner($tot);
 	}
 
-	$expect = 2 * n;
+	$expect = 2 * $n;
 	assert($tot == $expect);
 
 }
