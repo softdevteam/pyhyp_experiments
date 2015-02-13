@@ -18,6 +18,7 @@ COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
 				pb_ref_swap2/comp.php \
 				pb_return_simple/comp.php \
 				pb_scopes/comp.php \
+				pb_scopes2/comp.php \
 				pb_sum/comp.php \
 				pb_sum_attr/comp.php \
 				pb_total_list/comp.php \
