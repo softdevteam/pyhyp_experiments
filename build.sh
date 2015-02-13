@@ -344,28 +344,29 @@ gen_config() {
 	echo "BENCHMARKS = {" >> ${CONFIG_FILE}
 
 	# new micro
-	echo "\t'pb_ref_swap': 1100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_ref_swap2': 1100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_return_simple': 3000000000," >> ${CONFIG_FILE}
-	echo "\t'pb_scopes': 1600000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum': 1380000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum_attr': 1000000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum_meth': 1370000000," >> ${CONFIG_FILE}
-	echo "\t'pb_total_list': 2800000," >> ${CONFIG_FILE}
-	echo "\t'pb_instchain': 12000," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap2': 110000000," >> ${CONFIG_FILE}
+	echo "\t'pb_return_simple': 300000000," >> ${CONFIG_FILE}
+	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
+	echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum':      100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum_attr': 100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_total_list': 280000," >> ${CONFIG_FILE}
+	echo "\t'pb_instchain': 1200," >> ${CONFIG_FILE}
 
 	# unipycation micro
-	echo "\t'pb_l1a0r': 440000," >> ${CONFIG_FILE}
-	echo "\t'pb_l1a1r': 300000," >> ${CONFIG_FILE}
-	echo "\t'pb_lists': 36000," >> ${CONFIG_FILE}
-	echo "\t'pb_smallfunc': 450000000," >> ${CONFIG_FILE}
-	echo "\t'pb_termconstruction': 3900," >> ${CONFIG_FILE}
+	echo "\t'pb_l1a0r': 44000," >> ${CONFIG_FILE}
+	echo "\t'pb_l1a1r': 30000," >> ${CONFIG_FILE}
+	echo "\t'pb_lists': 3600," >> ${CONFIG_FILE}
+	echo "\t'pb_smallfunc': 45000000," >> ${CONFIG_FILE}
+	echo "\t'pb_termconstruction': 390," >> ${CONFIG_FILE}
 
 	# larger
-	echo "\t'fannkuch': 11," >> ${CONFIG_FILE}
-	echo "\t'mandel': 7500," >> ${CONFIG_FILE}
-	echo "\t'richards': 1000," >> ${CONFIG_FILE}
-	echo "\t'deltablue': 300000," >> ${CONFIG_FILE}
+	echo "\t'fannkuch': 10," >> ${CONFIG_FILE}
+	echo "\t'mandel': 750," >> ${CONFIG_FILE}
+	echo "\t'richards': 100," >> ${CONFIG_FILE}
+	echo "\t'deltablue': 4000," >> ${CONFIG_FILE}
 
 
 	echo "}\n" >> ${CONFIG_FILE}
