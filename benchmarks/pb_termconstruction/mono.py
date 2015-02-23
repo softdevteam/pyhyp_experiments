@@ -16,9 +16,11 @@ def consume_chain(chain):
 def outer(outer, inner):
     correct = inner * (inner + 1) // 2
 
-    for i in xrange(outer):
+    i = 0
+    while i < outer:
         res = consume_chain(make_chain(inner))
         assert res == correct
+        i += 1
 
 def run_iter(n):
     outer(n, 10000)

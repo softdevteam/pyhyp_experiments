@@ -50,16 +50,20 @@ class OrderedCollection(object):
     def remove(self, elm):
         index = 0
         skipped = 0
-        for i in xrange(0, len(self.elms)):
+        i = 0
+        while i < self.elms:
             value = self.elms[i]
             if value != elm:
                 self.elms[index] = value
                 index += 1
             else:
                 skipped += 1
+            i += 1
 
-        for i in xrange(0, skipped):
+        i = 0
+        while i < skipped:
             self.elms.pop()
+            i += 1
 
 class Strength(object):
 
@@ -402,7 +406,6 @@ class Planner(object):
         unsatisfied = self.removePropagateFrom(out)
         strength = Strength.Required()
         while True:
-            #for i in xrange(unsatisfied.size()):
             i = 0
             while i < unsatisfied.size():
                 u = unsatisfied.at(i)
@@ -431,7 +434,6 @@ class Planner(object):
 
     def extractPlanFromConstraints(self, constraints):
         sources = OrderedCollection()
-        #for i in xrange(0, constraints.size()):
         i = 0
         while i < constraints.size():
             c = constraints.at(i)
@@ -462,7 +464,6 @@ class Planner(object):
         todo.add(out)
         while todo.size() > 0:
             v = todo.removeFirst()
-            #for i in xrange(v.constraints.size()):
             i = 0
             while i < v.constraints.size():
                 c = v.constraints.at(i)
@@ -470,7 +471,6 @@ class Planner(object):
                     unsatisfied.add(c)
                 i += 1
             determining = v.determinedBy
-            #for i in xrange(v.constraints.size()):
             i = 0
             while i < v.constraints.size():
                 next = v.constraints.at(i)
@@ -483,7 +483,6 @@ class Planner(object):
     def addConstraintsConsumingTo(self, v, coll):
         determining = v.determinedBy
         cc = v.constraints
-        # for i in xrange(0, cc.size()):
         i = 0
         while (i < cc.size()):
             c = cc.at(i)
@@ -506,7 +505,6 @@ class Plan(object):
         return self.v.at(index)
 
     def execute(self):
-        #for i in xrange(0, self.size()):
         i = 0
         while i < self.size():
             c = self.constraintAt(i)
@@ -519,7 +517,8 @@ def chainTest(n):
     planner = Planner()
     prev = first = last = None
 
-    for i in xrange(n + 1):
+    i = 0
+    while i < n + 1:
         name = "v%s" % i
         v = Variable(name)
         if prev is not None:
@@ -529,17 +528,20 @@ def chainTest(n):
         if i == n:
             last = v
         prev = v
+        i += 1
 
     StayConstraint(last, Strength.StrongDefault())
     edit = EditConstraint(first, Strength.Preferred())
     edits = OrderedCollection()
     edits.add(edit)
     plan = planner.extractPlanFromConstraints(edits)
-    for i in xrange(100):
+    i = 0
+    while i < 100:
         first.value = i
         plan.execute()
         if last.value != i:
             alert("Chain test failed")
+        i += 1
 
 
 def projectionTest(n):
@@ -551,12 +553,14 @@ def projectionTest(n):
     src = dst = None
 
     dests = OrderedCollection()
-    for i in xrange(n):
+    i = 0
+    while i < n:
         src = Variable("src%d" % i, i)
         dst = Variable("dst%d" % i, i)
         dests.add(dst)
         StayConstraint(src, Strength.Normal())
         ScaleConstraint(src, scale, offset, dst, Strength.Required())
+        i += 1
 
     change(src, 17)
     if dst.value != 1170:
@@ -565,22 +569,28 @@ def projectionTest(n):
     if src.value != 5:
         alert("Projection 2 failed")
     change(scale, 5)
-    for i in xrange(n - 1):
+    i = 0
+    while i < n - 1:
         if dests.at(i).value != i * 5 + 1000:
             alert("Projection 3 failed")
+        i += 1
     change(offset, 2000);
-    for i in xrange(n - 1):
+    i = 0
+    while i < n - 1:
         if dests.at(i).value != i * 5 + 2000:
             alert("Projection 4 failed");
+        i += 1
 
 def change(v, newValue):
     edit = EditConstraint(v, Strength.Preferred())
     edits = OrderedCollection()
     edits.add(edit)
     plan = planner.extractPlanFromConstraints(edits)
-    for i in xrange(10):
+    i = 0
+    while i < 10:
         v.value = newValue
         plan.execute()
+        i += 1
     edit.destroyConstraint()
 
 def run_iter(n):

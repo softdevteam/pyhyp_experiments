@@ -36,10 +36,12 @@ def mandel_py(n):
     w2 = 40
     h2 = 12
 
-    for y in xrange(w1 + 1):
+    y = 0
+    while y < w1 + 1:
         line = []
         imc = s * (y - h2) + imcen
-        for x in xrange(h1 + 1):
+        x = 0
+        while x < h1 + 1:
             rec = s * (x - w2) + recen
             re = rec
             im = imc
@@ -54,7 +56,9 @@ def mandel_py(n):
                 line.append("_")
             else:
                 line.append("#")
+            x += 1
         lines.append("".join(line))
+        y += 1
     out = "\n".join(lines) + "\n"
     return out
 

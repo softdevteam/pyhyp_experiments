@@ -16,8 +16,10 @@ def Fannkuch_run(n):
             r -= 1
 
         if not (perm1[0] == 0 or perm1[m] == m):
-            for i in xrange(n):
+            i = 0
+            while i < n:
                 perm[i] = perm1[i]
+                i += 1
 
             flipsCount = 0
 
@@ -30,16 +32,20 @@ def Fannkuch_run(n):
 
                 k2 = (k + 1) >> 1
 
-                for i in xrange(k2):
+                i = 0
+                while i < k2:
                     temp = perm[i]
                     perm[i] = perm[k-i]
                     perm[k - i] = temp
+                    i += 1
                 flipsCount += 1
 
             if flipsCount > maxFlipsCount:
                 maxFlipsCount = flipsCount
-                for i in xrange(n):
+                i = 0
+                while i < n:
                     maxPerm[i] = perm1[i]
+                    i += 1
 
         while True:
             if r == n:

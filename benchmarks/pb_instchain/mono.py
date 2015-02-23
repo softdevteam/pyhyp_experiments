@@ -34,9 +34,11 @@ def consume_instchain(chain):
 
 def outer(outer, inner):
     correct = inner * (inner + 1) // 2
-    for i in range(outer):
+    i = 0
+    while i < outer:
         res = consume_instchain(make_instchain(inner))
         assert(res == correct)
+        i += 1
 
 def run_iter(n):
     outer(n, 10000)

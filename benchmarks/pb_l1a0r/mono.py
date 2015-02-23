@@ -4,8 +4,10 @@ def countdown(x):
         x -= 1
 
 def outer(outer, inner):
-    for i in xrange(outer):
+    i = 0
+    while i < outer:
         countdown(inner)
+        i += 1
 
 def run_iter(n):
-	outer(n, 10000)
+    outer(n, 10000)

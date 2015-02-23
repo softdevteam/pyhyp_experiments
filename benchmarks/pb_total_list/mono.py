@@ -9,8 +9,10 @@ def f_call(n):
     a = range(1000)
 
     v = 0
-    for i in xrange(n):
+    i = 0
+    while i < n:
         v += f_rcv(a)
+        i += 1
 
     expect = 499500 * n
     assert v == expect

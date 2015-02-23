@@ -4,8 +4,10 @@ def f_ret():
 def f_call(n):
     ct = 0
 
-    for i in xrange(n):
+    i = 0
+    while i < n:
         ct += f_ret()
+        i += 1
 
     assert(ct == n)
 

@@ -5,8 +5,10 @@ def f_outer(n):
         return x + inc
 
     tot = 0
-    for i in xrange(n):
+    i = 0
+    while i < n:
         tot = inner(tot)
+        i += 1
 
     expect = 2 * n
     assert tot == expect

@@ -8,9 +8,11 @@ def sum_up_to_n(n):
 
 def outer(outer, inner):
     correct = sum_up_to_n(inner)
-    for i in xrange(outer):
+    i = 0
+    while i < outer:
         res = sum_up_to_n(inner)
         assert(res == correct)
+        i += 1
 
 def run_iter(n):
     outer(n, 10000)
