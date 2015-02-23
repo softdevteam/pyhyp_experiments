@@ -4,6 +4,7 @@
 import sys
 import json
 import math
+import prettytable
 
 from pykalibera.data import Data
 
@@ -27,7 +28,13 @@ def make_confidence(config, out_file):
     with open(out_file, "r") as output_fh:
         results = json.load(output_fh)["data"]
 
-    lines = []
+    tb = prettytable.PrettyTable(["Benchmark", "Warm Iter", "Seconds", "Error"])
+    tb.align["Benchmark"] = "l"
+    tb.align["WarmIter"] = "r"
+    tb.align["Seconds"] = "r"
+    tb.align["Error"] = "r"
+    tb.float_format = "4.6"
+    #tb.set_style(prettytable.PLAIN_COLUMNS)
     for exp_key in results.iterkeys():
         exp_data = results[exp_key]
 
@@ -55,14 +62,12 @@ def make_confidence(config, out_file):
         mean = kdata.mean()
         err = error(kdata)
 
-        lines.append("{:<40} (warm={:2d})\t: {:3.6f} (+/- {:2.6f})".format(
-              exp_key, warmup, mean, err))
+        tb.add_row([exp_key, warmup, mean, err])
         sys.stdout.write(".")
         sys.stdout.flush()
 
     sys.stdout.write("\n")
-    for i in sorted(lines):
-        print(i)
+    print(tb.get_string(sortby="Benchmark"))
 
 
 if __name__ == "__main__":
