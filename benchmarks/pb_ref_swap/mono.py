@@ -1,8 +1,9 @@
 def f_swap(a_l, b_l):
     # python has no notion of references.
     # To get the desired effect, we must pass mutable args.
-    a, b = a_l[0], b_l[0]
-    a_l[0], b_l[0] = b, a
+    tmp = a_l[0]
+    a_l[0] = b_l[0]
+    b_l[0] = tmp
 
 def f_call(n):
     ct = 0;
