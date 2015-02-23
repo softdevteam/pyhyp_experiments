@@ -284,7 +284,7 @@ CONFIG_FILE="${HERE}/config.py"
 WARM_UPON_ITER=1 # user will need to tweak this
 
 gen_config() {
-	n_iterations=10 # default value tweaked by experimenter on a per-vm basis
+	n_iterations=20 # default value tweaked by experimenter on a per-vm basis
 
 	echo "===> Generate ${CONFIG_FILE}"
 
@@ -348,7 +348,7 @@ gen_config() {
 	echo "\t'pb_ref_swap2': 110000000," >> ${CONFIG_FILE}
 	echo "\t'pb_return_simple': 300000000," >> ${CONFIG_FILE}
 	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
-	echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
+	#echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum':      100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_attr': 100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
@@ -372,7 +372,7 @@ gen_config() {
 	echo "}\n" >> ${CONFIG_FILE}
 
 	# Repetitions
-	echo "N_EXECUTIONS = 1" >> ${CONFIG_FILE}
+	echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
 }
 
 #
