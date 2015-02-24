@@ -180,7 +180,7 @@ class ExecutionScheduler(object):
         except IndexError:
             raise ScheduleEmpty() # we are done
 
-    def num_jobs_left(self):
+    def __len__(self):
         return len(self.work_deque)
 
     def get_estimated_exec_duration(self, key):
@@ -216,7 +216,7 @@ class ExecutionScheduler(object):
         start_time = time.time() # rough overall timer, not used for actual results
 
         while True:
-            jobs_left = self.num_jobs_left()
+            jobs_left = len(self)
             print("%s%d jobs left in scheduler queue%s" %
                         (ANSI_CYAN, jobs_left, ANSI_RESET))
 
