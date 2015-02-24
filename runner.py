@@ -95,21 +95,32 @@ class ExecutionJob(object):
                 str(self.parameter)]
 
         # Print ETA for execution if available
+        exec_start = datetime.datetime.now()
+        exec_start_str = "%s" % exec_start.strftime(ABS_TIME_FORMAT)
+
         this_exec_eta = self.get_exec_eta()
+
         if this_exec_eta: # could return None, meaning "no idea yet"
             delta = datetime.timedelta(seconds=this_exec_eta)
-            exec_eta_str = "%s" % delta
-            exec_eta_finish_str = "%s" % (datetime.datetime.now() + delta).strftime(ABS_TIME_FORMAT)
+            exec_finish = exec_start + delta
+
+            exec_finish_str = "%s" % exec_finish.strftime(ABS_TIME_FORMAT)
+            exec_delta_str = str(delta).split(".")[0]
         else:
-            exec_eta_str = UNKNOWN_TIME_DELTA
-            exec_eta_finish_str = UNKNOWN_ABS_TIME
+            exec_delta_str = UNKNOWN_TIME_DELTA
+            exec_finish_str = UNKNOWN_ABS_TIME
 
-        print("    %sTime now is %s. ETA for this execution is %s%s" % \
-              (ANSI_MAGENTA, time.strftime(ABS_TIME_FORMAT),
-               exec_eta_str, ANSI_RESET))
-        print("    %sExecution should finish around %s%s" % \
-              (ANSI_MAGENTA, exec_eta_finish_str, ANSI_RESET))
+        print("{}    {:<40s}: {}{}".format(ANSI_MAGENTA,
+                                         "Current time",
+                                         time.strftime(ABS_TIME_FORMAT),
+                                         ANSI_RESET))
 
+
+        print("{}    {:<40s}: {} ({} from now){}".format(ANSI_MAGENTA,
+                                         "Estimated completion (this exec)",
+                                         exec_finish_str,
+                                         exec_delta_str,
+                                         ANSI_RESET))
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
 
