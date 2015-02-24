@@ -19,7 +19,7 @@ UNKNOWN_TIME_DELTA = "?:??:??"
 ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
 
-# XXX these bits are not very generic, shoudl we wish to release this
+# XXX these bits are not very generic, should we wish to release this
 # as a standalone benchmark runner.
 # Devise an interface to specify variants.
 VARIANT_TO_FILENAME = {
