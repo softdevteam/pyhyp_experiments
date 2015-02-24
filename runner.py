@@ -11,13 +11,13 @@ ANSI_MAGENTA = '\033[95m'
 ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
 
-UNKNOWN_TIME_DELTA = "?:??:??"
-ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
-
 import os, subprocess, sys, subprocess, json, time
 from collections import deque
 import datetime
+
+UNKNOWN_TIME_DELTA = "?:??:??"
+ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
 
 # XXX these bits are not very generic, shoudl we wish to release this
 # as a standalone benchmark runner.
@@ -70,6 +70,9 @@ class ExecutionJob(object):
     def get_exec_eta(self):
         return self.sched.get_exec_eta(self.key)
 
+    def get_estimate_formatter(self):
+        return self.sched.get_estimate_formatter(self.key)
+
     def __str__(self):
         return self.key
 
@@ -98,28 +101,17 @@ class ExecutionJob(object):
         exec_start = datetime.datetime.now()
         exec_start_str = "%s" % exec_start.strftime(ABS_TIME_FORMAT)
 
-        this_exec_eta = self.get_exec_eta()
-
-        if this_exec_eta: # could return None, meaning "no idea yet"
-            delta = datetime.timedelta(seconds=this_exec_eta)
-            exec_finish = exec_start + delta
-
-            exec_finish_str = "%s" % exec_finish.strftime(ABS_TIME_FORMAT)
-            exec_delta_str = str(delta).split(".")[0]
-        else:
-            exec_delta_str = UNKNOWN_TIME_DELTA
-            exec_finish_str = UNKNOWN_ABS_TIME
-
-        print("{}    {:<40s}: {}{}".format(ANSI_MAGENTA,
+        tfmt = self.get_estimate_formatter()
+        print("{}    {:<35s}: {}{}".format(ANSI_MAGENTA,
                                          "Current time",
-                                         time.strftime(ABS_TIME_FORMAT),
+                                         tfmt.start_str,
                                          ANSI_RESET))
 
 
-        print("{}    {:<40s}: {} ({} from now){}".format(ANSI_MAGENTA,
+        print("{}    {:<35s}: {} ({} from now){}".format(ANSI_MAGENTA,
                                          "Estimated completion (this exec)",
-                                         exec_finish_str,
-                                         exec_delta_str,
+                                         tfmt.finish_str,
+                                         tfmt.delta_str,
                                          ANSI_RESET))
         if BENCH_DEBUG:
             print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
@@ -222,23 +214,18 @@ class ExecutionScheduler(object):
             if jobs_left == 0:
                 break
 
-            # Try to tell the user how long this might take
-            overall_eta = self.get_overall_eta()
-            if overall_eta:
-                delta = datetime.timedelta(seconds=overall_eta)
-                overall_eta_str = str(delta)
-                overall_eta_finish_str = \
-                       str((datetime.datetime.now() + delta).strftime(ABS_TIME_FORMAT))
-            else:
-                overall_eta_str = UNKNOWN_TIME_DELTA
-                overall_eta_finish_str = UNKNOWN_ABS_TIME
+            tfmt = self.get_overall_estimate_formatter()
+            print("{}{:<25s}: {}{}".format(ANSI_CYAN,
+                                             "Current time",
+                                             tfmt.start_str,
+                                             ANSI_RESET))
 
-            print("%sTime now is %s. Overall ETA is %s%s" % (ANSI_CYAN,
-                                                time.strftime(ABS_TIME_FORMAT),
-                                                overall_eta_str, ANSI_RESET))
-            print("%sBenchmarking should finish around %s%s" % \
-                  (ANSI_CYAN, overall_eta_finish_str, ANSI_RESET))
 
+            print("{}{:<25s}: {} ({} from now){}".format(ANSI_CYAN,
+                                             "Estimated completion",
+                                             tfmt.finish_str,
+                                             tfmt.delta_str,
+                                             ANSI_RESET))
             job = self.next_job()
             exec_result = job.run()
 
@@ -261,6 +248,45 @@ class ExecutionScheduler(object):
 
     def add_eta_info(self, key, exec_time):
         self.eta_estimates[key].append(exec_time)
+
+    def get_estimate_formatter(self, key):
+        return TimeEstimateFormatter(self.get_exec_eta(key))
+
+    def get_overall_estimate_formatter(self):
+        return TimeEstimateFormatter(self.get_overall_eta())
+
+class TimeEstimateFormatter(object):
+    def __init__(self, seconds):
+        """Generates string representations of time estimates.
+        Args:
+        seconds -- estimated seconds into the future. None for unknown.
+        """
+        self.start = datetime.datetime.now()
+        if seconds is not None:
+            self.delta = datetime.timedelta(seconds=seconds)
+            self.finish = self.start + self.delta
+        else:
+            self.delta = None
+            self.finish = None
+
+    @property
+    def start_str(self):
+        return str(self.start.strftime(ABS_TIME_FORMAT))
+
+    @property
+    def finish_str(self):
+        if self.finish is not None:
+            return str(self.finish.strftime(ABS_TIME_FORMAT))
+        else:
+            return UNKNOWN_ABS_TIME
+
+    @property
+    def delta_str(self):
+        if self.delta is not None:
+            return str(self.delta).split(".")[0]
+        else:
+            return UNKNOWN_TIME_DELTA
+
 
 def print_session_summary(config):
     import socket
