@@ -7,6 +7,7 @@ usage: runner.py <config_file.py>
 """
 
 ANSI_RED = '\033[91m'
+ANSI_GREEN = '\033[92m'
 ANSI_MAGENTA = '\033[95m'
 ANSI_CYAN = '\033[36m'
 ANSI_RESET = '\033[0m'
@@ -114,7 +115,7 @@ class ExecutionJob(object):
                                          tfmt.delta_str,
                                          ANSI_RESET))
         if BENCH_DEBUG:
-            print("%s>>> %s%s" % (ANSI_MAGENTA, " ".join(args), ANSI_RESET))
+            print("%s    DEBUG: %s%s" % (ANSI_GREEN, " ".join(args), ANSI_RESET))
 
         if BENCH_DRYRUN:
             return # don't actually do any benchmarks
