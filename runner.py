@@ -67,11 +67,11 @@ class ExecutionJob(object):
         # Used in results JSON and ETA dict
         self.key = "%s:%s:%s" % (self.benchmark, self.vm_name, self.variant)
 
-    def get_exec_eta(self):
-        return self.sched.get_exec_eta(self.key)
+    def get_estimated_exec_duration(self):
+        return self.sched.get_estimated_exec_duration(self.key)
 
-    def get_estimate_formatter(self):
-        return self.sched.get_estimate_formatter(self.key)
+    def get_exec_estimate_time_formatter(self):
+        return self.sched.get_exec_estimate_time_formatter(self.key)
 
     def __str__(self):
         return self.key
@@ -101,7 +101,7 @@ class ExecutionJob(object):
         exec_start = datetime.datetime.now()
         exec_start_str = "%s" % exec_start.strftime(ABS_TIME_FORMAT)
 
-        tfmt = self.get_estimate_formatter()
+        tfmt = self.get_exec_estimate_time_formatter()
         print("{}    {:<35s}: {}{}".format(ANSI_MAGENTA,
                                          "Current time",
                                          tfmt.start_str,
@@ -183,18 +183,27 @@ class ExecutionScheduler(object):
     def num_jobs_left(self):
         return len(self.work_deque)
 
-    def get_exec_eta(self, key):
+    def get_estimated_exec_duration(self, key):
         previous_exec_times = self.eta_estimates.get(key)
         if previous_exec_times:
             return mean(previous_exec_times)
         else:
-            return None
+            return None # we don't know
 
-    def get_overall_eta(self):
-        etas = [j.get_exec_eta() for j in self.work_deque]
+    def get_estimated_overall_duration(self):
+        etas = [j.get_estimated_exec_duration() for j in self.work_deque]
         if None in etas:
             return None # we don't know
         return sum(etas)
+
+    def get_exec_estimate_time_formatter(self, key):
+        return TimeEstimateFormatter(self.get_estimated_exec_duration(key))
+
+    def get_overall_time_estimate_formatter(self):
+        return TimeEstimateFormatter(self.get_estimated_overall_duration())
+
+    def add_eta_info(self, key, exec_time):
+        self.eta_estimates[key].append(exec_time)
 
     def run(self):
         """Benchmark execution starts here"""
@@ -214,7 +223,7 @@ class ExecutionScheduler(object):
             if jobs_left == 0:
                 break
 
-            tfmt = self.get_overall_estimate_formatter()
+            tfmt = self.get_overall_time_estimate_formatter()
             print("{}{:<25s}: {}{}".format(ANSI_CYAN,
                                              "Current time",
                                              tfmt.start_str,
@@ -245,15 +254,6 @@ class ExecutionScheduler(object):
             print("%s ERRORS OCCURRED! READ THE LOG!%s" % (ANSI_RED, ANSI_RESET))
 
         print("Completed in (roughly) %f seconds" % (end_time - start_time))
-
-    def add_eta_info(self, key, exec_time):
-        self.eta_estimates[key].append(exec_time)
-
-    def get_estimate_formatter(self, key):
-        return TimeEstimateFormatter(self.get_exec_eta(key))
-
-    def get_overall_estimate_formatter(self):
-        return TimeEstimateFormatter(self.get_overall_eta())
 
 class TimeEstimateFormatter(object):
     def __init__(self, seconds):
