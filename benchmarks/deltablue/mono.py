@@ -51,7 +51,7 @@ class OrderedCollection(object):
         index = 0
         skipped = 0
         i = 0
-        while i < self.elms:
+        while i < len(self.elms):
             value = self.elms[i]
             if value != elm:
                 self.elms[index] = value
