@@ -16,7 +16,6 @@ define('K_WORK', 1001);
 // Packet
 
 define('BUFSIZE', 4);
-$BUFSIZE_RANGE = array(0, 1, 2, 3);
 
 class Packet {
     
@@ -98,7 +97,7 @@ class TaskWorkArea {
         
     
 }
-embed_py_meth("TaskWorkArea", "def reset(self):\n        self.taskTab = []\n        for i in xrange(0, TASKTABSIZE):\n            self.taskTab.as_list().append(None)\n        self.taskList = None\n        self.holdCount = 0\n        self.qpktCount = 0");
+embed_py_meth("TaskWorkArea", "def reset(self):\n        self.taskTab = []\n        i = 0\n        while i < TASKTABSIZE:\n            self.taskTab.as_list().append(None)\n            i += 1\n        self.taskList = None\n        self.holdCount = 0\n        self.qpktCount = 0");
 embed_py_meth("TaskWorkArea", "def __construct(self):\n        self.reset();\n");
 
 class Task extends TaskState {
@@ -145,7 +144,7 @@ embed_py_meth("IdleTask", "def fn(self, pkt, r):\n        i = r\n        if not 
 class WorkTask extends Task {
     
 }
-embed_py_meth("WorkTask", "def fn(self, pkt, r):\n        w = r\n        if pkt is None:\n            return self.waitTask()\n            \n        if w.destination == I_HANDLERA:\n            dest = I_HANDLERB\n        else:\n            dest = I_HANDLERA\n            \n        w.destination = dest\n        pkt.ident = dest\n        pkt.datum = 0\n        \n        pkt.data[3] = 1\n        for i in xrange(0, BUFSIZE):\n            w.count += 1\n            if w.count > 26:\n                w.count = 1\n            temp = ord(\"A\") + w.count - 1\n            pkt.data[i] = ord(\"A\") + w.count - 1\n            \n        return self.qpkt(pkt)");
+embed_py_meth("WorkTask", "def fn(self, pkt, r):\n        w = r\n        if pkt is None:\n            return self.waitTask()\n            \n        if w.destination == I_HANDLERA:\n            dest = I_HANDLERB\n        else:\n            dest = I_HANDLERA\n            \n        w.destination = dest\n        pkt.ident = dest\n        pkt.datum = 0\n        \n        i = 0\n        while i < BUFSIZE:\n            w.count += 1\n            if w.count > 26:\n                w.count = 1\n            temp = ord(\"A\") + w.count - 1\n            pkt.data[i] = ord(\"A\") + w.count - 1\n            i += 1\n            \n        return self.qpkt(pkt)");
 
 define('TRACING', 0);
 
@@ -155,7 +154,7 @@ class Richards {
 
     
 }
-embed_py_meth("Richards", "def run(self, iterations):\n        for i in xrange(0, iterations):\n            taskWorkArea.reset()\n            \n            task_state = TaskState()\n            IdleTask(I_IDLE, 1, 10000, task_state.running(), IdleTaskRec())\n            \n            wkq = Packet(None, 0, K_WORK)\n            wkq = Packet(wkq, 0, K_WORK)\n            task_state = TaskState()\n            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkTaskRec())\n            \n            wkq = Packet(None, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = Packet(None, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = None\n            \n            task_state = TaskState()\n            DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec())\n            task_state = TaskState()\n            DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec())\n            \n            schedule()\n            \n            if not (taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246):\n                return False\n        return True");
+embed_py_meth("Richards", "def run(self, iterations):\n        i = 0\n        while i < iterations:\n            taskWorkArea.reset()\n            \n            task_state = TaskState()\n            IdleTask(I_IDLE, 1, 10000, task_state.running(), IdleTaskRec())\n            \n            wkq = Packet(None, 0, K_WORK)\n            wkq = Packet(wkq, 0, K_WORK)\n            task_state = TaskState()\n            WorkTask(I_WORK, 1000, wkq, task_state.waitingWithPacket(), WorkTaskRec())\n            \n            wkq = Packet(None, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            wkq = Packet(wkq, I_DEVA, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERA, 2000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = Packet(None, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            wkq = Packet(wkq, I_DEVB, K_DEV)\n            task_state = TaskState()\n            HandlerTask(I_HANDLERB, 3000, wkq, task_state.waitingWithPacket(), HandlerTaskRec())\n            \n            wkq = None\n            \n            task_state = TaskState()\n            DeviceTask(I_DEVA, 4000, wkq, task_state.waiting(), DeviceTaskRec())\n            task_state = TaskState()\n            DeviceTask(I_DEVB, 5000, wkq, task_state.waiting(), DeviceTaskRec())\n            \n            schedule()\n            \n            if not (taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246):\n                return False\n            i += 1\n        return True");
 
 $taskWorkArea = NULL;
 
@@ -166,5 +165,4 @@ function run_iter($n) {
     $res = $r->run($n);
     assert($res);
 }
-
 }?>

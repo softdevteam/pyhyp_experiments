@@ -17,7 +17,6 @@ define('K_WORK', 1001);
 // Packet
 
 define('BUFSIZE', 4);
-$BUFSIZE_RANGE = array(0, 1, 2, 3);
 
 class Packet {
 	function __construct($l, $i, $k) {

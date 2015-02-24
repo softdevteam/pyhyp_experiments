@@ -24,8 +24,6 @@ K_WORK = 1001
 
 BUFSIZE = 4
 
-BUFSIZE_RANGE = range(BUFSIZE)
-
 class Packet(object):
     def __init__(self,l,i,k):
         self.link = l
@@ -148,7 +146,11 @@ class TaskWorkArea(object):
         self.reset()
 
     def reset(self):
-        self.taskTab = [None] * TASKTABSIZE
+        self.taskTab = []
+        i = 0
+        while i < TASKTABSIZE:
+            self.taskTab.append(None)
+            i += 1
 
         self.taskList = None
 
@@ -322,11 +324,13 @@ class WorkTask(Task):
         pkt.ident = dest
         pkt.datum = 0
 
-        for i in BUFSIZE_RANGE: # xrange(BUFSIZE)
+        i = 0
+        while i < BUFSIZE:
             w.count += 1
             if w.count > 26:
                 w.count = 1
             pkt.data[i] = ord("A") + w.count - 1
+            i += 1
 
         return self.qpkt(pkt)
 
@@ -348,7 +352,8 @@ def schedule():
 class Richards(object):
 
     def run(self, iterations):
-        for i in xrange(iterations):
+        i = 0
+        while i < iterations:
             taskWorkArea.reset()
 
             task_state = TaskState()
@@ -379,10 +384,9 @@ class Richards(object):
 
             schedule()
 
-            if taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246:
-                pass
-            else:
+            if not (taskWorkArea.holdCount == 9297 and taskWorkArea.qpktCount == 23246):
                 return False
+            i += 1
 
         return True
 
