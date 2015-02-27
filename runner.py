@@ -83,9 +83,6 @@ class ExecutionJob(object):
         variant_info = self.config.VARIANTS[self.variant]
         bench_file = os.path.join(benchmark_dir, variant_info["filename"])
         iterations_runner = variant_info["iter_runner"]
-        args = [self.vm_info["path"],
-                iterations_runner, bench_file, str(self.vm_info["n_iterations"]),
-                str(self.parameter)]
 
         # Print ETA for execution if available
         exec_start = datetime.datetime.now()
@@ -103,11 +100,16 @@ class ExecutionJob(object):
                                          tfmt.finish_str,
                                          tfmt.delta_str,
                                          ANSI_RESET))
+        args = [self.vm_info["path"],
+                iterations_runner, bench_file, str(self.vm_info["n_iterations"]),
+                str(self.parameter)]
+
         if BENCH_DEBUG:
             print("%s    DEBUG: %s%s" % (ANSI_GREEN, " ".join(args), ANSI_RESET))
 
         if BENCH_DRYRUN:
-            return # don't actually do any benchmarks
+            # don't actually do any benchmarks, return dummy values
+            return range(self.vm_info["n_iterations"])
 
         # Rough ETA execution timer
         exec_start_rough = time.time()
