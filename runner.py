@@ -323,6 +323,8 @@ def main():
         print("*** error importing config file!\n")
         raise
 
+    skips = config.SKIP
+
     # Build job queue -- each job is an execution
     sched = ExecutionScheduler(config_file, out_file)
     for exec_n in xrange(config.N_EXECUTIONS):
@@ -330,7 +332,13 @@ def main():
             for bmark, param in config.BENCHMARKS.items():
                 for variant in vm_info["variants"]:
                     job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
-                    sched.add_job(job)
+
+                    if not job.key in skips:
+                        sched.add_job(job)
+                    else:
+                        if BENCH_DEBUG:
+                            print("%s    DEBUG: %s is in skip list. Not scheduling.%s" %
+                                  (ANSI_GREEN, job.key, ANSI_RESET))
 
     print_session_summary(config)
 
