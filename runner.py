@@ -22,21 +22,6 @@ UNKNOWN_TIME_DELTA = "?:??:??"
 ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
 
-# XXX these bits are not very generic, should we wish to release this
-# as a standalone benchmark runner.
-# Devise an interface to specify variants.
-VARIANT_TO_FILENAME = {
-    "mono-php": "mono.php",
-    "mono-python": "mono.py",
-    "composed": "comp.php",
-}
-
-VARIANT_TO_ITERATIONS_RUNNER = {
-    "mono-php": "iterations_runner.php",
-    "composed": "iterations_runner.php", # composed programs start in PHP
-    "mono-python": "iterations_runner.py",
-}
-
 BENCH_DEBUG = os.environ.get("BENCH_DEBUG", False)
 BENCH_DRYRUN = os.environ.get("BENCH_DRYRUN", False)
 
@@ -60,12 +45,13 @@ def dump_json(config_file, out_file, all_results):
 class ExecutionJob(object):
     """Represents a single executions level benchmark run"""
 
-    def __init__(self, sched, vm_name, vm_info, benchmark, variant, parameter):
+    def __init__(self, sched, config, vm_name, vm_info, benchmark, variant, parameter):
         self.sched = sched
         self.vm_name, self.vm_info = vm_name, vm_info
         self.benchmark = benchmark
         self.variant = variant
         self.parameter = parameter
+        self.config = config
 
         # Used in results JSON and ETA dict
         self.key = "%s:%s:%s" % (self.benchmark, self.vm_name, self.variant)
@@ -94,8 +80,9 @@ class ExecutionJob(object):
 
         benchmark_dir = os.path.join("benchmarks", self.benchmark)
 
-        bench_file = os.path.join(benchmark_dir, VARIANT_TO_FILENAME[self.variant])
-        iterations_runner = VARIANT_TO_ITERATIONS_RUNNER[self.variant]
+        variant_info = self.config.VARIANTS[self.variant]
+        bench_file = os.path.join(benchmark_dir, variant_info["filename"])
+        iterations_runner = variant_info["iter_runner"]
         args = [self.vm_info["path"],
                 iterations_runner, bench_file, str(self.vm_info["n_iterations"]),
                 str(self.parameter)]
@@ -332,7 +319,7 @@ def main():
         for vm_name, vm_info in config.VMS.items():
             for bmark, param in config.BENCHMARKS.items():
                 for variant in vm_info["variants"]:
-                    job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
+                    job = ExecutionJob(sched, config, vm_name, vm_info, bmark, variant, param)
 
                     if not should_skip(config, job.key):
                         sched.add_job(job)
