@@ -7,11 +7,6 @@ COMPOSED_OUTPUTS_LARGER =	fannkuch/comp.php \
 				mandel/comp.php \
 				richards/comp.php \
 				deltablue/comp.php
-# Gives wrong output. Bug in benchmark?
-#				fasta/comp.php
-# Not finished:
-#				heapsort/comp.php
-#				gcbench/comp.php\
 
 # New pico benchmarks
 COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
