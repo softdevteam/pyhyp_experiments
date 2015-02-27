@@ -372,6 +372,16 @@ gen_config() {
 
 	echo "}\n" >> ${CONFIG_FILE}
 
+	# Skips
+	echo "SKIP = [" >> ${CONFIG_FILE}
+	# these use refs, which python doesn't have
+	echo "\t'mandel:*:mono-python'," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap:*:mono-python'," >> ${CONFIG_FILE}
+	# pb_ref_swap 2 is the same as pb_ref_swap for mono cases
+	echo "\t'pb_ref_swap2:*:mono-python'," >> ${CONFIG_FILE}
+	echo "\t'pb_ref_swap2:*:mono-php'," >> ${CONFIG_FILE}
+	echo "]\n\n" >> ${CONFIG_FILE}
+
 	# Repetitions
 	echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
 }

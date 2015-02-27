@@ -306,6 +306,26 @@ def print_session_summary(config):
     print("Hit enter to proceed...")
     raw_input()
 
+def should_skip(config, job):
+    skips = config.SKIP
+    this_key = job.key
+
+    for skip_key in skips:
+        skip_elems = skip_key.split(":")
+        this_elems = this_key.split(":")
+
+        # should be triples of: bench * vm * variant
+        assert len(skip_elems) ==3 and len(this_elems) == 3
+
+        for i in range(3):
+            if skip_elems[i] == "*":
+                this_elems[i] = "*"
+
+        if skip_elems == this_elems:
+            return True # skip
+
+    return False
+
 def main():
     try:
         config_file = sys.argv[1]
@@ -323,9 +343,8 @@ def main():
         print("*** error importing config file!\n")
         raise
 
-    skips = config.SKIP
-
     # Build job queue -- each job is an execution
+    reported_skips = False
     sched = ExecutionScheduler(config_file, out_file)
     for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
@@ -333,12 +352,13 @@ def main():
                 for variant in vm_info["variants"]:
                     job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
 
-                    if not job.key in skips:
+                    if not should_skip(config, job):
                         sched.add_job(job)
                     else:
-                        if BENCH_DEBUG:
+                        if BENCH_DEBUG and not reported_skips:
                             print("%s    DEBUG: %s is in skip list. Not scheduling.%s" %
                                   (ANSI_GREEN, job.key, ANSI_RESET))
+        reported_skips = True
 
     print_session_summary(config)
 
