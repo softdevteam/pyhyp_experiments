@@ -1,3 +1,4 @@
+#! work/virtualenv/pypy/bin/pypy
 # A quick script which generates confidence intervals for rough benchmarking
 # Used during VM optimisation to get a rough idea if a change helped.
 

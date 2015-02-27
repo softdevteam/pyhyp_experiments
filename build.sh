@@ -202,6 +202,7 @@ do_pypy() {
 
         virtualenv --python=${PYPY_BINARY} ${PYPY_VENV} || exit $?
 	${PYPY_VENV_PIP} install rply || exit $?
+	${PYPY_VENV_PIP} install prettytable || exit $? # for confidence.py
     fi
 }
 
@@ -276,6 +277,17 @@ do_hippy() {
 	    ${PYPY_VENV_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
 	        targethippy.py || exit $?
 	fi
+}
+
+KALIBERA_GIT_URI=https://github.com/softdevteam/libkalibera.git
+KALIBERA_DIR=${WRKDIR}/libkalibera
+do_kalibera() {
+	echo "===> libkalibera"
+	if [ ! -d "${KALIBERA_DIR}" ]; then
+		cd ${WRKDIR}
+		git clone ${KALIBERA_GIT_URI} || exit $?
+	fi
+	ln -sf ${KALIBERA_DIR}/python/pykalibera ${HERE}/pykalibera
 }
 
 # Make config file
@@ -416,6 +428,7 @@ do_zend;
 do_pypy;
 do_pyhyp;
 do_hippy;
+do_kalibera;
 
 gen_config;
 
