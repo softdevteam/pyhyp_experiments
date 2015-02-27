@@ -22,7 +22,6 @@ COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
 				pb_sum_attr/comp.php \
 				pb_total_list/comp.php \
 				pb_sum_meth/comp.php \
-				pb_except/comp.php \
 				pb_instchain/comp.php # strictly from unipycation, but was unused
 
 # Pico benchmarks ported from Unipycation
