@@ -8,6 +8,7 @@ import prettytable
 import os
 
 from pykalibera.data import Data
+from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
 ITERATIONS = 1# 0000
@@ -33,34 +34,46 @@ def make_tables(config, data_file, latex_table_file):
 
     # key -> val * abs_err * warmup
     row_data = {}
-    for exp_key in results.iterkeys():
-        exp_data = results[exp_key]
 
-        bench, vm, variant = exp_key.split(":")
-        vm_info = config.VMS[vm]
+    for bench_key, bench_param in config.BENCHMARKS.iteritems():
+        for vm_key, vm_info in config.VMS.iteritems():
+            for variant_key in vm_info["variants"]:
+                exp_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+                try:
+                    exp_data = results[exp_key]
+                except KeyError:
+                    if should_skip(config, exp_key):
+                        continue
+                    else:
+                        print("Error, missing non-skipped data: %s" % exp_key)
+                        sys.exit(1)
 
-        warmup = vm_info["warm_upon_iter"]
+                #bench, vm, variant = exp_key.split(":")
+                #vm_info = config.VMS[vm]
 
-        data_arg = {}
-        total_execs = len(exp_data)
-        ok = False
-        for exec_n in range(total_execs):
-            exec_nowarmup = exp_data[exec_n][warmup - 1:]
-            if not exec_nowarmup:
-                print("\nMissing data for %s\n" % exp_key)
-                break
-            data_arg[(exec_n, )] = exec_nowarmup
-        else:
-            ok = True
+                warmup = vm_info["warm_upon_iter"]
+                variant_info = config.VARIANTS[variant_key]
 
-        if not ok:
-            continue
+                data_arg = {}
+                total_execs = len(exp_data)
+                ok = False
+                for exec_n in range(total_execs):
+                    exec_nowarmup = exp_data[exec_n][warmup - 1:]
+                    if not exec_nowarmup:
+                        print("\nMissing data for %s\n" % exp_key)
+                        break
+                    data_arg[(exec_n, )] = exec_nowarmup
+                else:
+                    ok = True
 
-        kdata = Data(data_arg, [total_execs, len(data_arg[(0, )])])
-        mean = kdata.mean()
-        err = error(kdata)
+                if not ok:
+                    continue
 
-        row_data[exp_key] = mean, err, warmup
+                kdata = Data(data_arg, [total_execs, len(data_arg[(0, )])])
+                mean = kdata.mean()
+                err = error(kdata)
+
+                row_data[exp_key] = mean, err, warmup
 
     make_ascii_table(row_data)
     make_latex_table(row_data, latex_table_file)

@@ -16,6 +16,8 @@ import os, subprocess, sys, subprocess, json, time
 from collections import deque
 import datetime
 
+from util import should_skip
+
 UNKNOWN_TIME_DELTA = "?:??:??"
 ABS_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 UNKNOWN_ABS_TIME = "????-??-?? ??:??:??"
@@ -306,26 +308,6 @@ def print_session_summary(config):
     print("Hit enter to proceed...")
     raw_input()
 
-def should_skip(config, job):
-    skips = config.SKIP
-    this_key = job.key
-
-    for skip_key in skips:
-        skip_elems = skip_key.split(":")
-        this_elems = this_key.split(":")
-
-        # should be triples of: bench * vm * variant
-        assert len(skip_elems) ==3 and len(this_elems) == 3
-
-        for i in range(3):
-            if skip_elems[i] == "*":
-                this_elems[i] = "*"
-
-        if skip_elems == this_elems:
-            return True # skip
-
-    return False
-
 def main():
     try:
         config_file = sys.argv[1]
@@ -352,7 +334,7 @@ def main():
                 for variant in vm_info["variants"]:
                     job = ExecutionJob(sched, vm_name, vm_info, bmark, variant, param)
 
-                    if not should_skip(config, job):
+                    if not should_skip(config, job.key):
                         sched.add_job(job)
                     else:
                         if BENCH_DEBUG and not reported_skips:
