@@ -9,7 +9,7 @@ import prettytable
 from pykalibera.data import Data
 
 CONF_SIZE = "0.99"  # intentionally str
-ITERATIONS = 10000
+ITERATIONS = 1# 0000
 
 def error(data):
     # lower, median, upper
@@ -22,19 +22,13 @@ def error(data):
 
     return avg([b - a, c - b])
 
+def make_tables(config, data_file, latex_table_file):
 
-def make_confidence(config, out_file):
+    with open(data_file, "r") as data_fh:
+        results = json.load(data_fh)["data"]
 
-    with open(out_file, "r") as output_fh:
-        results = json.load(output_fh)["data"]
-
-    tb = prettytable.PrettyTable(["Benchmark", "Warm Iter", "Seconds", "Error"])
-    tb.align["Benchmark"] = "l"
-    tb.align["WarmIter"] = "r"
-    tb.align["Seconds"] = "r"
-    tb.align["Error"] = "r"
-    tb.float_format = "4.6"
-    #tb.set_style(prettytable.PLAIN_COLUMNS)
+    # key -> val * abs_err * warmup
+    row_data = {}
     for exp_key in results.iterkeys():
         exp_data = results[exp_key]
 
@@ -62,7 +56,23 @@ def make_confidence(config, out_file):
         mean = kdata.mean()
         err = error(kdata)
 
-        tb.add_row([exp_key, warmup, mean, err])
+        row_data[exp_key] = mean, err, warmup
+
+    make_ascii_table(row_data)
+
+def make_ascii_table(row_data):
+
+    tb = prettytable.PrettyTable(["Benchmark", "Warm Iter", "Seconds", "Error"])
+    tb.align["Benchmark"] = "l"
+    tb.align["WarmIter"] = "r"
+    tb.align["Seconds"] = "r"
+    tb.align["Error"] = "r"
+    tb.float_format = "4.6"
+
+    # Make an ascii table on stdout
+    for exp_key, row_data in row_data.iteritems():
+        val, err, warmup = row_data
+        tb.add_row([exp_key, warmup, val, err])
         sys.stdout.write(".")
         sys.stdout.flush()
 
@@ -74,11 +84,12 @@ if __name__ == "__main__":
     config_file = sys.argv[1]
 
     import_name = config_file[:-3]
-    out_file = import_name + "_results.json"
+    data_file = import_name + "_results.json"
+    latex_table_file = import_name + "_results.tex"
     try:
         config = __import__(import_name)
     except:
         print("*** error importing config file!\n")
         raise
 
-    make_confidence(config, out_file)
+    make_tables(config, data_file, latex_table_file)
