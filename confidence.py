@@ -173,6 +173,7 @@ def make_latex_table(row_data, latex_table_file):
 
         # header
         w("""\\documentclass{article}
+        \\usepackage{longtable}
         \\usepackage{booktabs}
         \\usepackage{multicol}
         \\usepackage{multirow}
@@ -181,7 +182,7 @@ def make_latex_table(row_data, latex_table_file):
         \\begin{document}\small\n""")
 
         # absolute times
-        w("\\begin{tabular}{cccrl}\n")
+        w("\\begin{longtable}{cccrl}\n")
         w("\\toprule\n")
         w("Benchmark&   VM& Variant&    \multicolumn{2}{c}{Time (secs)}\\\\\n")
 
@@ -224,12 +225,12 @@ def make_latex_table(row_data, latex_table_file):
                         tex_escape_underscope(variant_key), val_s, err_s))
 
         w("\\bottomrule\n")
-        w("\\end{tabular}\n")
+        w("\\end{longtable}\n")
         w("\\newpage\n")
 
 
         # relative times
-        w("\\begin{tabular}{cccrlrl}\n")
+        w("\\begin{longtable}{cccrlrl}\n")
         w("\\toprule\n")
         w("Benchmark&   VM& Variant&    \multicolumn{2}{c}{$\\times$PyPy}&\multicolumn{2}{c}{$\\times$HippyVM}\\\\\n")
 
@@ -280,7 +281,7 @@ def make_latex_table(row_data, latex_table_file):
                         rel_pypy_err_str, rel_hippy_str, rel_hippy_err_str))
 
         w("\\bottomrule\n")
-        w("\\end{tabular}\n")
+        w("\\end{longtable}\n")
 
 
 
