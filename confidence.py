@@ -6,6 +6,7 @@ import json
 import math
 import prettytable
 import os
+import collections
 
 from pykalibera.data import Data
 from util import should_skip
@@ -27,16 +28,39 @@ def error(data):
 
     return avg([b - a, c - b])
 
+def get_rowspan(row_data, bench, vm=None):
+    ct = 0
+    for key in row_data.keys():
+        t_bench, t_vm, t_variant = key.split(":")
+
+        if bench != t_bench:
+            continue
+
+        if vm is not None and vm != t_vm:
+            continue
+
+        ct += 1
+    return ct
+
 def make_tables(config, data_file, latex_table_file):
 
     with open(data_file, "r") as data_fh:
         results = json.load(data_fh)["data"]
 
-    # key -> val * abs_err * warmup
+    # bench -> vm -> variant -> val * abs_err * warmup
     row_data = {}
 
     for bench_key, bench_param in config.BENCHMARKS.iteritems():
+        if not row_data.has_key(bench_key):
+            row_data[bench_key] = {}
+        bench_data = row_data[bench_key]
+
         for vm_key, vm_info in config.VMS.iteritems():
+
+            if not bench_data.has_key(vm_key):
+                bench_data[vm_key] = {}
+            variant_data = bench_data[vm_key]
+
             for variant_key in vm_info["variants"]:
                 exp_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
                 try:
@@ -73,9 +97,12 @@ def make_tables(config, data_file, latex_table_file):
                 mean = kdata.mean()
                 err = error(kdata)
 
-                row_data[exp_key] = mean, err, warmup
+                row_data[bench_key][vm_key][variant_key] = mean, err, warmup
 
-    make_ascii_table(row_data)
+    # need to sort by key to ensure things work out
+    row_data = collections.OrderedDict(sorted(row_data.items()))
+
+    #make_ascii_table(row_data)
     make_latex_table(row_data, latex_table_file)
 
 def make_latex_table(row_data, latex_table_file):
@@ -93,13 +120,36 @@ def make_latex_table(row_data, latex_table_file):
         \\begin{document}\n""")
 
         # absolute times
-        w("\\begin{tabular}{|r|r|r|}\n")
+        w("\\begin{tabular}{|r|r||r|r|r|}\n")
         w("\\hline\n")
-        w("Key&Time (secs)& Error\\\\\n")
-        w("\\hline\n")
-        for exp_key, row_data in row_data.iteritems():
-            val, err, warmup = row_data
-            w("%s&  %6f& %6f\\\\\n" % (tex_escape_underscope(exp_key), val, err))
+        w("Benchmark&   VM& Variant&    Time (secs)& Error\\\\\n")
+
+        last_bench_key, last_vm_key = None, None
+        for bench_key, bench_data in row_data.iteritems():
+            for vm_key, vm_data in bench_data.iteritems():
+                for variant_key, variant_data in vm_data.iteritems():
+                    val, err, warmup = variant_data
+
+                    if last_bench_key != bench_key:
+                        w("\\hline\n")
+                        bench_rowspan = len(bench_data)
+                        bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
+                        last_bench_key = bench_key
+                    else:
+                        bench_cell = ""
+
+                    if last_vm_key != vm_key:
+                        w("\\cline{2-5}\n")
+                        vm_rowspan = len(vm_data)
+                        vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
+                        last_vm_key = vm_key
+                    else:
+                        vm_cell = ""
+
+                    w("%s&  %s& %s& %6f& %6f\\\\\n" % (
+                        tex_escape_underscope(bench_cell),
+                        tex_escape_underscope(vm_cell),
+                        tex_escape_underscope(variant_key), val, err))
 
         w("\\hline\n")
         w("\\end{tabular}\n")
