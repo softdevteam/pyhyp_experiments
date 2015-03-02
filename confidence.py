@@ -12,7 +12,7 @@ from pykalibera.data import Data
 from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
-ITERATIONS = 1# 0000
+ITERATIONS = 10000
 
 def tex_escape_underscope(s):
     return s.replace("_", "\\_")
