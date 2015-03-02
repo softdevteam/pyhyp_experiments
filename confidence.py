@@ -72,9 +72,6 @@ def make_tables(config, data_file, latex_table_file):
                         print("Error, missing non-skipped data: %s" % exp_key)
                         sys.exit(1)
 
-                #bench, vm, variant = exp_key.split(":")
-                #vm_info = config.VMS[vm]
-
                 warmup = vm_info["warm_upon_iter"]
                 variant_info = config.VARIANTS[variant_key]
 
@@ -120,9 +117,9 @@ def make_latex_table(row_data, latex_table_file):
         \\begin{document}\n""")
 
         # absolute times
-        w("\\begin{tabular}{|r|r||r|r|r|}\n")
-        w("\\hline\n")
-        w("Benchmark&   VM& Variant&    Time (secs)& Error\\\\\n")
+        w("\\begin{tabular}{cccrl}\n")
+        w("\\toprule\n")
+        w("Benchmark&   VM& Variant&    \multicolumn{2}{c}{Time (secs)}\\\\\n")
 
         last_bench_key, last_vm_key = None, None
         for bench_key, bench_data in row_data.iteritems():
@@ -130,8 +127,10 @@ def make_latex_table(row_data, latex_table_file):
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, warmup = variant_data
 
+                    #vm_cline = True
                     if last_bench_key != bench_key:
-                        w("\\hline\n")
+                        w("\\midrule\n")
+                        #vm_cline = False
                         bench_rowspan = len(bench_data)
                         bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
                         last_bench_key = bench_key
@@ -139,19 +138,21 @@ def make_latex_table(row_data, latex_table_file):
                         bench_cell = ""
 
                     if last_vm_key != vm_key:
-                        w("\\cline{2-5}\n")
+                        #if vm_cline:
+                        #    w("\\cline{2-5}\n")
+
                         vm_rowspan = len(vm_data)
                         vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
                         last_vm_key = vm_key
                     else:
                         vm_cell = ""
 
-                    w("%s&  %s& %s& %6f& %6f\\\\\n" % (
+                    w("%s&  %s& %s& %6f& {\scriptsize$\\pm$ %6f}\\\\\n" % (
                         tex_escape_underscope(bench_cell),
                         tex_escape_underscope(vm_cell),
                         tex_escape_underscope(variant_key), val, err))
 
-        w("\\hline\n")
+        w("\\bottomrule\n")
         w("\\end{tabular}\n")
         w("\\end{document}\n")
 
