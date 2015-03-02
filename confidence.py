@@ -94,6 +94,15 @@ def make_tables(config, data_file, latex_table_file):
                     exp_data = results[exp_key]
                 except KeyError:
                     if should_skip(config, exp_key):
+                        # XXX tidy up, make a "add dummy result" function
+                        mean = None
+                        err = None
+                        rel_pypy = None
+                        rel_pypy_err = None
+                        rel_hippy = None
+                        rel_hippy_err = None
+                        row_data[bench_key][vm_key][variant_key] = \
+                            mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
                         continue
                     else:
                         print("Error, missing non-skipped data: %s" % exp_key)
@@ -103,46 +112,56 @@ def make_tables(config, data_file, latex_table_file):
                 variant_info = config.VARIANTS[variant_key]
 
                 kdata = make_kalibera_data(exp_data, warmup)
-                if kdata is None:
+                if kdata is None: # not enough data or no data
                     print("missing data for %s" % exp_key)
+                    mean = None
+                    err = None
+                    rel_pypy = None
+                    rel_pypy_err = None
+                    rel_hippy = None
+                    rel_hippy_err = None
+
+                    row_data[bench_key][vm_key][variant_key] = \
+                        mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
                     continue
-                mean = kdata.mean()
-                err = error(kdata)
-
-                # relative to pypy
-                pypy_key = "%s:PyPy:mono-python" % bench_key
-                has_pypy = True
-                try:
-                    pypy_data = results[pypy_key]
-                except KeyError:
-                    has_pypy = False
-
-                if has_pypy:
-                    pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
-                    pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
-                    rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
                 else:
-                    rel_pypy, rel_pypy_err = None, None
+                    mean = kdata.mean()
+                    err = error(kdata)
 
-                # relative to hippyvm
-                hippy_key = "%s:PyPy:mono-python" % bench_key
-                has_hippy = True
-                try:
-                    hippy_data = results[hippy_key]
-                except KeyError:
-                    has_hippy = False
-                if has_hippy:
-                    hippy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
-                    hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
-                    rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
-                else:
-                    rel_hippy, rel_hippy_err = None, None
+                    # relative to pypy
+                    pypy_key = "%s:PyPy:mono-python" % bench_key
+                    has_pypy = True
+                    try:
+                        pypy_data = results[pypy_key]
+                    except KeyError:
+                        has_pypy = False
 
-                row_data[bench_key][vm_key][variant_key] = \
-                    mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
+                    if has_pypy:
+                        pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
+                        pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
+                        rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
+                    else:
+                        rel_pypy, rel_pypy_err = None, None
+
+                    # relative to hippyvm
+                    hippy_key = "%s:HippyVM:mono-php" % bench_key
+                    has_hippy = True
+                    try:
+                        hippy_data = results[hippy_key]
+                    except KeyError:
+                        has_hippy = False
+                    if has_hippy:
+                        hippy_warmup = config.VMS["HippyVM"]["warm_upon_iter"]
+                        hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
+                        rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
+                    else:
+                        rel_hippy, rel_hippy_err = None, None
+
+                    row_data[bench_key][vm_key][variant_key] = \
+                        mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
 
     # need to sort by key to ensure things work out
-    row_data = collections.OrderedDict(sorted(row_data.items()))
+    #row_data = collections.OrderedDict(sorted(row_data.items()))
 
     #make_ascii_table(row_data)
     make_latex_table(row_data, latex_table_file)
@@ -192,10 +211,17 @@ def make_latex_table(row_data, latex_table_file):
                     else:
                         vm_cell = ""
 
-                    w("%s&  %s& %s& %.4f& {\scriptsize$\\pm$ %.4f}\\\\\n" % (
+                    if val is None: # no result for that combo
+                        val_s = "n/a"
+                        err_s = "n/a"
+                    else:
+                        val_s = "%.4f" % val
+                        err_s = "%.4f" % err
+
+                    w("%s&  %s& %s& %s& {\scriptsize$\\pm$ %s}\\\\\n" % (
                         tex_escape_underscope(bench_cell),
                         tex_escape_underscope(vm_cell),
-                        tex_escape_underscope(variant_key), val, err))
+                        tex_escape_underscope(variant_key), val_s, err_s))
 
         w("\\bottomrule\n")
         w("\\end{tabular}\n")
