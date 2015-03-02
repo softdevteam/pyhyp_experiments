@@ -385,7 +385,6 @@ VARIANTS = {
 	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_total_list': 280000," >> ${CONFIG_FILE}
 	echo "\t'pb_instchain': 1200," >> ${CONFIG_FILE}
-	echo "\t'pb_except': 30000," >> ${CONFIG_FILE}
 
 	# unipycation micro
 	echo "\t'pb_l1a0r': 44000," >> ${CONFIG_FILE}
