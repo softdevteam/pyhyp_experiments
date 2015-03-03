@@ -91,6 +91,10 @@ def make_tables(config, data_file, latex_table_file):
 
             for variant_key in vm_info["variants"]:
                 exp_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+
+                sys.stdout.write(".")
+                sys.stdout.flush()
+
                 try:
                     exp_data = results[exp_key]
                 except KeyError:
@@ -190,6 +194,7 @@ def make_latex_table(row_data, latex_table_file):
         last_bench_key, last_vm_key = None, None
         for bench_key, bench_data in row_data.iteritems():
             for vm_key, vm_data in bench_data.iteritems():
+
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
 
