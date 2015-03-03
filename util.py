@@ -17,3 +17,13 @@ def should_skip(config, this_key):
 
     return False
 
+def read_config(config_file):
+    import_name = config_file[:-3]
+    out_file = import_name + "_results.json"
+    try:
+        config = __import__(import_name)
+    except:
+        print("*** error importing config file!\n")
+        raise
+
+    return import_name, config

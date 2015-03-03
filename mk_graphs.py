@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 """
 usage:
-    mk_graphs.py <json file> <# warmup iters> <# graphs per experiment>
+    mk_graphs.py <config file>
 """
 
 import sys, json, time, random, os
@@ -67,6 +67,11 @@ def progress():
     sys.stdout.flush()
 
 def emit_graphs(body, key, executions, chosen_exec_nums):
+    if len(executions) == 0 or len(executions[0]) == 0:
+        body.text("missing data?")
+        print("")
+        return
+
     # Run sequences
     body.h3("Run Sequence Graphs")
     for exec_no in chosen_exec_nums:
@@ -102,27 +107,20 @@ def emit_graphs(body, key, executions, chosen_exec_nums):
 
     print("")
 
-def emit_report_header(json_filename, warmup, n_graphs):
+def emit_report_header(config, config_filename, data_dct):
     page = html.HTML("html")
 
     head = page.head("")
     head.style("pre { background-color: #cccccc; }")
 
-    title = "Kalibera Dimensioning Information for %s" % json_filename
+    title = "Kalibera Dimensioning Information for %s" % config_filename
     page.title(title)
 
     body = page.body("")
 
     body.h1(title)
 
-    body.text("This report was generated using the following parameters:")
-    body.pre(data_dct["config"])
-
-    ul = body.ul("")
-    ul.li("Report invocation:" + " ".join(sys.argv))
-    ul.li("Warmup iters discarded: %s" % warmup)
-    ul.li("Number of graphs per experiment: %s" % n_graphs)
-    ul.li("Generated: %s" % time.asctime())
+    body.pre(json.dumps(config.VMS, indent=4))
 
     return page, body
 
@@ -132,11 +130,13 @@ def emit_quick_links(data_dct, body):
     for key in sorted(data_dct["data"].keys()):
         ul.li("").a(key, href="#%s" % key)
 
-def report(json_filename, warmup, n_graphs, data_dct):
+def report(config, config_filename, data_dct):
     """ dumps out a report in HTML format """
 
-    page, body = emit_report_header(json_filename, warmup, n_graphs)
+    page, body = emit_report_header(config, config_filename, data_dct)
     emit_quick_links(data_dct, body)
+
+    n_graphs = config.N_GRAPHS_PER_BENCH
 
     try:
         os.mkdir(OUTDIR)
@@ -146,6 +146,10 @@ def report(json_filename, warmup, n_graphs, data_dct):
     # Iterate over keys in the json file drawing some graphs
     keys = sorted(data_dct["data"].keys())
     for key in keys:
+        bench, vm, variant = key.split(":")
+
+        warmup = config.VMS[vm]["warm_upon_iter"]
+
         sys.stdout.write("%s: " % key)
         sys.stdout.flush()
 
@@ -173,17 +177,12 @@ def report(json_filename, warmup, n_graphs, data_dct):
 # ----
 
 if __name__ == "__main__":
-    try:
-        json_file = sys.argv[1]
-        warmup = sys.argv[2]
-        n_graphs = sys.argv[3]
-    except IndexError:
-        usage()
+    from util import read_config
+    config_base, config = read_config(sys.argv[1])
 
-    warmup = int(warmup)
-    n_graphs = int(n_graphs)
+    json_file = config_base + "_results.json"
 
-    with open(json_file, "r") as f:
-        data_dct = json.loads(f.read())
+    with open(json_file, "r") as fh:
+        data_dct = json.load(fh)
 
-    report(json_file, warmup, n_graphs, data_dct)
+    report(config, sys.argv[1], data_dct)
