@@ -149,6 +149,8 @@ class ExecutionScheduler(object):
 
     def __init__(self, config_file, out_file):
         self.work_deque = deque()
+        self.eta_avail = None
+        self.jobs_done = 0
 
         # Record how long processes are taking so we can make a
         # rough ETA for the user.
@@ -162,6 +164,13 @@ class ExecutionScheduler(object):
         # file names
         self.config_file = config_file
         self.out_file = out_file
+
+    def set_eta_avail(self):
+        """call after adding job before eta should become available"""
+        self.eta_avail = len(self)
+
+    def jobs_until_eta_known(self):
+        return self.eta_avail - self.jobs_done
 
     def add_job(self, job):
         self.work_deque.append(job)
@@ -227,6 +236,11 @@ class ExecutionScheduler(object):
                                              tfmt.finish_str,
                                              tfmt.delta_str,
                                              ANSI_RESET))
+
+            if (self.eta_avail is not None) and (self.jobs_done < self.eta_avail):
+                print("{}Jobs until ETA known: {}{}".format(ANSI_CYAN,
+                                                             self.jobs_until_eta_known(),
+                                                             ANSI_RESET))
             job = self.next_job()
             exec_result = job.run()
 
@@ -238,6 +252,8 @@ class ExecutionScheduler(object):
             # We dump the json after each experiment so we can monitor the
             # json file mid-run. It is overwritten each time.
             dump_json(self.config_file, self.out_file, self.results)
+
+            self.jobs_done += 1
 
         end_time = time.time() # rough overall timer, not used for actual results
 
@@ -315,8 +331,9 @@ def main():
         raise
 
     # Build job queue -- each job is an execution
-    reported_skips = False
+    one_exec_scheduled = False
     sched = ExecutionScheduler(config_file, out_file)
+    eta_avail_job = None
     for exec_n in xrange(config.N_EXECUTIONS):
         for vm_name, vm_info in config.VMS.items():
             for bmark, param in config.BENCHMARKS.items():
@@ -324,12 +341,15 @@ def main():
                     job = ExecutionJob(sched, config, vm_name, vm_info, bmark, variant, param)
 
                     if not should_skip(config, job.key):
+                        if one_exec_scheduled and not eta_avail_job:
+                            eta_avail_job = job # first job of second executions eta becomes known.
+                            sched.set_eta_avail()
                         sched.add_job(job)
                     else:
-                        if BENCH_DEBUG and not reported_skips:
+                        if BENCH_DEBUG and not one_exec_scheduled:
                             print("%s    DEBUG: %s is in skip list. Not scheduling.%s" %
                                   (ANSI_GREEN, job.key, ANSI_RESET))
-        reported_skips = True
+        one_exec_scheduled = True
 
     print_session_summary(config)
 
