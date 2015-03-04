@@ -87,6 +87,7 @@ def make_tables(config, data_file, latex_table_file):
 
             if not bench_data.has_key(vm_key):
                 bench_data[vm_key] = {}
+
             variant_data = bench_data[vm_key]
 
             for variant_key in vm_info["variants"]:
@@ -162,7 +163,19 @@ def make_tables(config, data_file, latex_table_file):
                     else:
                         rel_hippy, rel_hippy_err = None, None
 
-                    row_data[bench_key][vm_key][variant_key] = \
+                    # make pyhyp variants appear as separate VMs
+                    if vm_key == "PyHyp":
+                        if variant_key == "mono-php":
+                            actual_vm_key = "PyHyp-mono"
+                        else:
+                            actual_vm_key = "PyHyp-comp"
+
+                        if not row_data[bench_key].has_key(actual_vm_key):
+                            row_data[bench_key][actual_vm_key] = {}
+                    else:
+                        actual_vm_key = vm_key
+
+                    row_data[bench_key][actual_vm_key][variant_key] = \
                         mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
 
     make_ascii_table(row_data)
@@ -190,15 +203,13 @@ def make_latex_table(row_data, latex_table_file):
 
         last_bench_key, last_vm_key = None, None
         for bench_key, bench_data in row_data.iteritems():
-            for vm_key, vm_data in bench_data.iteritems():
+            for vm_key, vm_data in sorted(bench_data.iteritems()):
 
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
 
-                    vm_cline = True
                     if last_bench_key != bench_key:
                         w("\\midrule\n")
-                        vm_cline = False
                         bench_rowspan = len(bench_data)
                         bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
                         last_bench_key = bench_key
@@ -206,9 +217,6 @@ def make_latex_table(row_data, latex_table_file):
                         bench_cell = ""
 
                     if last_vm_key != vm_key:
-                        if vm_cline:
-                            w("\\cline{2-5}\n")
-
                         vm_rowspan = len(vm_data)
                         vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
                         last_vm_key = vm_key
@@ -243,10 +251,8 @@ def make_latex_table(row_data, latex_table_file):
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
 
-                    vm_cline = True
                     if last_bench_key != bench_key:
                         w("\\midrule\n")
-                        vm_cline = False
                         bench_rowspan = len(bench_data)
                         bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
                         last_bench_key = bench_key
@@ -254,9 +260,6 @@ def make_latex_table(row_data, latex_table_file):
                         bench_cell = ""
 
                     if last_vm_key != vm_key:
-                        if vm_cline:
-                            w("\\cline{2-7}\n")
-
                         vm_rowspan = len(vm_data)
                         vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
                         last_vm_key = vm_key
