@@ -165,10 +165,7 @@ def make_tables(config, data_file, latex_table_file):
                     row_data[bench_key][vm_key][variant_key] = \
                         mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
 
-    # need to sort by key to ensure things work out
-    #row_data = collections.OrderedDict(sorted(row_data.items()))
-
-    #make_ascii_table(row_data)
+    make_ascii_table(row_data)
     make_latex_table(row_data, latex_table_file)
 
 def make_latex_table(row_data, latex_table_file):
@@ -295,7 +292,7 @@ def make_latex_table(row_data, latex_table_file):
 
 def make_ascii_table(row_data):
 
-    tb = prettytable.PrettyTable(["Benchmark", "Warm Iter", "Seconds", "Error"])
+    tb = prettytable.PrettyTable(["Benchmark", "VM", "Variant", "Seconds", "Error"])
     tb.align["Benchmark"] = "l"
     tb.align["WarmIter"] = "r"
     tb.align["Seconds"] = "r"
@@ -303,11 +300,14 @@ def make_ascii_table(row_data):
     tb.float_format = "4.6"
 
     # Make an ascii table on stdout
-    for exp_key, row_data in row_data.iteritems():
-        val, err, warmup = row_data
-        tb.add_row([exp_key, warmup, val, err])
-        sys.stdout.write(".")
-        sys.stdout.flush()
+    for bench_key, bench_data in row_data.iteritems():
+        for vm_key, vm_data in bench_data.iteritems():
+            for variant_key, variant_data in vm_data.iteritems():
+                val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
+                tb.add_row([bench_key, "%s (warm_upon=%d)" % (vm_key, warmup),
+                            variant_key, val, err])
+                sys.stdout.write(".")
+                sys.stdout.flush()
 
     sys.stdout.write("\n")
     print(tb.get_string(sortby="Benchmark"))
