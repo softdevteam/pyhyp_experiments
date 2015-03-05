@@ -331,6 +331,51 @@ def make_latex_tables(config, row_data, latex_table_file):
     w("\\end{longtable}\n")
     w("\\newpage\n")
 
+    # -- relative Hippy times
+    w("\\section{Rel to Hippy}\n")
+    w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
+    w("\\toprule\n")
+
+    # emit header
+    w("Benchmark")
+    for i in sorted(config.VMS.iterkeys()):
+        w("&%s" % header_cell(short_vm_names[i]))
+    w("\\\\\n")
+    w("\\toprule\n")
+
+    last_bench_key, last_vm_key = None, None
+    first = True
+    was_data = False
+    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+        if not first and was_data:
+            w("\\addlinespace\n")
+
+        was_data = False
+        row = [tex_escape_underscore(bench_key)]
+
+        for vm_key, vm_data in sorted(config.VMS.iteritems()):
+            variants = vm_data["variants"]
+
+            # because we flattened pyhyp variants to separate vm entries
+            assert len(variants) == 1
+            variant_key = variants[0]
+
+            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+
+            ri = row_data[rd_key]
+            row.append(conf_cell(ri.rel_hippy, ri.rel_hippy_err))
+            if ri.rel_hippy is not None:
+                was_data = True
+
+        # row is complete
+        if was_data:
+            w("%s\\\\\n" % "&".join(row))
+            first = False
+
+    w("\\bottomrule\n")
+    w("\\end{longtable}\n")
+    w("\\newpage\n")
+
     w("\\end{document}\n")
 
 
