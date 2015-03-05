@@ -13,7 +13,16 @@ from pykalibera.data import Data
 from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
-ITERATIONS = 10000
+
+try:
+    debug = os.environ["TABLE_DEBUG"]
+    ITERATIONS = 1
+except KeyError:
+    ITERATIONS = 10000
+
+def dot():
+    sys.stdout.write(".")
+    sys.stdout.flush()
 
 def tex_escape_underscore(s):
     return s.replace("_", "\\_")
@@ -121,6 +130,7 @@ def make_tables(config, data_file, latex_table_file):
     row_data = {}
     for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
         for vm_key, vm_data in sorted(config.VMS.iteritems()):
+            dot()
             variants = vm_data["variants"]
 
             # because we flattened pyhyp variants to separate vm entries
@@ -179,6 +189,7 @@ def make_tables(config, data_file, latex_table_file):
             ri = ResultInfo(val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup)
             row_data[rs_key] = ri
 
+    print("")
     make_ascii_table(row_data)
     make_latex_tables(config, row_data, latex_table_file)
 
@@ -189,7 +200,7 @@ def conf_cell(val, err, width=".7cm"):
     else:
         return "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle\\pm %.4f}}}$" % (width, val, width, err)
 
-def header_cell(text, align="r", width="1cm"):
+def header_cell(text, align="r", width="1.2cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
 
 def make_latex_tables(config, row_data, latex_table_file):
@@ -230,6 +241,7 @@ def make_latex_tables(config, row_data, latex_table_file):
 
     # header
     w("""\\documentclass{article}
+    \\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
     \\usepackage{longtable}
     \\usepackage{mathtools}
     \\usepackage{booktabs}
