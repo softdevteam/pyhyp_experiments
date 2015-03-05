@@ -112,6 +112,11 @@ def make_tables(config, data_file, latex_table_file):
 
         results[nkey] = v
 
+    # mono PHP benchmark ref_swap2 arecopies of ref_swap data
+    results["pb_ref_swap2:Zend:mono-php"] = results["pb_ref_swap:Zend:mono-php"]
+    results["pb_ref_swap2:HHVM:mono-php"] = results["pb_ref_swap:HHVM:mono-php"]
+    results["pb_ref_swap2:HippyVM:mono-php"] = results["pb_ref_swap:HippyVM:mono-php"]
+
     # now process confidence, relative times, ...
     row_data = {}
     for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
@@ -178,48 +183,49 @@ def make_tables(config, data_file, latex_table_file):
     make_latex_tables(config, row_data, latex_table_file)
 
 
-def conf_cell(val, err, width="1cm", rel=False):
-    rel_s = "\\times" if rel else ""
-
+def conf_cell(val, err, width=".7cm"):
     if val is None: # no result for that combo
         return ""
     else:
-        return "$\substack{\\mathmakebox[%s][r]{%.3f%s}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle\\pm %.3f}}}$" % (width, val, rel_s, width, err)
+        return "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle\\pm %.4f}}}$" % (width, val, width, err)
+
+def header_cell(text, align="r", width="1cm"):
+    return "\\makebox[%s][%s]{%s}" % (width, align, text)
 
 def make_latex_tables(config, row_data, latex_table_file):
     of = open(latex_table_file, "w")
     w = of.write
 
     short_vm_names = {
-        "CPython": "CPy",
-        "HHVM": "HH",
-        "HippyVM": "Hpy",
-        "PyHyp-mono": "PH-m",
-        "PyHyp-comp": "PH-c",
+        "CPython": "CPython",
+        "HHVM": "HHVM",
+        "HippyVM": "HippyVM",
+        "PyHyp-mono": "PyHyp$_m$",
+        "PyHyp-comp": "PyHyp$_c$",
         "PyPy": "PyPy",
         "Zend": "Zend",
     }
 
-    short_bm_names = {
-        "pb_return_simple": "pb_rs",
-        "pb_total_list": "pb_t_l",
-        "pb_scopes": "pb_scp",
-        "fannkuch": "fkuch",
-        "pb_sum_meth": "pb_smeth",
-        "pb_termconstruction": "pb_tcons",
-        "pb_sum": "pb_s",
-        "pb_l1a0r": "pb_l1a0r",
-        "pb_l1a1r": "pb_l1a1r",
-        "pb_instchain": "pb_ichain",
-        "pb_lists": "pb_lists",
-        "deltablue": "dblue",
-        "mandel": "mamdel",
-        "pb_smallfunc": "pb_sfunc",
-        "pb_ref_swap": "pb_rswap",
-        "pb_ref_swap2": "pb_rswap2",
-        "richards": "richds",
-        "pb_sum_attr": "pb_sattr",
-    }
+    #short_bm_names = {
+    #    "pb_return_simple": "pb_rs",
+    #    "pb_total_list": "pb_t_l",
+    #    "pb_scopes": "pb_scp",
+    #    "fannkuch": "fkuch",
+    #    "pb_sum_meth": "pb_smeth",
+    #    "pb_termconstruction": "pb_tcons",
+    #    "pb_sum": "pb_s",
+    #    "pb_l1a0r": "pb_l1a0r",
+    #    "pb_l1a1r": "pb_l1a1r",
+    #    "pb_instchain": "pb_ichain",
+    #    "pb_lists": "pb_lists",
+    #    "deltablue": "dblue",
+    #    "mandel": "mamdel",
+    #    "pb_smallfunc": "pb_sfunc",
+    #    "pb_ref_swap": "pb_rswap",
+    #    "pb_ref_swap2": "pb_rswap2",
+    #    "richards": "richds",
+    #    "pb_sum_attr": "pb_sattr",
+    #}
 
 
     # header
@@ -237,15 +243,15 @@ def make_latex_tables(config, row_data, latex_table_file):
     w("\\footnotesize\n")
 
     # -- absolute times
-    box_w = "1cm"
-
     w("\\section{Abs}\n")
+    #w("\\setlength{\\tabcolsep}{.5em}")
     w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
     # emit header
+    w("Benchmark")
     for i in sorted(config.VMS.iterkeys()):
-        w("&%s" % short_vm_names[i])
+        w("&%s" % header_cell(short_vm_names[i]))
     w("\\\\\n")
     w("\\toprule\n")
 
@@ -253,8 +259,8 @@ def make_latex_tables(config, row_data, latex_table_file):
     first = True
     for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
         if not first:
-            w("\\midrule\n")
-        row = [tex_escape_underscore(short_bm_names[bench_key])]
+            w("\\addlinespace\n")
+        row = [tex_escape_underscore(bench_key)]
 
         for vm_key, vm_data in sorted(config.VMS.iteritems()):
             variants = vm_data["variants"]
@@ -268,10 +274,13 @@ def make_latex_tables(config, row_data, latex_table_file):
 
             ri = row_data[rd_key]
             row.append(conf_cell(ri.val, ri.val_err))
+            if ri.val is not None:
+                was_data = True
 
         # row is complete
-        w("%s\\\\\n" % "&".join(row))
-        first = False
+        if was_data:
+            w("%s\\\\\n" % "&".join(row))
+            first = False
 
     w("\\bottomrule\n")
     w("\\end{longtable}\n")
@@ -283,17 +292,21 @@ def make_latex_tables(config, row_data, latex_table_file):
     w("\\toprule\n")
 
     # emit header
+    w("Benchmark")
     for i in sorted(config.VMS.iterkeys()):
-        w("&%s" % short_vm_names[i])
+        w("&%s" % header_cell(short_vm_names[i]))
     w("\\\\\n")
     w("\\toprule\n")
 
     last_bench_key, last_vm_key = None, None
     first = True
+    was_data = False
     for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-        if not first:
-            w("\\midrule\n")
-        row = [tex_escape_underscore(short_bm_names[bench_key])]
+        if not first and was_data:
+            w("\\addlinespace\n")
+
+        was_data = False
+        row = [tex_escape_underscore(bench_key)]
 
         for vm_key, vm_data in sorted(config.VMS.iteritems()):
             variants = vm_data["variants"]
@@ -305,11 +318,14 @@ def make_latex_tables(config, row_data, latex_table_file):
             rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
             ri = row_data[rd_key]
-            row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err, rel=True))
+            row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err))
+            if ri.rel_pypy is not None:
+                was_data = True
 
         # row is complete
-        w("%s\\\\\n" % "&".join(row))
-        first = False
+        if was_data:
+            w("%s\\\\\n" % "&".join(row))
+            first = False
 
     w("\\bottomrule\n")
     w("\\end{longtable}\n")
@@ -317,7 +333,6 @@ def make_latex_tables(config, row_data, latex_table_file):
 
     w("\\end{document}\n")
 
-    # XXX relative to hippy
 
 def make_ascii_table(row_data):
 
