@@ -88,7 +88,7 @@ class ResultInfo(object):
     def missing(cls, warmup):
         return cls(None, None, None, None, None, None, warmup)
 
-def make_tables(config, data_file, latex_table_file):
+def make_tables(config, data_file):
 
     with open(data_file, "r") as data_fh:
         raw_results = json.load(data_fh)["data"]
@@ -191,7 +191,7 @@ def make_tables(config, data_file, latex_table_file):
 
     print("")
     make_ascii_table(row_data)
-    make_latex_tables(config, row_data, latex_table_file)
+    make_latex_tables(config, row_data)
 
 
 def conf_cell(val, err, width=".7cm"):
@@ -203,9 +203,35 @@ def conf_cell(val, err, width=".7cm"):
 def header_cell(text, align="r", width="1.2cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
 
-def make_latex_tables(config, row_data, latex_table_file):
-    of = open(latex_table_file, "w")
-    w = of.write
+MAKEFILE_CONTENTS = """
+FILES=results_abs.pdf results_rel_pypy.pdf results_rel_hippy.pdf
+
+.SUFFIXES: .tex .pdf
+
+.tex.pdf:
+	pdflatex $*.tex
+	pdflatex $*.tex
+	pdflatex $*.tex
+
+all: ${FILES}
+"""
+
+def write_latex_header(fh):
+    fh.write("""\\documentclass{article}
+    \\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
+    \\usepackage{mathtools}
+    \\usepackage{booktabs}
+    \\usepackage{multicol}
+    \\usepackage{multirow}
+    \\usepackage{xspace}
+    \\usepackage{amsmath}
+    \\begin{document}
+    \\footnotesize\n""")
+
+def make_latex_tables(config, row_data):
+    # makefile for tables
+    with open(os.path.join(TEX_DIR, "Makefile"), "w") as fh:
+        fh.write(MAKEFILE_CONTENTS)
 
     short_vm_names = {
         "CPython": "CPython",
@@ -238,26 +264,15 @@ def make_latex_tables(config, row_data, latex_table_file):
     #    "pb_sum_attr": "pb_sattr",
     #}
 
-
-    # header
-    w("""\\documentclass{article}
-    \\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
-    \\usepackage{longtable}
-    \\usepackage{mathtools}
-    \\usepackage{booktabs}
-    \\usepackage{multicol}
-    \\usepackage{multirow}
-    \\usepackage{xspace}
-    \\usepackage{amsmath}
-    \\begin{document}""")
-
-    w("\\hrule")
-    w("\\footnotesize\n")
-
     # -- absolute times
+    of = open(os.path.join(TEX_DIR, "results_abs.tex"), "w")
+    write_latex_header(of)
+    w = of.write
+
     w("\\section{Abs}\n")
-    #w("\\setlength{\\tabcolsep}{.5em}")
-    w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
+    w("\\begin{table}\n")
+    w("\\centering\n")
+    w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
     # emit header
@@ -295,12 +310,21 @@ def make_latex_tables(config, row_data, latex_table_file):
             first = False
 
     w("\\bottomrule\n")
-    w("\\end{longtable}\n")
-    w("\\newpage\n")
+    w("\\end{tabular}\n")
+    w("\\caption{Absolute benchmark timings (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\end{table}")
+    w("\\end{document}\n")
+    of.close()
 
     # -- relative PyPy times
+    of = open(os.path.join(TEX_DIR, "results_rel_pypy.tex"), "w")
+    write_latex_header(of)
+    w = of.write
+
     w("\\section{Rel to PyPy}\n")
-    w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
+    w("\\begin{table}\n")
+    w("\\centering\n")
+    w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
     # emit header
@@ -340,12 +364,22 @@ def make_latex_tables(config, row_data, latex_table_file):
             first = False
 
     w("\\bottomrule\n")
-    w("\\end{longtable}\n")
-    w("\\newpage\n")
+    w("\\end{tabular}\n")
+    w("\\caption{Benchmark timings relative to PyPy (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\end{table}")
+    w("\\centering\n")
+    w("\\end{document}\n")
+    of.close()
 
     # -- relative Hippy times
+    of = open(os.path.join(TEX_DIR, "results_rel_hippy.tex"), "w")
+    write_latex_header(of)
+    w = of.write
+
     w("\\section{Rel to Hippy}\n")
-    w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
+    w("\\begin{table}\n")
+    w("\\centering\n")
+    w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
     # emit header
@@ -385,10 +419,13 @@ def make_latex_tables(config, row_data, latex_table_file):
             first = False
 
     w("\\bottomrule\n")
-    w("\\end{longtable}\n")
-    w("\\newpage\n")
-
+    w("\\end{tabular}\n")
+    w("\\caption{Benchmark timings relative to HippyVM (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\end{table}")
     w("\\end{document}\n")
+    of.close()
+
+    os.system("cd tex && make")
 
 
 def make_ascii_table(row_data):
@@ -409,6 +446,8 @@ def make_ascii_table(row_data):
     print(tb.get_string(sortby="Benchmark"))
 
 
+TEX_DIR = "tex"
+
 if __name__ == "__main__":
     config_file = sys.argv[1]
 
@@ -420,12 +459,9 @@ if __name__ == "__main__":
         print("*** error importing config file!\n")
         raise
 
-    ltx_dir = "tex"
     try:
-        os.mkdir(ltx_dir)
+        os.mkdir(TEX_DIR)
     except OSError as e:
         pass # file exists
 
-    latex_table_file = os.path.join(ltx_dir, import_name + "_results.tex")
-
-    make_tables(config, data_file, latex_table_file)
+    make_tables(config, data_file)
