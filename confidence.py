@@ -13,9 +13,9 @@ from pykalibera.data import Data
 from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
-ITERATIONS = 10000
+ITERATIONS = 1#0000
 
-def tex_escape_underscope(s):
+def tex_escape_underscore(s):
     return s.replace("_", "\\_")
 
 def avg(seq):
@@ -68,121 +68,130 @@ def make_kalibera_data(exp_data, warmup):
 
     return Data(data_arg, [total_execs, len(data_arg[(0, )])])
 
+class ResultInfo(object):
+    def __init__(self, val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup):
+        self.val, self.val_err = val, val_err
+        self.rel_pypy, self.rel_pypy_err = rel_pypy, rel_pypy_err
+        self.rel_hippy, self.rel_hippy_err = rel_hippy, rel_hippy_err
+        self.warmup = warmup
+
 def make_tables(config, data_file, latex_table_file):
 
     with open(data_file, "r") as data_fh:
-        results = json.load(data_fh)["data"]
+        raw_results = json.load(data_fh)["data"]
 
-    # convert to this tree-like dict, makes formatting tables easier
-    # bench -> vm -> variant ->
-    #    val * abs_err * rel_pypy * rel_pypy_err * rel_hip * rel_hip_err * warmup
+    # make pyhyp variants look like vms
+    config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
+    config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
+
+    config.VMS["PyHyp-mono"]["variants"] = "mono-php"
+    config.VMS["PyHyp-comp"]["variants"] = "composed"
+
+    del(config.VMS["PyHyp"])
+
+    # "bench:vm:variant" -> ResultInfo
+    results = {}
+    for k, v in raw_results.iteritems():
+        bench, vm, variant = k.split(":")
+
+        if vm != "PyHyp":
+            results[k] = v
+            continue
+
+        # is a pyhyp entry, make variant look like a separate vm
+        if variant == "composed":
+            nkey = "%s:PyHyp-comp:composed" % bench
+        elif variant == "mono-php":
+            nkey = "%s:PyHyp-mono:mono-php" % bench
+        else:
+            assert False
+
+        results[nkey] = v
+
+    # now process confidence, relative times, ...
     row_data = {}
+    for k, v in results.iteritems():
+        bench, vm, variant = k.split(":")
 
-    for bench_key, bench_param in config.BENCHMARKS.iteritems():
-        if not row_data.has_key(bench_key):
-            row_data[bench_key] = {}
-        bench_data = row_data[bench_key]
+        warmup = config.VMS[vm]["warm_upon_iter"]
 
-        for vm_key, vm_info in config.VMS.iteritems():
+        # Absolute
+        kdata = make_kalibera_data(v, warmup)
+        if kdata is not None:
+            val = kdata.mean()
+            val_err = error(kdata)
 
-            if not bench_data.has_key(vm_key):
-                bench_data[vm_key] = {}
+            # Relative to PyPy
+            pypy_key = "%s:PyPy:mono-python" % bench
+            has_pypy = True
+            try:
+                pypy_data = results[pypy_key]
+            except KeyError:
+                has_pypy = False
 
-            variant_data = bench_data[vm_key]
+            if has_pypy:
+                pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
+                pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
+                rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
+            else:
+                rel_pypy, rel_pypy_err = None, None
 
-            for variant_key in vm_info["variants"]:
-                exp_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+            # Relative to Hippy
+            hippy_key = "%s:HippyVM:mono-php" % bench
+            has_hippy = True
+            try:
+                hippy_data = results[hippy_key]
+            except KeyError:
+                has_hippy = False
 
-                sys.stdout.write(".")
-                sys.stdout.flush()
+            if has_hippy:
+                hippy_warmup = config.VMS["HippyVM"]["warm_upon_iter"]
+                hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
+                rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
+            else:
+                rel_hippy, rel_hippy_err = None, None
+        else:  # kdata is None (missing result)
+            val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err = [None] * 6
 
-                try:
-                    exp_data = results[exp_key]
-                except KeyError:
-                    if should_skip(config, exp_key):
-                        # XXX tidy up, make a "add dummy result" function
-                        mean = None
-                        err = None
-                        rel_pypy = None
-                        rel_pypy_err = None
-                        rel_hippy = None
-                        rel_hippy_err = None
-                        row_data[bench_key][vm_key][variant_key] = \
-                            mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
-                        continue
-                    else:
-                        print("Error, missing non-skipped data: %s" % exp_key)
-                        sys.exit(1)
-
-                warmup = vm_info["warm_upon_iter"]
-                variant_info = config.VARIANTS[variant_key]
-
-                kdata = make_kalibera_data(exp_data, warmup)
-                if kdata is None: # not enough data or no data
-                    print("missing data for %s" % exp_key)
-                    mean = None
-                    err = None
-                    rel_pypy = None
-                    rel_pypy_err = None
-                    rel_hippy = None
-                    rel_hippy_err = None
-
-                    row_data[bench_key][vm_key][variant_key] = \
-                        mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
-                    continue
-                else:
-                    mean = kdata.mean()
-                    err = error(kdata)
-
-                    # relative to pypy
-                    pypy_key = "%s:PyPy:mono-python" % bench_key
-                    has_pypy = True
-                    try:
-                        pypy_data = results[pypy_key]
-                    except KeyError:
-                        has_pypy = False
-
-                    if has_pypy:
-                        pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
-                        pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
-                        rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
-                    else:
-                        rel_pypy, rel_pypy_err = None, None
-
-                    # relative to hippyvm
-                    hippy_key = "%s:HippyVM:mono-php" % bench_key
-                    has_hippy = True
-                    try:
-                        hippy_data = results[hippy_key]
-                    except KeyError:
-                        has_hippy = False
-                    if has_hippy:
-                        hippy_warmup = config.VMS["HippyVM"]["warm_upon_iter"]
-                        hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
-                        rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
-                    else:
-                        rel_hippy, rel_hippy_err = None, None
-
-                    # make pyhyp variants appear as separate VMs
-                    if vm_key == "PyHyp":
-                        if variant_key == "mono-php":
-                            actual_vm_key = "PyHyp-mono"
-                        else:
-                            actual_vm_key = "PyHyp-comp"
-
-                        if not row_data[bench_key].has_key(actual_vm_key):
-                            row_data[bench_key][actual_vm_key] = {}
-                    else:
-                        actual_vm_key = vm_key
-
-                    row_data[bench_key][actual_vm_key][variant_key] = \
-                        mean, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup
+        ri = ResultInfo(val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup)
+        row_data[k] = ri
 
     make_ascii_table(row_data)
-    make_latex_table(row_data, latex_table_file)
+    #make_latex_table(row_data, latex_table_file)
 
 def make_latex_table(row_data, latex_table_file):
     with open(latex_table_file, "w") as of:
+
+        short_vm_names = {
+            "CPython": "CPy",
+            "HHVM": "HH",
+            "HippyVM": "Hpy",
+            "PyHyp-mono": "PH-m",
+            "PyHyp-comp": "PH-c",
+            "PyPy": "PyPy",
+            "Zend": "Zend",
+        }
+
+        short_bm_names = {
+            "pb_return_simple": "pb_rs",
+            "pb_total_list": "pb_t_l",
+            "pb_scopes": "pb_scp",
+            "fannkuch": "fkuch",
+            "pb_sum_meth": "pb_smeth",
+            "pb_termconstruction": "pb_tcons",
+            "pb_sum": "pb_s",
+            "pb_l1a0r": "pb_l1a0r",
+            "pb_l1a1r": "pb_l1a1r",
+            "pb_instchain": "pb_ichain",
+            "pb_lists": "pb_lists",
+            "deltablue": "dblue",
+            "mandel": "mamdel",
+            "pb_smallfunc": "pb_sfunc",
+            "pb_ref_swap": "pb_rswap",
+            "pb_ref_swap2": "pb_rswap2",
+            "richards": "richds",
+            "pb_sum_attr": "pb_sattr",
+        }
 
         w = of.write
 
@@ -194,28 +203,38 @@ def make_latex_table(row_data, latex_table_file):
         \\usepackage{multirow}
         \\usepackage{xspace}
         \\usepackage{amsmath}
-        \\begin{document}\small\n""")
+        \\begin{document}""")
+
+        w("\\hrule")
+        w("\\footnotesize\\\\")
+        w("normal text")
+
+        any_bench = row_data[row_data.keys()[0]]
+        vms = [short_vm_names[i] for i in sorted(any_bench.keys())]
 
         # absolute times
-        w("\\begin{longtable}{cccrl}\n")
+        rs = len(vms) * "r"
+        w("\\begin{longtable}{c%s}\n" % rs)
         w("\\toprule\n")
-        w("Benchmark&   VM& Variant&    \multicolumn{2}{c}{Time (secs)}\\\\\n")
+        w("Benchmark")
+
+        # emit header
+        any_bench = row_data[0]
+        for i in any_bench.keys():
+            w("&%s" % short_vm_names[i])
+        w("\\\\\n")
+        w("\\toprule\n")
 
         last_bench_key, last_vm_key = None, None
+        first = True
         for bench_key, bench_data in row_data.iteritems():
+            if not first:
+                w("\\midrule\n")
+            row = [tex_escape_underscore(short_bm_names[bench_key])]
             for vm_key, vm_data in sorted(bench_data.iteritems()):
 
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
-
-                    if last_bench_key != bench_key:
-                        w("\\midrule\n")
-                        bench_rowspan = len(bench_data)
-                        bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
-                        last_bench_key = bench_key
-                    else:
-                        bench_cell = ""
-
                     if last_vm_key != vm_key:
                         vm_rowspan = len(vm_data)
                         vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
@@ -224,16 +243,14 @@ def make_latex_table(row_data, latex_table_file):
                         vm_cell = ""
 
                     if val is None: # no result for that combo
-                        val_s = "n/a"
-                        err_s = "n/a"
+                        val_s = "--"
                     else:
-                        val_s = "%.4f" % val
-                        err_s = "%.4f" % err
+                        val_s = "$\substack{%.3f\\\\{\\tiny \\pm %.3f}}$" % (val, err)
 
-                    w("%s&  %s& %s& %s& {\scriptsize$\\pm$ %s}\\\\\n" % (
-                        tex_escape_underscope(bench_cell),
-                        tex_escape_underscope(vm_cell),
-                        tex_escape_underscope(variant_key), val_s, err_s))
+                    row.append(val_s)
+            w("%s\\\\\n" % "&".join(row))
+            first = False
+
 
         w("\\bottomrule\n")
         w("\\end{longtable}\n")
@@ -247,7 +264,7 @@ def make_latex_table(row_data, latex_table_file):
 
         last_bench_key, last_vm_key = None, None
         for bench_key, bench_data in row_data.iteritems():
-            for vm_key, vm_data in bench_data.iteritems():
+            for vm_key, vm_data in sorted(bench_data.iteritems()):
                 for variant_key, variant_data in vm_data.iteritems():
                     val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
 
@@ -281,9 +298,9 @@ def make_latex_table(row_data, latex_table_file):
                     w(("%s&  %s& %s&" + \
                       "%s&{\scriptsize$\\pm$ %s}&" + \
                       "%s&{\scriptsize$\\pm$ %s}\\\\\n") % (
-                        tex_escape_underscope(bench_cell),
-                        tex_escape_underscope(vm_cell),
-                        tex_escape_underscope(variant_key), rel_pypy_str,
+                        tex_escape_underscore(bench_cell),
+                        tex_escape_underscore(vm_cell),
+                        tex_escape_underscore(variant_key), rel_pypy_str,
                         rel_pypy_err_str, rel_hippy_str, rel_hippy_err_str))
 
         w("\\bottomrule\n")
@@ -302,15 +319,10 @@ def make_ascii_table(row_data):
     tb.align["Error"] = "r"
     tb.float_format = "4.6"
 
-    # Make an ascii table on stdout
-    for bench_key, bench_data in row_data.iteritems():
-        for vm_key, vm_data in bench_data.iteritems():
-            for variant_key, variant_data in vm_data.iteritems():
-                val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
-                tb.add_row([bench_key, "%s (warm_upon=%d)" % (vm_key, warmup),
-                            variant_key, val, err])
-                sys.stdout.write(".")
-                sys.stdout.flush()
+    for k, v in row_data.iteritems():
+        bench, vm, variant = k.split(":")
+        tb.add_row([bench, "%s (warm=%d)" % (vm, v.warmup),
+                   variant, v.val, v.val_err])
 
     sys.stdout.write("\n")
     print(tb.get_string(sortby="Benchmark"))
