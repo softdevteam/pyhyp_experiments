@@ -223,6 +223,15 @@ def make_tables(config, data_file, latex_table_file):
     make_ascii_table(row_data)
     make_latex_tables(config, row_data, latex_table_file)
 
+
+def conf_cell(val, err, width="1cm", rel=False):
+    rel_s = "\\times" if rel else ""
+
+    if val is None: # no result for that combo
+        return ""
+    else:
+        return "$\substack{\\mathmakebox[%s][r]{%.3f%s}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle\\pm %.3f}}}$" % (width, val, rel_s, width, err)
+
 def make_latex_tables(config, row_data, latex_table_file):
     of = open(latex_table_file, "w")
     w = of.write
@@ -304,15 +313,7 @@ def make_latex_tables(config, row_data, latex_table_file):
 
 
             ri = row_data[rd_key]
-            val = ri.val
-            val_err = ri.val_err
-
-            if val is None: # no result for that combo
-                val_s = ""
-            else:
-                val_s = "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptstyle\\pm %.3f}}}$" % (box_w, val, box_w, val_err)
-
-            row.append(val_s)
+            row.append(conf_cell(ri.val, ri.val_err))
 
         # row is complete
         w("%s\\\\\n" % "&".join(row))
@@ -350,15 +351,7 @@ def make_latex_tables(config, row_data, latex_table_file):
             rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
             ri = row_data[rd_key]
-            val = ri.rel_pypy
-            val_err = ri.rel_pypy_err
-
-            if val is None: # no result for that combo
-                val_s = ""
-            else:
-                val_s = "$\substack{%.3f\\times\\\\{\\pm %.4f}}$" % (val, val_err)
-
-            row.append(val_s)
+            row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err, rel=True))
 
         # row is complete
         w("%s\\\\\n" % "&".join(row))
