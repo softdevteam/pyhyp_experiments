@@ -221,9 +221,9 @@ def make_tables(config, data_file, latex_table_file):
             row_data[rs_key] = ri
 
     make_ascii_table(row_data)
-    make_latex_table(config, row_data, latex_table_file)
+    make_latex_tables(config, row_data, latex_table_file)
 
-def make_latex_table(config, row_data, latex_table_file):
+def make_latex_tables(config, row_data, latex_table_file):
     of = open(latex_table_file, "w")
     w = of.write
 
@@ -273,9 +273,9 @@ def make_latex_table(config, row_data, latex_table_file):
     w("\\footnotesize\n")
 
     # -- absolute times
+    w("\\section{Abs}\n")
     w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
-    w("Benchmark")
 
     # emit header
     for i in sorted(config.VMS.iterkeys()):
@@ -299,8 +299,6 @@ def make_latex_table(config, row_data, latex_table_file):
 
             rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
-            #if bench_key == "pb_ref_swap2":
-            #    import pdb; pdb.set_trace()
 
             ri = row_data[rd_key]
             val = ri.val
@@ -317,66 +315,59 @@ def make_latex_table(config, row_data, latex_table_file):
         w("%s\\\\\n" % "&".join(row))
         first = False
 
+    w("\\bottomrule\n")
+    w("\\end{longtable}\n")
+    w("\\newpage\n")
+
+    # -- relative PyPy times
+    w("\\section{Rel to PyPy}\n")
+    w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
+    w("\\toprule\n")
+
+    # emit header
+    for i in sorted(config.VMS.iterkeys()):
+        w("&%s" % short_vm_names[i])
+    w("\\\\\n")
+    w("\\toprule\n")
+
+    last_bench_key, last_vm_key = None, None
+    first = True
+    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+        if not first:
+            w("\\midrule\n")
+        row = [tex_escape_underscore(short_bm_names[bench_key])]
+
+        for vm_key, vm_data in sorted(config.VMS.iteritems()):
+            variants = vm_data["variants"]
+
+            # because we flattened pyhyp variants to separate vm entries
+            assert len(variants) == 1
+            variant_key = variants[0]
+
+            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+
+            ri = row_data[rd_key]
+            val = ri.rel_pypy
+            val_err = ri.rel_pypy_err
+
+            if val is None: # no result for that combo
+                val_s = ""
+            else:
+                val_s = "$\substack{%.3f\\times\\\\{\\pm %.4f}}$" % (val, val_err)
+
+            row.append(val_s)
+
+        # row is complete
+        w("%s\\\\\n" % "&".join(row))
+        first = False
 
     w("\\bottomrule\n")
     w("\\end{longtable}\n")
     w("\\newpage\n")
-    w("\\end{document}\n")
-    return
-
-
-    # relative times
-    w("\\begin{longtable}{cccrlrl}\n")
-    w("\\toprule\n")
-    w("Benchmark&   VM& Variant&    \multicolumn{2}{c}{$\\times$PyPy}&\multicolumn{2}{c}{$\\times$HippyVM}\\\\\n")
-
-    last_bench_key, last_vm_key = None, None
-    for bench_key, bench_data in row_data.iteritems():
-        for vm_key, vm_data in sorted(bench_data.iteritems()):
-            for variant_key, variant_data in vm_data.iteritems():
-                val, err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup = variant_data
-
-                if last_bench_key != bench_key:
-                    w("\\midrule\n")
-                    bench_rowspan = len(bench_data)
-                    bench_cell = "\\multirow{%d}{*}{%s}" % (bench_rowspan, bench_key)
-                    last_bench_key = bench_key
-                else:
-                    bench_cell = ""
-
-                if last_vm_key != vm_key:
-                    vm_rowspan = len(vm_data)
-                    vm_cell = "\\multirow{%d}{*}{%s}" % (vm_rowspan, vm_key)
-                    last_vm_key = vm_key
-                else:
-                    vm_cell = ""
-
-                if rel_pypy is not None:
-                    rel_pypy_str = "%.4f" % rel_pypy
-                    rel_pypy_err_str = "%.4f" % rel_pypy_err
-                else:
-                    rel_pypy_str, rel_pypy_err_str = "n/a", "n/a"
-
-                if rel_hippy is not None:
-                    rel_hippy_str = "%.4f" % rel_hippy
-                    rel_hippy_err_str = "%.4f" % rel_hippy_err
-                else:
-                    rel_hippy_str, rel_hippy_err_str = "n/a", "n/a"
-
-                w(("%s&  %s& %s&" + \
-                  "%s&{\scriptsize$\\pm$ %s}&" + \
-                  "%s&{\scriptsize$\\pm$ %s}\\\\\n") % (
-                    tex_escape_underscore(bench_cell),
-                    tex_escape_underscore(vm_cell),
-                    tex_escape_underscore(variant_key), rel_pypy_str,
-                    rel_pypy_err_str, rel_hippy_str, rel_hippy_err_str))
-
-    w("\\bottomrule\n")
-    w("\\end{longtable}\n")
-
-
 
     w("\\end{document}\n")
+
+    # XXX relative to hippy
 
 def make_ascii_table(row_data):
 
