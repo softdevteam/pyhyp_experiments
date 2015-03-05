@@ -380,7 +380,6 @@ def make_latex_tables(config, row_data):
     w("\\end{tabular}\n")
     w("\\caption{Benchmark timings relative to PyPy (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table*}")
-    w("\\centering\n")
     of.close()
 
     # -- relative Hippy times
