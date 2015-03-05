@@ -276,7 +276,7 @@ def make_latex_tables(config, row_data):
     of = open(os.path.join(TEX_DIR, "results_abs.tex"), "w")
     w = of.write
 
-    w("\\begin{table}\n")
+    w("\\begin{table*}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -323,14 +323,14 @@ def make_latex_tables(config, row_data):
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
     w("\\caption{Absolute benchmark timings (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
-    w("\\end{table}")
+    w("\\end{table*}")
     of.close()
 
     # -- relative PyPy times
     of = open(os.path.join(TEX_DIR, "results_rel_pypy.tex"), "w")
     w = of.write
 
-    w("\\begin{table}\n")
+    w("\\begin{table*}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -379,7 +379,7 @@ def make_latex_tables(config, row_data):
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
     w("\\caption{Benchmark timings relative to PyPy (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
-    w("\\end{table}")
+    w("\\end{table*}")
     w("\\centering\n")
     of.close()
 
@@ -387,7 +387,7 @@ def make_latex_tables(config, row_data):
     of = open(os.path.join(TEX_DIR, "results_rel_hippy.tex"), "w")
     w = of.write
 
-    w("\\begin{table}\n")
+    w("\\begin{table*}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -436,7 +436,7 @@ def make_latex_tables(config, row_data):
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
     w("\\caption{Benchmark timings relative to HippyVM (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
-    w("\\end{table}")
+    w("\\end{table*}")
     of.close()
 
     os.system("cd tex && make")
