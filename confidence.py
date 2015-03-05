@@ -114,52 +114,6 @@ def make_tables(config, data_file, latex_table_file):
 
     # now process confidence, relative times, ...
     row_data = {}
-    #for k, v in results.iteritems():
-    #    bench, vm, variant = k.split(":")
-
-    #    warmup = config.VMS[vm]["warm_upon_iter"]
-
-    #    # Absolute
-    #    kdata = make_kalibera_data(v, warmup)
-    #    if kdata is not None:
-    #        val = kdata.mean()
-    #        val_err = error(kdata)
-
-    #        # Relative to PyPy
-    #        pypy_key = "%s:PyPy:mono-python" % bench
-    #        has_pypy = True
-    #        try:
-    #            pypy_data = results[pypy_key]
-    #        except KeyError:
-    #            has_pypy = False
-
-    #        if has_pypy:
-    #            pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
-    #            pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
-    #            rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
-    #        else:
-    #            rel_pypy, rel_pypy_err = None, None
-
-    #        # Relative to Hippy
-    #        hippy_key = "%s:HippyVM:mono-php" % bench
-    #        has_hippy = True
-    #        try:
-    #            hippy_data = results[hippy_key]
-    #        except KeyError:
-    #            has_hippy = False
-
-    #        if has_hippy:
-    #            hippy_warmup = config.VMS["HippyVM"]["warm_upon_iter"]
-    #            hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
-    #            rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
-    #        else:
-    #            rel_hippy, rel_hippy_err = None, None
-    #    else:  # kdata is None (missing result)
-    #        val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err = [None] * 6
-
-    #    ri = ResultInfo(val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup)
-    #    row_data[k] = ri
-
     for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
         for vm_key, vm_data in sorted(config.VMS.iteritems()):
             variants = vm_data["variants"]
