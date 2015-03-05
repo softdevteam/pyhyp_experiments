@@ -204,8 +204,6 @@ def header_cell(text, align="r", width="1.2cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
 
 MAKEFILE_CONTENTS = """
-FILES=results_abs.pdf results_rel_pypy.pdf results_rel_hippy.pdf
-
 .SUFFIXES: .tex .pdf
 
 .tex.pdf:
@@ -213,7 +211,7 @@ FILES=results_abs.pdf results_rel_pypy.pdf results_rel_hippy.pdf
 	pdflatex $*.tex
 	pdflatex $*.tex
 
-all: ${FILES}
+all: main.pdf
 """
 
 def write_latex_header(fh):
@@ -232,6 +230,16 @@ def make_latex_tables(config, row_data):
     # makefile for tables
     with open(os.path.join(TEX_DIR, "Makefile"), "w") as fh:
         fh.write(MAKEFILE_CONTENTS)
+
+    # test skeleton
+    with open(os.path.join(TEX_DIR, "main.tex"), "w") as fh:
+        write_latex_header(fh)
+        w = fh.write
+
+        w("\\input{results_abs}\n")
+        w("\\input{results_rel_pypy}\n")
+        w("\\input{results_rel_hippy}\n")
+        w("\\end{document}")
 
     short_vm_names = {
         "CPython": "CPython",
@@ -266,10 +274,8 @@ def make_latex_tables(config, row_data):
 
     # -- absolute times
     of = open(os.path.join(TEX_DIR, "results_abs.tex"), "w")
-    write_latex_header(of)
     w = of.write
 
-    w("\\section{Abs}\n")
     w("\\begin{table}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
@@ -313,15 +319,12 @@ def make_latex_tables(config, row_data):
     w("\\end{tabular}\n")
     w("\\caption{Absolute benchmark timings (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table}")
-    w("\\end{document}\n")
     of.close()
 
     # -- relative PyPy times
     of = open(os.path.join(TEX_DIR, "results_rel_pypy.tex"), "w")
-    write_latex_header(of)
     w = of.write
 
-    w("\\section{Rel to PyPy}\n")
     w("\\begin{table}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
@@ -368,15 +371,12 @@ def make_latex_tables(config, row_data):
     w("\\caption{Benchmark timings relative to PyPy (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table}")
     w("\\centering\n")
-    w("\\end{document}\n")
     of.close()
 
     # -- relative Hippy times
     of = open(os.path.join(TEX_DIR, "results_rel_hippy.tex"), "w")
-    write_latex_header(of)
     w = of.write
 
-    w("\\section{Rel to Hippy}\n")
     w("\\begin{table}\n")
     w("\\centering\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
@@ -422,7 +422,6 @@ def make_latex_tables(config, row_data):
     w("\\end{tabular}\n")
     w("\\caption{Benchmark timings relative to HippyVM (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table}")
-    w("\\end{document}\n")
     of.close()
 
     os.system("cd tex && make")
