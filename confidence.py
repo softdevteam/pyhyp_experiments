@@ -262,6 +262,7 @@ def make_latex_tables(config, row_data, latex_table_file):
     # header
     w("""\\documentclass{article}
     \\usepackage{longtable}
+    \\usepackage{mathtools}
     \\usepackage{booktabs}
     \\usepackage{multicol}
     \\usepackage{multirow}
@@ -273,6 +274,8 @@ def make_latex_tables(config, row_data, latex_table_file):
     w("\\footnotesize\n")
 
     # -- absolute times
+    box_w = "1cm"
+
     w("\\section{Abs}\n")
     w("\\begin{longtable}{c%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -307,7 +310,7 @@ def make_latex_tables(config, row_data, latex_table_file):
             if val is None: # no result for that combo
                 val_s = ""
             else:
-                val_s = "$\substack{%.3f\\\\{\\pm %.3f}}$" % (val, val_err)
+                val_s = "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptstyle\\pm %.3f}}}$" % (box_w, val, box_w, val_err)
 
             row.append(val_s)
 
