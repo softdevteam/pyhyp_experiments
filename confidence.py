@@ -288,32 +288,37 @@ def make_latex_tables(config, row_data):
     w("\\\\\n")
     w("\\toprule\n")
 
-    last_bench_key, last_vm_key = None, None
     first = True
-    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-        if not first:
-            w("\\addlinespace\n")
-        row = [tex_escape_underscore(bench_key)]
+    for pico in [True, False]:
+        if not pico:
+            w("\\midrule\n")
+        for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+            if bench_key.startswith("pb_") != pico:
+                continue
+            if not first:
+                w("\\addlinespace\n")
+            row = [tex_escape_underscore(bench_key)]
 
-        for vm_key, vm_data in sorted(config.VMS.iteritems()):
-            variants = vm_data["variants"]
+            for vm_key, vm_data in sorted(config.VMS.iteritems()):
+                variants = vm_data["variants"]
 
-            # because we flattened pyhyp variants to separate vm entries
-            assert len(variants) == 1
-            variant_key = variants[0]
+                # because we flattened pyhyp variants to separate vm entries
+                assert len(variants) == 1
+                variant_key = variants[0]
 
-            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+                rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
 
-            ri = row_data[rd_key]
-            row.append(conf_cell(ri.val, ri.val_err))
-            if ri.val is not None:
-                was_data = True
+                ri = row_data[rd_key]
+                row.append(conf_cell(ri.val, ri.val_err))
+                if ri.val is not None:
+                    was_data = True
 
-        # row is complete
-        if was_data:
-            w("%s\\\\\n" % "&".join(row))
-            first = False
+            # row is complete
+            if was_data:
+                w("%s\\\\\n" % "&".join(row))
+                first = False
+        first = True # no space for first large bm
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
@@ -337,34 +342,39 @@ def make_latex_tables(config, row_data):
     w("\\\\\n")
     w("\\toprule\n")
 
-    last_bench_key, last_vm_key = None, None
     first = True
     was_data = False
-    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-        if not first and was_data:
-            w("\\addlinespace\n")
+    for pico in [True, False]:
+        if not pico:
+            w("\\midrule\n")
+        for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+            if bench_key.startswith("pb_") != pico:
+                continue
+            if not first and was_data:
+                w("\\addlinespace\n")
 
-        was_data = False
-        row = [tex_escape_underscore(bench_key)]
+            was_data = False
+            row = [tex_escape_underscore(bench_key)]
 
-        for vm_key, vm_data in sorted(config.VMS.iteritems()):
-            variants = vm_data["variants"]
+            for vm_key, vm_data in sorted(config.VMS.iteritems()):
+                variants = vm_data["variants"]
 
-            # because we flattened pyhyp variants to separate vm entries
-            assert len(variants) == 1
-            variant_key = variants[0]
+                # because we flattened pyhyp variants to separate vm entries
+                assert len(variants) == 1
+                variant_key = variants[0]
 
-            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+                rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
-            ri = row_data[rd_key]
-            row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err))
-            if ri.rel_pypy is not None:
-                was_data = True
+                ri = row_data[rd_key]
+                row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err))
+                if ri.rel_pypy is not None:
+                    was_data = True
 
-        # row is complete
-        if was_data:
-            w("%s\\\\\n" % "&".join(row))
-            first = False
+            # row is complete
+            if was_data:
+                w("%s\\\\\n" % "&".join(row))
+                first = False
+        first = True # no space for first large bm
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
@@ -389,34 +399,39 @@ def make_latex_tables(config, row_data):
     w("\\\\\n")
     w("\\toprule\n")
 
-    last_bench_key, last_vm_key = None, None
     first = True
-    was_data = False
-    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-        if not first and was_data:
-            w("\\addlinespace\n")
-
+    for pico in [True, False]:
+        if not pico:
+            w("\\midrule\n")
         was_data = False
-        row = [tex_escape_underscore(bench_key)]
+        for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+            if bench_key.startswith("pb_") != pico:
+                continue
+            if not first and was_data:
+                w("\\addlinespace\n")
 
-        for vm_key, vm_data in sorted(config.VMS.iteritems()):
-            variants = vm_data["variants"]
+            was_data = False
+            row = [tex_escape_underscore(bench_key)]
 
-            # because we flattened pyhyp variants to separate vm entries
-            assert len(variants) == 1
-            variant_key = variants[0]
+            for vm_key, vm_data in sorted(config.VMS.iteritems()):
+                variants = vm_data["variants"]
 
-            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+                # because we flattened pyhyp variants to separate vm entries
+                assert len(variants) == 1
+                variant_key = variants[0]
 
-            ri = row_data[rd_key]
-            row.append(conf_cell(ri.rel_hippy, ri.rel_hippy_err))
-            if ri.rel_hippy is not None:
-                was_data = True
+                rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
-        # row is complete
-        if was_data:
-            w("%s\\\\\n" % "&".join(row))
-            first = False
+                ri = row_data[rd_key]
+                row.append(conf_cell(ri.rel_hippy, ri.rel_hippy_err))
+                if ri.rel_hippy is not None:
+                    was_data = True
+
+            # row is complete
+            if was_data:
+                w("%s\\\\\n" % "&".join(row))
+                first = False
+        first = True # no space for first large bm
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
