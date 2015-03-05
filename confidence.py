@@ -178,7 +178,7 @@ def make_tables(config, data_file, latex_table_file):
                 continue
 
             # Absolute
-            kdata = make_kalibera_data(v, warmup)
+            kdata = make_kalibera_data(rs, warmup)
             if kdata is None:
                 # not enough data to be useful
                 row_data[rs_key] = ResultInfo.missing(warmup)
