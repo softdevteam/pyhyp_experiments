@@ -186,7 +186,8 @@ def conf_cell(val, err, width=".7cm"):
     if val is None: # no result for that combo
         return ""
     else:
-        return "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle\\pm %.4f}}}$" % (width, val, width, err)
+        err_s = "\\pm %.4f" % err if err is not None else ""
+        return "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle %s}}}$" % (width, val, width, err_s)
 
 def header_cell(text, align="r", width="1.2cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
@@ -353,7 +354,11 @@ def make_latex_tables(config, row_data):
                 rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
                 ri = row_data[rd_key]
-                row.append(conf_cell(ri.rel_pyhyp, ri.rel_pyhyp_err))
+                if vm_key == "PyHyp-comp":
+                    row.append(conf_cell(ri.rel_pyhyp, None))
+                else:
+                    row.append(conf_cell(ri.rel_pyhyp, ri.rel_pyhyp_err))
+
                 if ri.rel_pyhyp is not None:
                     was_data = True
 
