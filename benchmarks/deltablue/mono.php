@@ -34,26 +34,37 @@ $planner = null;
 class OrderedCollection {
   private $elms;
 
+  // STARTFUNC
   function __construct() {
     $this->elms = array();
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function add($elm) {
     array_push($this->elms, $elm);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function at($index) {
     return $this->elms[$index];
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function size() {
     return count($this->elms);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function removeFirst() {
     return array_pop($this->elms);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function remove($elm) {
     $index = 0;
     $skipped = 0;
@@ -69,6 +80,7 @@ class OrderedCollection {
     for ($i = 0; $i < $skipped; $i++)
       array_pop($this->elms);
   }
+  // ENDFUNC
 }
 
 class Strength {
@@ -81,42 +93,55 @@ class Strength {
   private static $WEAK_DEFAULT   = null;
   private static $WEAKEST      = null;
 
+  // STARTFUNC
   public static function Required()
   {
     if (!Strength::$REQUIRED)
       Strength::$REQUIRED = new Strength(0, "required");
     return Strength::$REQUIRED;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function StrongPreferred()
   {
     if (!Strength::$STRONG_PREFERRED)
       Strength::$STRONG_PREFERRED = new Strength(1, "strongPreferred");
     return Strength::$STRONG_PREFERRED;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function Preferred()
   {
     if (!Strength::$PREFERRED)
       Strength::$PREFERRED = new Strength(2, "preferred");
     return Strength::$PREFERRED;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function StrongDefault()
   {
     if (!Strength::$STRONG_DEFAULT)
       Strength::$STRONG_DEFAULT = new Strength(3, "strongDefault");
     return Strength::$STRONG_DEFAULT;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function Normal()
   {
     if (!Strength::$NORMAL)
       Strength::$NORMAL = new Strength(4, "normal");
     return Strength::$NORMAL;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function WeakDefault()
   {
     if (!Strength::$WEAK_DEFAULT)
       Strength::$WEAK_DEFAULT = new Strength(5, "weakDefault");
     return Strength::$WEAK_DEFAULT;
   }
+  // ENDFUNC
+  // STARTFUNC
   public static function Weakest()
   {
     if (!Strength::$WEAKEST)
@@ -127,27 +152,37 @@ class Strength {
   private $strengthValue;
   public $name;
 
+  // STARTFUNC
   function __construct($strengthValue, $name) {
     $this->strengthValue = $strengthValue;
     $this->name = $name;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   public static function stronger($s1, $s2) {
     return $s1->strengthValue < $s2->strengthValue;
   }
+  // ENDFUNC
 
   public static function weaker($s1, $s2) {
     return $s1->strengthValue > $s2->strengthValue;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   public static function weakestOf($s1, $s2) {
     return Strength::weaker($s1, $s2) ? $s1 : $s2;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   public static function strongest($s1, $s2) {
     return Strength::stronger($s1, $s2) ? $s1 : $s2;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function nextWeaker() {
     switch ($this->strengthValue) {
       case 0: return Strength::Weakest();
@@ -158,25 +193,31 @@ class Strength {
       case 5: return Strength::Required();
     }
   }
+  // ENDFUNC
 }
 
 
 class Constraint {
   public $strength;
 
+  // STARTFUNC
   function __construct($strength) {
     $this->strength = $strength;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function addConstraint() {
     global $planner;
 
     $this->addToGraph();
     $planner->incrementalAdd($this);
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function satisfy($mark) {
     global $planner;
 
@@ -197,7 +238,9 @@ class Constraint {
     $out->mark = $mark;
     return $overridden;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function destroyConstraint() {
     global $planner;
 
@@ -206,11 +249,14 @@ class Constraint {
     else
       $this->removeFromGraph();
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function isInput() {
     return false;
   }
+  // ENDFUNC
 }
 
 
@@ -220,90 +266,120 @@ class UnaryConstraint extends Constraint {
   public $myOutput;
   public $satisfied;
 
+  // STARTFUNC
   function __construct($v, $strength) {
     parent::__construct($strength);
     $this->myOutput = $v;
     $this->satisfied = false;
     $this->addConstraint();
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function addToGraph() {
     $this->myOutput->addConstraint($this);
     $this->satisfied = false;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function chooseMethod($mark) {
     $this->satisfied = ($this->myOutput->mark != $mark)
       && Strength::stronger(
         $this->strength,
         $this->myOutput->walkStrength);
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function isSatisfied() {
     return $this->satisfied;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function markInputs($mark) {
     // has no inputs
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function output() {
     return $this->myOutput;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function recalculate() {
     $this->myOutput->walkStrength = $this->strength;
     $this->myOutput->stay = !$this->isInput();
     if ($this->myOutput->stay)
       $this->execute(); // Stay optimization
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function markUnsatisfied() {
     $this->satisfied = false;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function inputsKnown() {
     return true;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function removeFromGraph() {
     if ($this->myOutput != null)
       $this->myOutput->removeConstraint($this);
     $this->satisfied = false;
   }
+  // ENDFUNC
 }
 
 
 
 
 class StayConstraint extends UnaryConstraint {
+  // STARTFUNC
   function __construct($v, $str) {
     parent::__construct($v, $str);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function execute() {
     // Stay constraints do nothing
   }
+  // ENDFUNC
 }
 
 class EditConstraint extends UnaryConstraint {
+  // STARTFUNC
   function __construct($v, $str) {
     parent::__construct($v, $str);
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function isInput() {
     return true;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function execute() {
     // Edit constraints do nothing
   }
+  // ENDFUNC
 }
 
 
@@ -319,6 +395,7 @@ class BinaryConstraint extends Constraint {
   public $v2;
   public $direction;
 
+  // STARTFUNC
   function __construct($var1, $var2, $strength) {
     parent::__construct($strength);
     $this->v1 = $var1;
@@ -326,8 +403,10 @@ class BinaryConstraint extends Constraint {
     $this->direction = Direction::NONE;
     $this->addConstraint();
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function chooseMethod($mark) {
     if ($this->v1->mark == $mark) {
       $this->direction = ($this->v2->mark != $mark
@@ -355,34 +434,46 @@ class BinaryConstraint extends Constraint {
         : Direction::BACKWARD;
     }
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function addToGraph() {
     $this->v1->addConstraint($this);
     $this->v2->addConstraint($this);
     $this->direction = Direction::NONE;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function isSatisfied() {
     return $this->direction != Direction::NONE;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function markInputs($mark) {
     $this->input()->mark = $mark;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function input() {
     return ($this->direction == Direction::FORWARD) ?
       $this->v1 : $this->v2;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function output() {
     return ($this->direction == Direction::FORWARD) ?
       $this->v2 : $this->v1;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function recalculate() {
     $ihn = $this->input();
     $out = $this->output();
@@ -392,16 +483,22 @@ class BinaryConstraint extends Constraint {
     if ($out->stay)
       $this->execute();
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function markUnsatisfied() {
     $this->direction = Direction::NONE;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function inputsKnown($mark) {
     $i = $this->input();
     return $i->mark == $mark || $i->stay || $i->determinedBy == null;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function removeFromGraph() {
     if ($this->v1 != null)
       $this->v1->removeConstraint($this);
@@ -409,6 +506,7 @@ class BinaryConstraint extends Constraint {
       $this->v2->removeConstraint($this);
     $this->direction = Direction::NONE;
   }
+  // ENDFUNC
 }
 
 class ScaleConstraint extends BinaryConstraint {
@@ -416,20 +514,25 @@ class ScaleConstraint extends BinaryConstraint {
   public $scale;
   public $offset;
 
+  // STARTFUNC
   function __construct($src, $scale, $offset, $dest, $strength) {
     $this->direction = Direction::NONE;
     $this->scale = $scale;
     $this->offset = $offset;
     parent::__construct($src, $dest, $strength);
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function addToGraph() {
     parent::addToGraph();
     $this->scale->addConstraint($this);
     $this->offset->addConstraint($this);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function removeFromGraph() {
     parent::removeFromGraph();
     if ($this->scale != null)
@@ -437,14 +540,18 @@ class ScaleConstraint extends BinaryConstraint {
     if ($this->offset != null)
       $this->offset->removeConstraint($this);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function markInputs($mark) {
     parent::markInputs($mark);
     $this->scale->mark = $mark;
     $this->offset->mark = $mark;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function execute() {
     if ($this->direction == Direction::FORWARD) {
       $this->v2->value = $this->v1->value * $this->scale->value +
@@ -454,8 +561,10 @@ class ScaleConstraint extends BinaryConstraint {
         $this->scale->value;
     }
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function recalculate() {
     $ihn = $this->input();
     $out = $this->output();
@@ -465,18 +574,23 @@ class ScaleConstraint extends BinaryConstraint {
     if ($out->stay)
       $this->execute();
   }
+  // ENDFUNC
 }
 
 class EqualityConstraint extends BinaryConstraint {
+  // STARTFUNC
   function __construct($var1, $var2, $strength) {
     parent::__construct($var1, $var2, $strength);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function execute() {
     //$this->output()->value = $this->input()->value;
     $new_v = $this->input()->value;
     $this->output()->value = $new_v;
   }
+  // ENDFUNC
 }
 
 class Variable {
@@ -488,6 +602,7 @@ class Variable {
   public $stay;
   public $name;
 
+  // STARTFUNC
   function Variable($name, $initialValue = null) {
     $this->value = $initialValue == null ? 0 : $initialValue;
     $this->constraints = new OrderedCollection();
@@ -497,30 +612,40 @@ class Variable {
     $this->stay = true;
     $this->name = $name;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function addConstraint($c) {
     $this->constraints->add($c);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function removeConstraint($c) {
     $this->constraints->remove($c);
     if ($this->determinedBy == $c)
       $this->determinedBy = null;
   }
+  // ENDFUNC
 }
 
 class Planner {
+  // STARTFUNC
   function __construct() {
     $this->currentMark = 0;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function incrementalAdd($c) {
     $mark = $this->newMark();
     $overridden = $c->satisfy($mark);
     while ($overridden != null)
       $overridden = $overridden->satisfy($mark);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function incrementalRemove($c) {
     $out = $c->output();
     $c->markUnsatisfied();
@@ -536,11 +661,15 @@ class Planner {
       $strength = $strength->nextWeaker();
     } while ($strength != Strength::Weakest());
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function newMark() {
     return ++$this->currentMark;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function makePlan($sources) {
     $mark = $this->newMark();
     $plan = new Plan();
@@ -555,7 +684,9 @@ class Planner {
     }
     return $plan;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function extractPlanFromConstraints($constraints) {
     $sources = new OrderedCollection();
     for ($i = 0; $i < $constraints->size(); $i++) {
@@ -566,7 +697,9 @@ class Planner {
     }
     return $this->makePlan($sources);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function addPropagate($c, $mark) {
     $todo = new OrderedCollection();
     $todo->add($c);
@@ -581,8 +714,10 @@ class Planner {
     }
     return true;
   }
+  // ENDFUNC
 
 
+  // STARTFUNC
   function removePropagateFrom($out) {
     $out->determinedBy = null;
     $out->walkStrength = Strength::Weakest();
@@ -608,7 +743,9 @@ class Planner {
     }
     return $unsatisfied;
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function addConstraintsConsumingTo($v, $coll) {
     $determining = $v->determinedBy;
     $cc = $v->constraints;
@@ -618,35 +755,47 @@ class Planner {
         $coll->add($c);
     }
   }
+  // ENDFUNC
 }
 
 class Plan {
   private $v;
 
+  // STARTFUNC
   function __construct() {
     $this->v = new OrderedCollection();
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function addConstraint($c) {
     $this->v->add($c);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function size() {
     return $this->v->size();
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function constraintAt($index) {
     return $this->v->at($index);
   }
+  // ENDFUNC
 
+  // STARTFUNC
   function execute() {
     for ($i = 0; $i < $this->size(); $i++) {
       $c = $this->constraintAt($i);
       $c->execute();
     }
   }
+  // ENDFUNC
 }
 
+  // STARTFUNC
 function chainTest($n) {
   global $planner;
 
@@ -680,7 +829,9 @@ function chainTest($n) {
       alert("Chain test failed.");
   }
 }
+  // ENDFUNC
 
+  // STARTFUNC
 function projectionTest($n) {
   global $planner;
 
@@ -716,7 +867,9 @@ function projectionTest($n) {
       alert("Projection 4 failed");
   }
 }
+  // ENDFUNC
 
+  // STARTFUNC
 function change($v, $newValue) {
   global $planner;
 
@@ -730,6 +883,7 @@ function change($v, $newValue) {
   }
   $edit->destroyConstraint();
 }
+  // ENDFUNC
 
 function run_iter($n){
   chainTest($n);
