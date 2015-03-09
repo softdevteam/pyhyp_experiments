@@ -78,15 +78,14 @@ def make_kalibera_data(exp_data, warmup):
     return Data(data_arg, [total_execs, len(data_arg[(0, )])])
 
 class ResultInfo(object):
-    def __init__(self, val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup):
+    def __init__(self, val, val_err, rel_pyhyp, rel_pyhyp_err, warmup):
         self.val, self.val_err = val, val_err
-        self.rel_pypy, self.rel_pypy_err = rel_pypy, rel_pypy_err
-        self.rel_hippy, self.rel_hippy_err = rel_hippy, rel_hippy_err
+        self.rel_pyhyp, self.rel_pyhyp_err = rel_pyhyp, rel_pyhyp_err
         self.warmup = warmup
 
     @classmethod
     def missing(cls, warmup):
-        return cls(None, None, None, None, None, None, warmup)
+        return cls(None, None, None, None, warmup)
 
 def make_tables(config, data_file):
 
@@ -156,37 +155,22 @@ def make_tables(config, data_file):
             val = kdata.mean()
             val_err = error(kdata)
 
-            # Relative to PyPy
-            pypy_key = "%s:PyPy:mono-python" % bench_key
-            has_pypy = True
+            # Relative to PyHyp (composed)
+            pyhyp_key = "%s:PyHyp-comp:composed" % bench_key
+            has_pyhyp = True
             try:
-                pypy_data = results[pypy_key]
+                pyhyp_data = results[pyhyp_key]
             except KeyError:
-                has_pypy = False
+                has_pyhyp = False
 
-            if has_pypy:
-                pypy_warmup = config.VMS["PyPy"]["warm_upon_iter"]
-                pypy_kdata = make_kalibera_data(pypy_data, pypy_warmup)
-                rel_pypy, rel_pypy_err = rel(kdata, pypy_kdata)
+            if has_pyhyp:
+                pyhyp_warmup = config.VMS["PyPy"]["warm_upon_iter"]
+                pyhyp_kdata = make_kalibera_data(pyhyp_data, pyhyp_warmup)
+                rel_pyhyp, rel_pyhyp_err = rel(kdata, pyhyp_kdata)
             else:
-                rel_pypy, rel_pypy_err = None, None
+                rel_pyhyp, rel_pyhyp_err = None, None
 
-            # Relative to Hippy
-            hippy_key = "%s:HippyVM:mono-php" % bench_key
-            has_hippy = True
-            try:
-                hippy_data = results[hippy_key]
-            except KeyError:
-                has_hippy = False
-
-            if has_hippy:
-                hippy_warmup = config.VMS["HippyVM"]["warm_upon_iter"]
-                hippy_kdata = make_kalibera_data(hippy_data, hippy_warmup)
-                rel_hippy, rel_hippy_err = rel(kdata, hippy_kdata)
-            else:
-                rel_hippy, rel_hippy_err = None, None
-
-            ri = ResultInfo(val, val_err, rel_pypy, rel_pypy_err, rel_hippy, rel_hippy_err, warmup)
+            ri = ResultInfo(val, val_err, rel_pyhyp, rel_pyhyp_err, warmup)
             row_data[rs_key] = ri
 
     print("")
@@ -237,8 +221,7 @@ def make_latex_tables(config, row_data):
         w = fh.write
 
         w("\\input{results_abs}\n")
-        w("\\input{results_rel_pypy}\n")
-        w("\\input{results_rel_hippy}\n")
+        w("\\input{results_rel_pyhyp}\n")
         w("\\end{document}")
 
     short_vm_names = {
@@ -326,64 +309,8 @@ def make_latex_tables(config, row_data):
     w("\\end{table*}")
     of.close()
 
-    # -- relative PyPy times
-    of = open(os.path.join(TEX_DIR, "results_rel_pypy.tex"), "w")
-    w = of.write
-
-    w("\\begin{table*}\n")
-    w("\\centering\n")
-    w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
-    w("\\toprule\n")
-
-    # emit header
-    w("Benchmark")
-    for i in sorted(config.VMS.iterkeys()):
-        w("&%s" % header_cell(short_vm_names[i]))
-    w("\\\\\n")
-    w("\\toprule\n")
-
-    first = True
-    was_data = False
-    for pico in [True, False]:
-        if not pico:
-            w("\\midrule\n")
-        for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-            if bench_key.startswith("pb_") != pico:
-                continue
-            if not first and was_data:
-                w("\\addlinespace\n")
-
-            was_data = False
-            row = [tex_escape_underscore(bench_key)]
-
-            for vm_key, vm_data in sorted(config.VMS.iteritems()):
-                variants = vm_data["variants"]
-
-                # because we flattened pyhyp variants to separate vm entries
-                assert len(variants) == 1
-                variant_key = variants[0]
-
-                rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
-
-                ri = row_data[rd_key]
-                row.append(conf_cell(ri.rel_pypy, ri.rel_pypy_err))
-                if ri.rel_pypy is not None:
-                    was_data = True
-
-            # row is complete
-            if was_data:
-                w("%s\\\\\n" % "&".join(row))
-                first = False
-        first = True # no space for first large bm
-
-    w("\\bottomrule\n")
-    w("\\end{tabular}\n")
-    w("\\caption{Benchmark timings relative to PyPy (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
-    w("\\end{table*}")
-    of.close()
-
-    # -- relative Hippy times
-    of = open(os.path.join(TEX_DIR, "results_rel_hippy.tex"), "w")
+    # -- relative PyHyp times
+    of = open(os.path.join(TEX_DIR, "results_rel_pyhyp.tex"), "w")
     w = of.write
 
     w("\\begin{table*}\n")
@@ -422,8 +349,8 @@ def make_latex_tables(config, row_data):
                 rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
 
                 ri = row_data[rd_key]
-                row.append(conf_cell(ri.rel_hippy, ri.rel_hippy_err))
-                if ri.rel_hippy is not None:
+                row.append(conf_cell(ri.rel_pyhyp, ri.rel_pyhyp_err))
+                if ri.rel_pyhyp is not None:
                     was_data = True
 
             # row is complete
@@ -434,7 +361,7 @@ def make_latex_tables(config, row_data):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\caption{Benchmark timings relative to HippyVM (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\caption{Benchmark timings relative to PyHyp composed (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table*}")
     of.close()
 
