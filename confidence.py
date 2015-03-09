@@ -164,9 +164,13 @@ def make_tables(config, data_file):
                 has_pyhyp = False
 
             if has_pyhyp:
-                pyhyp_warmup = config.VMS["PyPy"]["warm_upon_iter"]
+                pyhyp_warmup = config.VMS["PyHyp-comp"]["warm_upon_iter"]
                 pyhyp_kdata = make_kalibera_data(pyhyp_data, pyhyp_warmup)
                 rel_pyhyp, rel_pyhyp_err = rel(kdata, pyhyp_kdata)
+
+                # Relative to itself, should be 1.0x
+                if vm_key == "PyHyp-comp":
+                    assert rel_pyhyp == 1.0
             else:
                 rel_pyhyp, rel_pyhyp_err = None, None
 
