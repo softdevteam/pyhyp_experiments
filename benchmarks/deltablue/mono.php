@@ -24,9 +24,11 @@
 // others have been modified more aggresively to make it feel
 // more like a JavaScript program.
 
+// STARTFUNC
 function alert($s) {
   throw new Exception("Alert called with argument: $s");
 }
+// ENDFUNC
 
 // Global variable holding the current planner.
 $planner = null;
@@ -165,6 +167,7 @@ class Strength {
   }
   // ENDFUNC
 
+  // STARTFUNC
   public static function weaker($s1, $s2) {
     return $s1->strengthValue > $s2->strengthValue;
   }
@@ -603,7 +606,7 @@ class Variable {
   public $name;
 
   // STARTFUNC
-  function Variable($name, $initialValue = null) {
+  function __construct($name, $initialValue = null) {
     $this->value = $initialValue == null ? 0 : $initialValue;
     $this->constraints = new OrderedCollection();
     $this->determinedBy = null;
