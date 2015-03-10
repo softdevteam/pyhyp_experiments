@@ -50,6 +50,7 @@ embed_py_meth("OrderedCollection", "def at(self, index):\n    return self.elms[i
 embed_py_meth("OrderedCollection", "def size(self):\n    return len(self.elms)");
 embed_py_meth("OrderedCollection", "def removeFirst(self):\n    return self.elms.as_list().pop()");
 embed_py_meth("OrderedCollection", "def remove(self, elm):\n    index = 0\n    skipped = 0\n    i = 0\n    while i < len(self.elms):\n        value = self.elms[i]\n        if value != elm:\n            self.elms[index] = value\n            index += 1\n        else:\n            skipped += 1\n        i += 1\n\n    i = 0\n    while i < skipped:\n        self.elms.as_list().pop()\n        i += 1");
+// ENDCLASS01
 
 class Strength {
   // Strength constants.
@@ -103,6 +104,8 @@ embed_py_meth("Strength", "@php_decor(static=True)\ndef weakestOf(s1, s2):\n    
 embed_py_meth("Strength", "@php_decor(static=True)\ndef strongest(s1, s2):\n    return s1 if Strength.stronger(s1, s2) else s2");
 embed_py_meth("Strength", "def nextWeaker(self):\n    sv = self.strengthValue\n    if sv == 0:\n        return Strength.Weakest()\n    elif sv == 1:\n        return Strength.WeakDefault()\n    elif sv == 2:\n        return Strength.Normal()\n    elif sv == 3:\n        return Strength.StrongDefault()\n    elif sv == 4:\n        return Strength.Preferred()\n    elif sv == 5:\n        return Strength.Required()");
 
+// ENDCLASS02
+
 
 class Constraint {
   public $strength;
@@ -123,6 +126,7 @@ embed_py_meth("Constraint", "def satisfy(self, mark):\n    self.chooseMethod(mar
 embed_py_meth("Constraint", "def destroyConstraint(self):\n    if self.isSatisfied():\n        planner.incrementalRemove(self)\n    else:\n        self.removeFromGraph()");
 embed_py_meth("Constraint", "def isInput(self):\n    return False");
 
+// ENDCLASS03
 
 
 
@@ -162,6 +166,8 @@ embed_py_meth("UnaryConstraint", "def markUnsatisfied(self):\n    self.satisfied
 embed_py_meth("UnaryConstraint", "def inputsKnown(self, *args):\n    return True");
 embed_py_meth("UnaryConstraint", "def removeFromGraph(self):\n    if self.myOutput is not None:\n        self.myOutput.removeConstraint(self)\n    self.satisfied = False");
 
+// ENDCLASS04
+
 class StayConstraint extends UnaryConstraint {
   
   
@@ -170,6 +176,8 @@ class StayConstraint extends UnaryConstraint {
 }
 embed_py_meth("StayConstraint", "def __construct(self, v, str):\n    UnaryConstraint.__construct(self, v, str)");
 embed_py_meth("StayConstraint", "def execute(self):\n    pass");
+
+// ENDCLASS05
 
 class EditConstraint extends UnaryConstraint {
 
@@ -183,6 +191,7 @@ embed_py_meth("EditConstraint", "def __construct(self, v, str):\n    UnaryConstr
 embed_py_meth("EditConstraint", "def isInput(self):\n    return True");
 embed_py_meth("EditConstraint", "def execute(self):\n    pass");
 
+// ENDCLASS06
 
 abstract class Direction {
   const NONE   = 0;
@@ -190,6 +199,7 @@ abstract class Direction {
   const BACKWARD = -1;
 }
 
+// ENDCLASS07
 
 class BinaryConstraint extends Constraint {
   public $v1;
@@ -230,6 +240,8 @@ embed_py_meth("BinaryConstraint", "def markUnsatisfied(self):\n    self.directio
 embed_py_meth("BinaryConstraint", "def inputsKnown(self, mark):\n    i = self.input()\n    return i.mark == mark or i.stay or i.determinedBy == None");
 embed_py_meth("BinaryConstraint", "def removeFromGraph(self):\n    if self.v1 is not None:\n        self.v1.removeConstraint(self)\n    if self.v2 is not None:\n        self.v2.removeConstraint(self)\n    self.direction= Direction.NONE");
 
+// ENDCLASS08
+
 class ScaleConstraint extends BinaryConstraint {
   public $direction;
   public $scale;
@@ -254,6 +266,8 @@ embed_py_meth("ScaleConstraint", "def markInputs(self, mark):\n    BinaryConstra
 embed_py_meth("ScaleConstraint", "def execute(self):\n    if self.direction == Direction.FORWARD:\n        self.v2.value = self.v1.value * self.scale.value + self.offset.value\n    else:\n        self.v1.value = (self.v2.value - self.offset.value) / self.scale.value");
 embed_py_meth("ScaleConstraint", "def recalculate(self):\n    ihn = self.input()\n    out = self.output()\n    out.walkStrength = Strength.weakestOf(self.strength, ihn.walkStrength)\n    out.stay = ihn.stay and self.scale.stay and self.offset.stay\n    \n    if out.stay:\n        self.execute()");
 
+// ENDCLASS09
+
 class EqualityConstraint extends BinaryConstraint {
 
 
@@ -263,6 +277,8 @@ class EqualityConstraint extends BinaryConstraint {
 }
 embed_py_meth("EqualityConstraint", "def __construct(self, v1, v2, strength):\n    BinaryConstraint.__construct(self, v1, v2, strength)");
 embed_py_meth("EqualityConstraint", "def execute(self):\n    self.output().value = self.input().value");
+
+// ENDCLASS10
 
 class Variable {
   public $value;
@@ -283,6 +299,8 @@ class Variable {
 embed_py_meth("Variable", "def __construct(self, name, initialValue=None):\n    self.value = 0 if initialValue is None else initialValue\n    self.constraints = OrderedCollection()\n    self.determinedBy = None\n    self.mark = 0\n    self.walkStrength = Strength.Weakest()\n    self.stay = True\n    self.name = name");
 embed_py_meth("Variable", "def addConstraint(self, c):\n    self.constraints.add(c)");
 embed_py_meth("Variable", "def removeConstraint(self, c):\n    self.constraints.remove(c)\n    if self.determinedBy == c:\n        self.determinedBy = None");
+
+// ENDCLASS11
 
 class Planner {
   
@@ -315,6 +333,8 @@ embed_py_meth("Planner", "def addPropagate(self, c, mark):\n    todo = OrderedCo
 embed_py_meth("Planner", "def removePropagateFrom(self, out):\n    out.determinedBy = None\n    out.walkStrength = Strength.Weakest()\n    out.stay = True\n    unsatisfied = OrderedCollection()\n    todo = OrderedCollection();\n    todo.add(out)\n    while todo.size() > 0:\n        v = todo.removeFirst()\n        i = 0\n        while i < v.constraints.size():\n            c = v.constraints.at(i)\n            if not c.isSatisfied():\n                unsatisfied.add(c)\n            i += 1\n        determining = v.determinedBy\n        i = 0\n        while i < v.constraints.size():\n            next = v.constraints.at(i)\n            if next != determining and next.isSatisfied():\n                next.recalculate()\n                todo.add(next.output())\n            i += 1\n    return unsatisfied\n");
 embed_py_meth("Planner", "def addConstraintsConsumingTo(self, v, coll):\n    determining = v.determinedBy\n    cc = v.constraints\n    i = 0\n    while i < cc.size():\n        c = cc.at(i)\n        if c != determining and c.isSatisfied():\n            coll.add(c)\n        i += 1");
 
+// ENDCLASS12
+
 class Plan {
   private $v;
 
@@ -334,6 +354,8 @@ embed_py_meth("Plan", "def addConstraint(self, c):\n    self.v.add(c)");
 embed_py_meth("Plan", "def size(self):\n    return self.v.size()");
 embed_py_meth("Plan", "def constraintAt(self, index):\n    return self.v.at(index)");
 embed_py_meth("Plan", "def execute(self):\n    i = 0\n    while i < self.size():\n        c = self.constraintAt(i)\n        c.execute()\n        i += 1");
+
+// ENDCLASS13
 
 // XXX needed becuase there is currently no way to modify a global PHP var from Python
 function set_planner($p) {

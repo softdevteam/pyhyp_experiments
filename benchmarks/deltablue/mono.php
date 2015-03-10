@@ -84,6 +84,7 @@ class OrderedCollection {
   }
   // ENDFUNC
 }
+// ENDCLASS 01
 
 class Strength {
   // Strength constants.
@@ -200,6 +201,7 @@ class Strength {
   // ENDFUNC
 }
 
+// ENDCLASS 02
 
 class Constraint {
   public $strength;
@@ -263,6 +265,7 @@ class Constraint {
   // ENDFUNC
 }
 
+// ENDCLASS 03
 
 
 
@@ -349,6 +352,7 @@ class UnaryConstraint extends Constraint {
 }
 
 
+// ENDCLASS 04
 
 
 class StayConstraint extends UnaryConstraint {
@@ -364,6 +368,7 @@ class StayConstraint extends UnaryConstraint {
   }
   // ENDFUNC
 }
+// ENDCLASS 05
 
 class EditConstraint extends UnaryConstraint {
   // STARTFUNC
@@ -386,6 +391,7 @@ class EditConstraint extends UnaryConstraint {
   // ENDFUNC
 }
 
+// ENDCLASS 06
 
 abstract class Direction {
   const NONE   = 0;
@@ -393,6 +399,7 @@ abstract class Direction {
   const BACKWARD = -1;
 }
 
+// ENDCLASS 07
 
 class BinaryConstraint extends Constraint {
   public $v1;
@@ -513,6 +520,8 @@ class BinaryConstraint extends Constraint {
   // ENDFUNC
 }
 
+// ENDCLASS 08
+
 class ScaleConstraint extends BinaryConstraint {
   public $direction;
   public $scale;
@@ -581,6 +590,8 @@ class ScaleConstraint extends BinaryConstraint {
   // ENDFUNC
 }
 
+// ENDCLASS 09
+
 class EqualityConstraint extends BinaryConstraint {
   // STARTFUNC
   function __construct($var1, $var2, $strength) {
@@ -596,6 +607,7 @@ class EqualityConstraint extends BinaryConstraint {
   }
   // ENDFUNC
 }
+// ENDCLASS 10
 
 class Variable {
   public $value;
@@ -632,6 +644,8 @@ class Variable {
   }
   // ENDFUNC
 }
+
+// ENDCLASS 11
 
 class Planner {
   // STARTFUNC
@@ -762,6 +776,8 @@ class Planner {
   // ENDFUNC
 }
 
+// ENDCLASS 12
+
 class Plan {
   private $v;
 
@@ -798,6 +814,8 @@ class Plan {
   }
   // ENDFUNC
 }
+
+// ENDCLASS 13
 
   // STARTFUNC
 function chainTest($n) {

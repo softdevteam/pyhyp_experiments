@@ -44,10 +44,26 @@ def index_py_funcs(fh):
         typ = meth_typ if meth_typ is not None else global_typ
         name = meth_name if meth_name is not None else global_name
 
-        py_funcs.append((name, src))
+        py_funcs.append((name, typ, src))
         print(name)
 
     return py_funcs
+
+def insert_py_func(src, func_idx, py_src):
+    # find the nearest ENDCLASSXX marker and put a python method there
+
+    # first find the INSERTFUNC marker
+    idx = src.find("// INSERTFUNC %03d" % func_idx)
+    remain_src = src[idx:]
+
+    # find the next ENDCLASS marker
+    match = re.search(r"(// ENDCLASS [0-9][0-9])", remain_src, re.DOTALL)
+    assert match
+
+    repl_marker = match.groups()[0]
+
+    new_src = re.sub(repl_marker, "%s\n%s" % (repl_marker, py_src), src)
+    return new_src
 
 def mk_permutations(skeleton, php_funcs, py_funcs):
     assert len(php_funcs) == len(py_funcs)
@@ -58,10 +74,15 @@ def mk_permutations(skeleton, php_funcs, py_funcs):
         for func_idx in xrange(len(php_funcs)):
             if func_idx != permfile_idx:
                 func_src = php_funcs[func_idx][1] # source of the php function
+                new_src = re.sub(r"// INSERTFUNC %03d\n" % func_idx, func_src, src, 1, re.DOTALL)
             else:
-                func_src = py_funcs[func_idx][1] # source of the php function
+                py_name, py_typ, py_src = py_funcs[func_idx]
+                if py_typ == "func_global":
+                    new_src = re.sub(r"// INSERTFUNC %03d\n" % func_idx, py_src, src, 1, re.DOTALL)
+                else:
+                    assert py_typ == "meth"
+                    new_src = insert_py_func(src, func_idx, py_src)
 
-            new_src = re.sub(r"// INSERTFUNC %03d\n" % func_idx, func_src, src, 1, re.DOTALL)
             assert new_src != src
             src = new_src
 
