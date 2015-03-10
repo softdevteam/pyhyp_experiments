@@ -13,6 +13,7 @@ def dot():
 PHP_FUNC_REGEX = r"// STARTFUNC.*?(function\s(.*?)\(.*?)// ENDFUNC"
 def index_php_funcs(fh):
     php_src = fh.read()
+    ct = 0
 
     # Assume functions appear in the same order as in the python file
     php_funcs = []
@@ -25,7 +26,8 @@ def index_php_funcs(fh):
         php_funcs.append((func_name, func_src))
 
         # remove from the source
-        php_src = re.sub(PHP_FUNC_REGEX, "\n", php_src, 1, re.DOTALL)
+        php_src = re.sub(PHP_FUNC_REGEX, "// INSERTFUNC %03d\n" % ct, php_src, 1, re.DOTALL)
+        ct += 1
 
     return php_src, php_funcs
 
@@ -47,6 +49,27 @@ def index_py_funcs(fh):
 
     return py_funcs
 
+def mk_permutations(skeleton, php_funcs, py_funcs):
+    assert len(php_funcs) == len(py_funcs)
+
+    for permfile_idx in xrange(len(php_funcs)):
+        src = skeleton[:]
+
+        for func_idx in xrange(len(php_funcs)):
+            if func_idx != permfile_idx:
+                func_src = php_funcs[func_idx][1] # source of the php function
+            else:
+                func_src = py_funcs[func_idx][1] # source of the php function
+
+            new_src = re.sub(r"// INSERTFUNC %03d\n" % func_idx, func_src, src, 1, re.DOTALL)
+            assert new_src != src
+            src = new_src
+
+        fn = "permutation_%03d.php" % permfile_idx
+        with open(fn, "w") as fh:
+            fh.write(src)
+
+
 def main():
     with open("mono.php", "r") as fh:
         skeleton, php_funcs = index_php_funcs(fh)
@@ -54,8 +77,6 @@ def main():
     with open("comp.php", "r") as fh:
         py_funcs = index_py_funcs(fh)
 
-
-    print("")
     print "php funcs: %d" % len(php_funcs)
     print "py funcs: %d" % len(py_funcs)
 
@@ -64,6 +85,8 @@ def main():
         if n[0] != m[0]:
             print("error at index %d: %s vs %s" % (i, n[0], m[0]))
             sys.exit(1)
+
+    mk_permutations(skeleton, php_funcs, py_funcs)
 
 if __name__ == "__main__":
     main()
