@@ -10,7 +10,7 @@ def dot():
     sys.stdout.write(".")
     sys.stdout.flush()
 
-PHP_FUNC_REGEX = r"// STARTFUNC.*?(function\s(.*?)\(.*?)// ENDFUNC"
+PHP_FUNC_REGEX = r"// STARTFUNC(.*?function\s(.*?)\(.*?)// ENDFUNC"
 def index_php_funcs(fh):
     php_src = fh.read()
     ct = 0
@@ -28,6 +28,10 @@ def index_php_funcs(fh):
         # remove from the source
         php_src = re.sub(PHP_FUNC_REGEX, "// INSERTFUNC %03d\n" % ct, php_src, 1, re.DOTALL)
         ct += 1
+
+    # add pyhyp delay parns
+    php_src = php_src.replace("<?php", "<?php\n{\n")
+    php_src = php_src.replace("?>", "}\n?>")
 
     return php_src, php_funcs
 
