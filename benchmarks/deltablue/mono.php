@@ -150,6 +150,7 @@ class Strength {
       Strength::$WEAKEST = new Strength(6, "weakest");
     return Strength::$WEAKEST;
   }
+  // ENDFUNC
 
   private $strengthValue;
   public $name;
