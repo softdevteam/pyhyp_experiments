@@ -1,0 +1,16 @@
+--- functions/mailbox_display.php	2011-05-15 23:02:24.000000000 +0100
++++ /home/lukas/webpages/squirrelmail/functions/mailbox_display.php	2015-03-11 16:45:32.155295501 +0000
+@@ -262,9 +262,10 @@
+                         .  '&amp;startMessage='.$start_msg.$searchstr.'"';
+                 $td_str .= ' ' .concat_hook_function('subject_link', array($start_msg, $searchstr));
+                 if ($subject != $msg['SUBJECT']) {
+-                    $title = get_html_translation_table(HTML_SPECIALCHARS);
+-                    $title = array_flip($title);
+-                    $title = strtr($msg['SUBJECT'], $title);
++                    //$title = get_html_translation_table(HTML_SPECIALCHARS);
++                    //$title = array_flip($title);
++                    //$title = strtr($msg['SUBJECT'], $title);
++                    $title = $msg['SUBJECT'];
+                     $title = str_replace('"', "''", $title);
+                     $td_str .= " title=\"$title\"";
+                 }

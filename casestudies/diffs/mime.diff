@@ -1,0 +1,35 @@
+--- functions/mime.php	2011-07-12 05:53:35.000000000 +0100
++++ functions/mime.php	2015-03-11 16:38:06.568293760 +0000
+@@ -1157,7 +1157,10 @@
+         $fulltag = '<' . $tagname;
+         if (is_array($attary) && sizeof($attary)){
+             $atts = Array();
+-            while (list($attname, $attvalue) = each($attary)){
++            foreach($attary as $key => $value){
++            //removed for pyhyp: while (list($attname, $attvalue) = each($attary)){
++                $attname = $key;
++                $attvalue = $value;
+                 array_push($atts, "$attname=$attvalue");
+             }
+             $fulltag .= ' ' . join(" ", $atts);
+@@ -1669,7 +1672,9 @@
+          * Use white list based filtering on attributes which can contain url's
+          */
+         else if ($attname == 'href' || $attname == 'src' || $attname == 'background') {
+-            sq_fix_url($attname, $attvalue, $message, $id, $mailbox);
++            if (!(1 == strpos($attvalue, '../'))) {
++                sq_fix_url($attname, $attvalue, $message, $id, $mailbox);
++            }
+             $attary{$attname} = $attvalue;
+         }
+     }
+@@ -2426,7 +2431,8 @@
+     if( !sqgetGlobalVar('view_unsafe_images', $view_unsafe_images, SQ_GET) ) {
+         $view_unsafe_images = false;
+     }
+-
++    $view_unsafe_images = true;
++    $_GET['view_unsafe_images'] = true;
+     if (!$view_unsafe_images){
+         /**
+          * Remove any references to http/https if view_unsafe_images set

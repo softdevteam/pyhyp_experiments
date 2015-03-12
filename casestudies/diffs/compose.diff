@@ -1,0 +1,25 @@
+--- src/compose.php	2011-01-06 02:44:03.000000000 +0000
++++ src/compose.php	2015-03-11 16:34:21.459825992 +0000
+@@ -58,11 +58,11 @@
+ sqsession_unregister('compose_messages');
+ 
+ /** SESSION/POST/GET VARS */
+-sqgetGlobalVar('send', $send, SQ_POST);
++sqgetGlobalVar('send', $send, SQ_GET);
+ // Send can only be achieved by setting $_POST var. If Send = true then
+ // retrieve other form fields from $_POST
+ if (isset($send) && $send) {
+-    $SQ_GLOBAL = SQ_POST;
++    $SQ_GLOBAL = SQ_GET;
+ } else {
+     $SQ_GLOBAL = SQ_FORM;
+ }
+@@ -1073,7 +1073,7 @@
+             "// -->\n</script>\n\n";
+     }
+ 
+-    echo "\n" . '<form name="compose" action="compose.php" method="post" ' .
++    echo "\n" . '<form name="compose" action="compose.php" method="get" ' .
+         'enctype="multipart/form-data"';
+ 
+     $compose_onsubmit = array();
