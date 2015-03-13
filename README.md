@@ -40,3 +40,6 @@ cgi.assign = ( ".pl"  => "/usr/bin/perl",
 Let the web server point to the SquirrelMail folder
 (casestudies/squirrelmail-4.22.1/). From there follow SquirrelMails
 instructions on how to configure it.
+
+# CFFI
+Can be run with the PyHyp executable.
