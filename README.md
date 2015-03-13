@@ -36,6 +36,7 @@ cgi.assign = ( ".pl"  => "/usr/bin/perl",
                ".py"  => "/usr/bin/python2.7" )
 ```
 
-The web server also has to point to the SquirrelMail folder
-(casetudies/squirrelmail-4.22.1/). From there follow SquirrelMails
-intstructions on how to configure it.
+# SquirrelMail
+Let the web server point to the SquirrelMail folder
+(casestudies/squirrelmail-4.22.1/). From there follow SquirrelMails
+instructions on how to configure it.
