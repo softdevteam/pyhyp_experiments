@@ -42,7 +42,7 @@ def run_sequence_plot(key, execution, execution_no, filename):
             execution, title=title, filename=filename)
 
 def lag_plot(key, execution, execution_no, lag, filename):
-    title = "Exec %d" % execution_no
+    title = "Lag %d, Exec %d" % (lag, execution_no)
     pykalibera.graphs.lag_plot(
             execution, lag=lag, title=title, filename=filename)
 
@@ -53,18 +53,70 @@ def acr_plot(key, execution, execution_no, filename):
 def key_to_safe_filename(k):
     return k.replace(" ", "_").replace(":", "-")
 
-def run_seq_plot_filename(key, exec_num):
-    return "run_seq_%s_%d" % (key_to_safe_filename(key), exec_num)
+def run_seq_plot_filename(key, exec_num, rand):
+    rand = "rand" if rand else "norand"
+    return "run_seq_%s_%s_%d" % (key_to_safe_filename(key), rand, exec_num)
 
-def acr_plot_filename(key, exec_num):
-    return "acr_%s_%d" % (key_to_safe_filename(key), exec_num)
+def acr_plot_filename(key, exec_num, rand):
+    rand = "rand" if rand else "norand"
+    return "acr_%s_%s, %d" % (key_to_safe_filename(key), rand, exec_num)
 
-def lag_plot_filename(key, exec_num, lag):
-    return "lag%d_seq_%s_%d" % (lag, key_to_safe_filename(key), exec_num)
+def lag_plot_filename(key, exec_num, lag, rand):
+    rand = "rand" if rand else "norand"
+    return "lag%d_seq_%s_%s_%d" % (lag, key_to_safe_filename(key), rand, exec_num)
 
 def progress():
     sys.stdout.write(".")
     sys.stdout.flush()
+
+def run_sequence_plot_exec(body, key, executions, chosen_exec_nums):
+    for rand in [False, True]:
+        body.h3("Run Sequence Graphs (randomised=%s)" % rand)
+        for exec_no in chosen_exec_nums:
+            execution = executions[exec_no]
+
+            if rand:
+                execution = execution[:]
+                random.shuffle(execution)
+
+            filename = run_seq_plot_filename(key, exec_no, rand=rand)
+            run_sequence_plot(key, execution, exec_no,
+                    filename=os.path.join(OUTDIR, filename))
+            body.img(src=filename + ".png")
+            progress()
+
+def lag_plot_exec(body, key, executions, chosen_exec_nums):
+    for exec_no in chosen_exec_nums:
+        for rand in [False, True]:
+            body.h3("Lags for exec %d (randomised=%s)" % (exec_no, rand))
+            for lag in LAGS:
+                execution = executions[exec_no]
+
+                if rand:
+                    execution = execution[:]
+                    random.shuffle(execution)
+
+                filename = lag_plot_filename(key, exec_no, lag, rand=rand)
+                lag_plot(key, execution, exec_no, lag,
+                        filename=os.path.join(OUTDIR, filename))
+                body.img(src=filename + ".png")
+                progress()
+
+def acr_plot_exec(body, key, executions, chosen_exec_nums):
+    for rand in [False, True]:
+        body.h3("Autocorellation Plots (randomised=%s)" % rand)
+        for exec_no in chosen_exec_nums:
+            execution = executions[exec_no]
+
+            if rand:
+                execution = execution[:]
+                random.shuffle(execution)
+
+            filename = acr_plot_filename(key, exec_no, rand)
+            acr_plot(key, execution, exec_no,
+                    filename=os.path.join(OUTDIR, filename))
+            body.img(src=filename + ".png")
+            progress()
 
 def emit_graphs(body, key, executions, chosen_exec_nums):
     if len(executions) == 0 or len(executions[0]) == 0:
@@ -72,38 +124,9 @@ def emit_graphs(body, key, executions, chosen_exec_nums):
         print("")
         return
 
-    # Run sequences
-    body.h3("Run Sequence Graphs")
-    for exec_no in chosen_exec_nums:
-        execution = executions[exec_no]
-        filename = run_seq_plot_filename(key, exec_no)
-        run_sequence_plot(key, execution, exec_no,
-                filename=os.path.join(OUTDIR, filename))
-        body.img(src=filename + ".png")
-        progress()
-
-    # Lag Plots
-    body.h3("Lag Plots")
-    body.text("For lags: %s" % LAGS)
-    for lag in LAGS:
-        body.h4("Lag %d" % lag)
-        for exec_no in chosen_exec_nums:
-            execution = executions[exec_no]
-            filename = lag_plot_filename(key, exec_no, lag)
-            lag_plot(key, execution, exec_no, lag,
-                    filename=os.path.join(OUTDIR, filename))
-            body.img(src=filename + ".png")
-            progress()
-
-    # ACR plots
-    body.h3("Autocorellation Plots")
-    for exec_no in chosen_exec_nums:
-        execution = executions[exec_no]
-        filename = acr_plot_filename(key, exec_no)
-        acr_plot(key, execution, exec_no,
-                filename=os.path.join(OUTDIR, filename))
-        body.img(src=filename + ".png")
-        progress()
+    run_sequence_plot_exec(body, key, executions, chosen_exec_nums)
+    lag_plot_exec(body, key, executions, chosen_exec_nums)
+    acr_plot_exec(body, key, executions, chosen_exec_nums)
 
     print("")
 
