@@ -1,0 +1,7 @@
+--- ../work/pyhyp/hippyvm/hippy-c-cgi	2015-03-04 14:52:10.938896575 +0000
++++ ../work/pyhyp/hippyvm/hippy-c-cgi	2015-03-12 10:54:47.410230542 +0000
+@@ -1,3 +1,3 @@
+ #!/bin/sh
+-HIPPY=`dirname $0`/hippy-c
++HIPPY=`dirname $0`/pyhyp
+ exec $HIPPY --cgi "$@"
