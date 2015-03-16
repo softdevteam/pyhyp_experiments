@@ -87,21 +87,26 @@ class ResultInfo(object):
     def missing(cls, warmup):
         return cls(None, None, None, None, warmup)
 
-def make_tables(config, data_file):
+def make_tables(config, data_file, typ):
 
     with open(data_file, "r") as data_fh:
         raw_results = json.load(data_fh)["data"]
 
     # make pyhyp variants look like vms
-    config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
-    config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
+    saw_pyhyp = False
+    if config.VMS.has_key("PyHyp-mono"):
+        config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
+        config.VMS["PyHyp-mono"]["variants"] = ["mono-php"]
+        saw_pyhyp = True
 
-    config.VMS["PyHyp-mono"]["variants"] = ["mono-php"]
-    config.VMS["PyHyp-comp"]["variants"] = ["composed"]
+    if config.VMS.has_key("PyHyp-comp"):
+        config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
+        config.VMS["PyHyp-comp"]["variants"] = ["composed"]
+        saw_pyhyp = True
 
-    del(config.VMS["PyHyp"])
+    if saw_pyhyp:
+        del(config.VMS["PyHyp"])
 
-    # "bench:vm:variant" -> ResultInfo
     results = {}
     for k, v in raw_results.iteritems():
         bench, vm, variant = k.split(":")
@@ -178,8 +183,11 @@ def make_tables(config, data_file):
             row_data[rs_key] = ri
 
     print("")
-    make_ascii_table(row_data)
-    make_latex_tables(config, row_data)
+
+    if typ == "ascii":
+        make_ascii_table(row_data)
+    else:
+        make_latex_tables(config, row_data)
 
 
 def conf_cell(val, err, width=".7cm"):
@@ -399,6 +407,9 @@ TEX_DIR = "tex"
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
+    typ = sys.argv[2]
+
+    assert typ in ["ascii", "tex"]
 
     import_name = config_file[:-3]
     data_file = import_name + "_results.json"
@@ -413,4 +424,4 @@ if __name__ == "__main__":
     except OSError as e:
         pass # file exists
 
-    make_tables(config, data_file)
+    make_tables(config, data_file, typ)
