@@ -1,4 +1,3 @@
-
 def multiply_and_add(a, b, c):
     return a + b * c
 

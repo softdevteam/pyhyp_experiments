@@ -1,4 +1,3 @@
-
 def make_chain(x):
     curr = "end"
     while x >= 0:
@@ -15,7 +14,6 @@ def consume_chain(chain):
 
 def outer(outer, inner):
     correct = inner * (inner + 1) // 2
-
     i = 0
     while i < outer:
         res = consume_chain(make_chain(inner))

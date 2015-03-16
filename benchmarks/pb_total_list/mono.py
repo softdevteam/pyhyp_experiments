@@ -5,7 +5,6 @@ def f_rcv(ary):
     return ct
 
 def f_call(n):
-
     a = range(1000)
 
     v = 0
