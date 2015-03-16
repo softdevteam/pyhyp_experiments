@@ -15,6 +15,5 @@ def f_call(n):
         assert res == expect
         i += 1
 
-
 def run_iter(n):
     f_call(n)

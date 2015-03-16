@@ -1,7 +1,6 @@
 # Same as pb_sum_meth, just using a attribute
 
 class Sum(object):
-
     def __init__(self):
         self.res = 0
 

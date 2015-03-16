@@ -1,7 +1,6 @@
 H1 = 150
 
 def inner_loop(re2, im2, color, re, im, imc, rec):
-
     while re2 + im2 < 1000000 and color > 0:
         im = re * im * 2 + imc
         re = re2 - im2 + rec

@@ -160,8 +160,6 @@ class TaskWorkArea(object):
 #taskWorkArea = TaskWorkArea()
 
 class Task(TaskState):
-
-
     def __init__(self,i,p,w,initialState,r):
         self.link = taskWorkArea.taskList
         self.ident = i
@@ -241,7 +239,6 @@ class Task(TaskState):
 
 
 class DeviceTask(Task):
-
     def fn(self,pkt,r):
         d = r
         assert isinstance(d, DeviceTaskRec)
@@ -260,7 +257,6 @@ class DeviceTask(Task):
 
 
 class HandlerTask(Task):
-
     def fn(self,pkt,r):
         h = r
         assert isinstance(h, HandlerTaskRec)
@@ -290,7 +286,6 @@ class HandlerTask(Task):
 
 
 class IdleTask(Task):
-
     def fn(self,pkt,r):
         i = r
         assert isinstance(i, IdleTaskRec)
@@ -308,7 +303,6 @@ class IdleTask(Task):
 
 
 class WorkTask(Task):
-
     def fn(self,pkt,r):
         w = r
         assert isinstance(w, WorkTaskRec)
@@ -350,7 +344,6 @@ def schedule():
             t = t.runTask()
 
 class Richards(object):
-
     def run(self, iterations):
         i = 0
         while i < iterations:
