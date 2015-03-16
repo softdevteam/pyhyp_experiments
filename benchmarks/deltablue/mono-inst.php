@@ -99,6 +99,7 @@ class Strength {
   // STARTFUNC
   public static function Required()
   {
+    echo "CALL Required\n";
     if (!Strength::$REQUIRED)
       Strength::$REQUIRED = new Strength(0, "required");
     return Strength::$REQUIRED;
@@ -107,6 +108,7 @@ class Strength {
   // STARTFUNC
   public static function StrongPreferred()
   {
+    echo "CALL StrongPreferred\n";
     if (!Strength::$STRONG_PREFERRED)
       Strength::$STRONG_PREFERRED = new Strength(1, "strongPreferred");
     return Strength::$STRONG_PREFERRED;
@@ -115,6 +117,7 @@ class Strength {
   // STARTFUNC
   public static function Preferred()
   {
+    echo "CALL Preferred\n";
     if (!Strength::$PREFERRED)
       Strength::$PREFERRED = new Strength(2, "preferred");
     return Strength::$PREFERRED;
@@ -123,6 +126,7 @@ class Strength {
   // STARTFUNC
   public static function StrongDefault()
   {
+    echo "CALL StrongDefault\n";
     if (!Strength::$STRONG_DEFAULT)
       Strength::$STRONG_DEFAULT = new Strength(3, "strongDefault");
     return Strength::$STRONG_DEFAULT;
@@ -131,6 +135,7 @@ class Strength {
   // STARTFUNC
   public static function Normal()
   {
+    echo "CALL Normal\n";
     if (!Strength::$NORMAL)
       Strength::$NORMAL = new Strength(4, "normal");
     return Strength::$NORMAL;
@@ -139,6 +144,7 @@ class Strength {
   // STARTFUNC
   public static function WeakDefault()
   {
+    echo "CALL WeakDefault\n";
     if (!Strength::$WEAK_DEFAULT)
       Strength::$WEAK_DEFAULT = new Strength(5, "weakDefault");
     return Strength::$WEAK_DEFAULT;
@@ -147,6 +153,7 @@ class Strength {
   // STARTFUNC
   public static function Weakest()
   {
+    echo "CALL Weakest\n";
     if (!Strength::$WEAKEST)
       Strength::$WEAKEST = new Strength(6, "weakest");
     return Strength::$WEAKEST;
