@@ -125,10 +125,15 @@ def make_tables(config, data_file, typ):
 
         results[nkey] = v
 
-    # mono PHP benchmark ref_swap2 arecopies of ref_swap data
-    results["pb_ref_swap2:Zend:mono-php"] = results["pb_ref_swap:Zend:mono-php"]
-    results["pb_ref_swap2:HHVM:mono-php"] = results["pb_ref_swap:HHVM:mono-php"]
-    results["pb_ref_swap2:HippyVM:mono-php"] = results["pb_ref_swap:HippyVM:mono-php"]
+    # mono PHP benchmark ref_swap2 are copies of ref_swap data
+    if results.has_key("pb_ref_swap:Zend:mono-php"):
+        results["pb_ref_swap2:Zend:mono-php"] = results["pb_ref_swap:Zend:mono-php"]
+
+    if results.has_key("pb_ref_swap:HHVM:mono-php"):
+        results["pb_ref_swap2:HHVM:mono-php"] = results["pb_ref_swap:HHVM:mono-php"]
+
+    if results.has_key("pb_ref_swap:HippyVM:mono-php"):
+        results["pb_ref_swap2:HippyVM:mono-php"] = results["pb_ref_swap:HippyVM:mono-php"]
 
     # now process confidence, relative times, ...
     row_data = {}
