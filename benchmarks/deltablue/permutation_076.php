@@ -904,6 +904,10 @@ function change($v, $newValue) {
   $edit->destroyConstraint();
 }
   
+function set_planner($p) {
+    global $planner;
+    $planner = $p;
+}
 
 function run_iter($n){
   chainTest($n);
