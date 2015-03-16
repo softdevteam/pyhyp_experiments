@@ -94,15 +94,17 @@ def make_tables(config, data_file, typ):
 
     # make pyhyp variants look like vms
     saw_pyhyp = False
-    if config.VMS.has_key("PyHyp-mono"):
-        config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
-        config.VMS["PyHyp-mono"]["variants"] = ["mono-php"]
+    if config.VMS.has_key("PyHyp"):
         saw_pyhyp = True
+        pyhyp_variants = config.VMS["PyHyp"]["variants"]
 
-    if config.VMS.has_key("PyHyp-comp"):
-        config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
-        config.VMS["PyHyp-comp"]["variants"] = ["composed"]
-        saw_pyhyp = True
+        if "mono" in pyhyp_variants:
+            config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
+            config.VMS["PyHyp-mono"]["variants"] = ["mono-php"]
+
+        if "composed" in pyhyp_variants:
+            config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
+            config.VMS["PyHyp-comp"]["variants"] = ["composed"]
 
     if saw_pyhyp:
         del(config.VMS["PyHyp"])
