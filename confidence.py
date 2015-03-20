@@ -9,7 +9,7 @@ import prettytable
 import os
 import collections
 
-from pykalibera.data import Data
+from pykalibera.data import Data, bootstrap_geomean
 from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
@@ -139,8 +139,12 @@ def make_tables(config, data_file, typ):
 
     # now process confidence, relative times, ...
     row_data = {}
-    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
-        for vm_key, vm_data in sorted(config.VMS.iteritems()):
+    geomeans = {}
+    for vm_key, vm_data in sorted(config.VMS.iteritems()):
+        # used to compute geomean
+        bench_times = []
+        baseline_times = []
+        for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
             dot()
             variants = vm_data["variants"]
 
@@ -183,18 +187,25 @@ def make_tables(config, data_file, typ):
                 # Relative to itself, should be 1.0x
                 if vm_key == "PyHyp-comp":
                     assert rel_pyhyp == 1.0
+
+                bench_times.append(kdata)
+                baseline_times.append(pyhyp_kdata)
             else:
                 rel_pyhyp, rel_pyhyp_err = None, None
 
             ri = ResultInfo(val, val_err, rel_pyhyp, rel_pyhyp_err, warmup)
             row_data[rs_key] = ri
 
+        # all benchmarks for this vm processed, now the geomean
+        geomeans[vm_key] = \
+            bootstrap_geomean(bench_times, baseline_times, ITERATIONS, CONF_SIZE)
+
     print("")
 
     if typ == "ascii":
         make_ascii_table(row_data)
     else:
-        make_latex_tables(config, row_data)
+        make_latex_tables(config, row_data, geomeans)
 
 
 def conf_cell(val, err, width=".7cm"):
@@ -230,7 +241,7 @@ def write_latex_header(fh):
     \\begin{document}
     \\footnotesize\n""")
 
-def make_latex_tables(config, row_data):
+def make_latex_tables(config, row_data, geomeans):
     # makefile for tables
     with open(os.path.join(TEX_DIR, "Makefile"), "w") as fh:
         fh.write(MAKEFILE_CONTENTS)
@@ -382,6 +393,17 @@ def make_latex_tables(config, row_data):
                 w("%s\\\\\n" % "&".join(row))
                 first = False
         first = True # no space for first large bm
+
+    # geomeans
+    w("\\midrule\n")
+    row = ["Geometric Mean"]
+    for vm_key in sorted(config.VMS.iterkeys()):
+        geo = geomeans.get(vm_key)
+        if geo is not None:
+            row.append(conf_cell(geo.median, geo.error))
+        else:
+            row.append("")
+    w("%s\\\\\n" % "&".join(row))
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
