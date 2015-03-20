@@ -311,7 +311,10 @@ def make_latex_tables(config, row_data, geomeans):
                 continue
             if not first:
                 w("\\addlinespace\n")
-            row = [tex_escape_underscore(bench_key)]
+
+            bench_name = bench_key[3:] if \
+                bench_key.startswith("pb_") else bench_key
+            row = [tex_escape_underscore(bench_name)]
 
             for vm_key, vm_data in sorted(config.VMS.iteritems()):
                 variants = vm_data["variants"]
@@ -368,7 +371,10 @@ def make_latex_tables(config, row_data, geomeans):
                 w("\\addlinespace\n")
 
             was_data = False
-            row = [tex_escape_underscore(bench_key)]
+
+            bench_name = bench_key[3:] if \
+                bench_key.startswith("pb_") else bench_key
+            row = [tex_escape_underscore(bench_name)]
 
             for vm_key, vm_data in sorted(config.VMS.iteritems()):
                 variants = vm_data["variants"]
