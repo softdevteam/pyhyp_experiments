@@ -21,7 +21,7 @@ $csrc = <<<EOD
   }
 EOD;
 $C = $ffi->verify($csrc);
-$time = $C->_clock_gettime_monotonic();
-echo "Monotonic time: " . $time;
+//$time = $C->_clock_gettime_monotonic();
+//echo "Monotonic time: " . $time;
 }
 ?>

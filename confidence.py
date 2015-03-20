@@ -98,7 +98,7 @@ def make_tables(config, data_file, typ):
         saw_pyhyp = True
         pyhyp_variants = config.VMS["PyHyp"]["variants"]
 
-        if "mono" in pyhyp_variants:
+        if "mono-php" in pyhyp_variants:
             config.VMS["PyHyp-mono"] = config.VMS["PyHyp"].copy()
             config.VMS["PyHyp-mono"]["variants"] = ["mono-php"]
 

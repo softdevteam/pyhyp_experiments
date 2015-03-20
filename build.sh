@@ -376,7 +376,7 @@ VARIANTS = {
 
 	# new micro
 	echo "\t'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
-	echo "\t'pb_ref_swap2': 110000000," >> ${CONFIG_FILE}
+	#echo "\t'pb_ref_swap2': 110000000," >> ${CONFIG_FILE}
 	echo "\t'pb_return_simple': 300000000," >> ${CONFIG_FILE}
 	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
 	#echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
