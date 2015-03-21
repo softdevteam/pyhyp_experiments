@@ -405,7 +405,9 @@ def make_latex_tables(config, row_data, geomeans):
     row = ["Geometric Mean"]
     for vm_key in sorted(config.VMS.iterkeys()):
         geo = geomeans.get(vm_key)
-        if geo is not None:
+        if vm_key == "PyHyp-comp":
+            row.append(conf_cell(geo.median, None))
+        elif geo is not None:
             row.append(conf_cell(geo.median, geo.error))
         else:
             row.append("")
