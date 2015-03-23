@@ -12,7 +12,6 @@ $csrc = <<<EOD
   #include <stdlib.h>
   double _clock_gettime_monotonic(){
     struct timespec ts;
-    double result;
     if ((clock_gettime(CLOCK_MONOTONIC_RAW, &ts)) < 0) {
       perror("clock_gettime"); exit(1);
     }
