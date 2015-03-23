@@ -15,7 +15,7 @@ $csrc = <<<EOD
   #include <stdlib.h>
   double _clock_gettime_monotonic(){
     struct timespec ts;
-    if ((clock_gettime(CLOCK_MONOTONIC_RAW, &ts)) == -1) {
+    if ((clock_gettime(CLOCK_MONOTONIC, &ts)) == -1) {
       err(1, "clock_gettime error");
     return ts.tv_sec + ts.tv_nsec * pow(10, -9);
   }
