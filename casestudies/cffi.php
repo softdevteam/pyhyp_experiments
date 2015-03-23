@@ -16,12 +16,10 @@ $csrc = <<<EOD
     if ((clock_gettime(CLOCK_MONOTONIC_RAW, &ts)) < 0) {
       perror("clock_gettime"); exit(1);
     }
-    result = ts.tv_sec + ts.tv_nsec * pow(10, -9);
-    return (result);
+    return ts.tv_sec + ts.tv_nsec * pow(10, -9);
   }
 EOD;
 $C = $ffi->verify($csrc);
-//$time = $C->_clock_gettime_monotonic();
-//echo "Monotonic time: " . $time;
+echo "Monotonic time: " . $C->_clock_gettime_monotonic();
 }
 ?>
