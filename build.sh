@@ -381,7 +381,7 @@ VARIANTS = {
 	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
 	#echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum':      100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum_attr': 100000000," >> ${CONFIG_FILE}
+	echo "\t'pb_sum_meth_attr': 100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_total_list': 280000," >> ${CONFIG_FILE}
 	echo "\t'pb_instchain': 1200," >> ${CONFIG_FILE}
@@ -391,7 +391,7 @@ VARIANTS = {
 	echo "\t'pb_l1a1r': 30000," >> ${CONFIG_FILE}
 	echo "\t'pb_lists': 3600," >> ${CONFIG_FILE}
 	echo "\t'pb_smallfunc': 45000000," >> ${CONFIG_FILE}
-	echo "\t'pb_termconstruction': 390," >> ${CONFIG_FILE}
+	echo "\t'pb_walk_list': 390," >> ${CONFIG_FILE}
 
 	# larger
 	echo "\t'fannkuch': 10," >> ${CONFIG_FILE}
