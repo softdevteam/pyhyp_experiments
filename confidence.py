@@ -416,6 +416,7 @@ def make_latex_tables(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
+    w("\\label{tab:relresults}\n")
     w("\\caption{Benchmark timings relative to PyHyp composed (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table*}")
     of.close()
