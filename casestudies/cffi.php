@@ -1,5 +1,4 @@
 <?php{
-
 $cffi = import_py_mod("cffi");
 $sys = import_py_mod("sys");
 $builtin = import_py_mod("__builtin__");
@@ -16,17 +15,13 @@ $csrc = <<<EOD
   #include <stdlib.h>
   double _clock_gettime_monotonic(){
     struct timespec ts;
-    double result;
-    if ((clock_gettime(CLOCK_MONOTONIC_RAW, &ts)) < 0) {
-      perror("clock_gettime"); exit(1);
-    }
-    result = ts.tv_sec + ts.tv_nsec * pow(10, -9);
-    return (result);
+    if ((clock_gettime(CLOCK_MONOTONIC_RAW, &ts)) == -1) {
+      err(1, "clock_gettime error");
+    return ts.tv_sec + ts.tv_nsec * pow(10, -9);
   }
 EOD;
 $C = $ffi->verify($csrc);
-$time = $C->_clock_gettime_monotonic();
-echo "Monotonic time: " . $time;
+echo "Monotonic time: " . $C->_clock_gettime_monotonic();
 }
 
 ?>
