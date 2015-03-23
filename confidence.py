@@ -197,8 +197,9 @@ def make_tables(config, data_file, typ):
             row_data[rs_key] = ri
 
         # all benchmarks for this vm processed, now the geomean
-        geomeans[vm_key] = \
-            bootstrap_geomean(bench_times, baseline_times, ITERATIONS, CONF_SIZE)
+        if bench_times:
+            geomeans[vm_key] = \
+                bootstrap_geomean(bench_times, baseline_times, ITERATIONS, CONF_SIZE)
 
     print("")
 
