@@ -43,5 +43,5 @@ Point the web server point to the SquirrelMail folder
 (casestudies/squirrelmail-4.22.1/). From there follow SquirrelMail's
 instructions on how to install.
 
-# CFFI
+### CFFI
 Can be run with the PyHyp executable.
