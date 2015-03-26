@@ -26,7 +26,7 @@ Next build the VMs:
 $ sh build.sh
 ```
 
-The inspect the generated `config.py`. Here you can adjust (for example)
+Then inspect the generated `config.py`. Here you can adjust (for example)
 the number of iterations at each Kalibera level and the benchmark parameters.
 
 Now run:
