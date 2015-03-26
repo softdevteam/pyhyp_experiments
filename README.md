@@ -1,9 +1,9 @@
 # PyHyP Experiments
 
-This repository contains experiments and benchmarks for our composed Python/PHP
-VM as well as other VMs.
+This repository contains benchmarks for our composed Python/PHP VM as well
+as other VMs.
 
-It is geared up to build on linux/amd64.
+It is geared up to build on Linux/amd64.
 
 ## Dependencies
 
@@ -22,7 +22,10 @@ It is geared up to build on linux/amd64.
 
 ## Case studies
 
-To run the case studies you'll need to setup a web-server, e.g. Apache,
+The two case studies from the paper are also included.
+
+### SquirrelMail
+To run the case studies you need to setup a web-server, e.g. Apache,
 Lighttpd, nginx. You'll then have to replace the PHP interpreter with PyHyp.
 Here's an example configuration for lighttpd:
 
@@ -36,10 +39,9 @@ cgi.assign = ( ".pl"  => "/usr/bin/perl",
                ".py"  => "/usr/bin/python2.7" )
 ```
 
-# SquirrelMail
-Let the web server point to the SquirrelMail folder
-(casestudies/squirrelmail-4.22.1/). From there follow SquirrelMails
-instructions on how to configure it.
+Point the web server point to the SquirrelMail folder
+(casestudies/squirrelmail-4.22.1/). From there follow SquirrelMail's
+instructions on how to install.
 
 # CFFI
 Can be run with the PyHyp executable.

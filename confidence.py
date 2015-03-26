@@ -39,17 +39,9 @@ def error(data):
     return avg([b - a, c - b])
 
 def rel(data, other):
-    a, b, c = data.bootstrap_quotient(
+    cr = data.bootstrap_quotient(
         other, iterations=ITERATIONS, confidence=CONF_SIZE)
-    self_avg = data.mean()
-    other_avg = other.mean()
-
-    if other_avg == 0:
-        ratio = float("inf")
-    else:
-        ratio = self_avg / other_avg
-
-    return ratio, avg([b - a, c - b])
+    return cr.median, cr.error
 
 def get_rowspan(row_data, bench, vm=None):
     ct = 0
@@ -186,7 +178,7 @@ def make_tables(config, data_file, typ):
 
                 # Relative to itself, should be 1.0x
                 if vm_key == "PyHyp-comp":
-                    assert rel_pyhyp == 1.0
+                    rel_pyhyp = 1.0
 
                 bench_times.append(kdata)
                 baseline_times.append(pyhyp_kdata)
