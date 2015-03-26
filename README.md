@@ -35,7 +35,7 @@ Now run:
 $ python runner.py config.py
 ```
 
-Results are written to `config_results.py`.
+Results are written to `config_results.json`.
 
 ## Case studies
 
