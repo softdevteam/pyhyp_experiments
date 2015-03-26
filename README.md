@@ -3,9 +3,9 @@
 This repository contains benchmarks for our composed Python/PHP VM as well
 as other VMs.
 
-It is geared up to build on Linux/amd64.
+## Building
 
-## Dependencies
+First ensure you have the following installed on a Linux/amd64 system:
 
  * bunzip2
  * git
@@ -19,6 +19,23 @@ It is geared up to build on Linux/amd64.
  * wget
  * GCC (and gcc-multilib).
  * virtualenv
+
+Next build the VMs:
+
+```
+$ sh build.sh
+```
+
+The inspect the generated `config.py`. Here you can adjust (for example)
+the number of iterations at each Kalibera level and the benchmark parameters.
+
+Now run:
+
+```
+$ python runner.py config.py
+```
+
+Results are written to `config_results.py`.
 
 ## Case studies
 
