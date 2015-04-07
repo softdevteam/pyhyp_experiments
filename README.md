@@ -39,7 +39,11 @@ Results are written to `config_results.json`.
 
 ## Case studies
 
-The two case studies from the paper are also included.
+The two case studies from the paper are also included. Set them up by running
+
+```
+$ cd casestudies & make
+```
 
 ### SquirrelMail
 To run the case studies you need to setup a web-server, e.g. Apache,
