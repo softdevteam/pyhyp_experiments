@@ -17,7 +17,4 @@ function run_iter($n) {
 	}
 }
 
-run_iter(10000000);
-
-
 ?>
