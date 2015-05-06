@@ -412,9 +412,13 @@ VARIANTS = {
 	# these use refs, which python doesn't have
 	echo "\t'mandel:*:mono-python'," >> ${CONFIG_FILE}
 	echo "\t'pb_ref_swap:*:mono-python'," >> ${CONFIG_FILE}
-	# pb_ref_swap 2 is the same as pb_ref_swap for mono cases
-	echo "\t'pb_ref_swap2:*:mono-python'," >> ${CONFIG_FILE}
-	echo "\t'pb_ref_swap2:*:mono-php'," >> ${CONFIG_FILE}
+	# These embed foreign methods in classes, which we can only do
+	# when the class is a PHP class. We can't embed PHP methods
+	# in Python classes.
+	for b in "richards" "deltablue" "pb_instchain" "pb_sum_meth" "pb_sum_meth_attr"; do
+		echo "\t'${b}:*:comp-rev'," >> ${CONFIG_FILE}
+	done
+
 	echo "]\n\n" >> ${CONFIG_FILE}
 
 	# Repetitions
