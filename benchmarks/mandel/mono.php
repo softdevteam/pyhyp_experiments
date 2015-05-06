@@ -1,8 +1,6 @@
 <?php
 {
 
-$H1 = 150;
-
 function inner_loop(&$re2, &$im2, &$color, &$re, &$im, $imc, $rec) {
       while( ((($re2+$im2)<1000000) && $color>0)) {
         $im=$re*$im*2+$imc;
@@ -15,7 +13,7 @@ function inner_loop(&$re2, &$im2, &$color, &$re, &$im, $imc, $rec) {
 
 # $n is the number of lines
 function mandelPHP($n) {
-  global $H1;
+  $H1 = 150; // keep in sync with H1 below
 
   $lines = array();
 
@@ -55,7 +53,7 @@ function mandelPHP($n) {
 }
 
 function run_iter($n){
-    global $H1;
+    $H1 = 150; // keep in sync with H1 above
     $out = mandelPHP($n);
     assert(strlen($out) == ($H1 + 2) * ($n + 1));
 }

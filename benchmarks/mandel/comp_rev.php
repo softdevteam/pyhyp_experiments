@@ -2,10 +2,8 @@
 
 embed_py_func_global("@php_decor(refs=(0, 1, 2, 3, 4, 5, 6))\ndef inner_loop(re2_r, im2_r, color_r, re_r, im_r, imc_r, rec_r):\n    re2, im2, color, re, im, imc, rec = \\\n        re2_r.deref(), im2_r.deref(), color_r.deref(), re_r.deref(), im_r.deref(), imc_r.deref(), rec_r.deref()\n    while ((re2 + im2) < 1000000) and color > 0:\n        im = re * im  * 2 + imc;\n        re = re2 - im2 + rec\n        re2 = re * re\n        im2 = im * im\n        color = color - 1\n    re2_r.store(re)\n    im2_r.store(im2)\n    color_r.store(color)\n    re_r.store(re)\n    im_r.store(im)\n    imc_r.store(imc)\n    rec_r.store(rec)");
 
-$H1 = 150;
-
 function mandelPHP($n) {
-  global $H1;
+  $H1 = 150; // keep in sync with the H1 below
 
   $lines = array();
 
@@ -45,9 +43,8 @@ function mandelPHP($n) {
 }
 
 function run_iter($n){
-    global $H1;
+    $H1 = 150; // keep in sync with the above H1
     $out = mandelPHP($n);
-    echo $out;
     assert(strlen($out) == ($H1 + 2) * ($n + 1));
 }
 }?>

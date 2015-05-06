@@ -1,5 +1,3 @@
-H1 = 150
-
 def inner_loop(re2, im2, color, re, im, imc, rec):
     while re2 + im2 < 1000000 and color > 0:
         im = re * im * 2 + imc
@@ -12,6 +10,7 @@ def inner_loop(re2, im2, color, re, im, imc, rec):
     return re2, im2, color, re, im
 
 def mandel_py(n):
+    H1 = 150 # keep in sync with H1 below
     lines = []
 
     w1 = n
@@ -63,5 +62,6 @@ def mandel_py(n):
 
 
 def run_iter(n):
+    H1 = 150 # keep in sync with H1 above
     out = mandel_py(n)
     assert len(out) == (H1 + 2) * (n + 1)
