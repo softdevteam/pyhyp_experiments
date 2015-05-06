@@ -23,8 +23,8 @@ class Packet {
     
 
 }
-embed_py_meth("Packet", "def append_to(self, lst):\n        self.link = None\n        if lst is None:\n            return self\n        p = lst\n        next = p.link\n        while next is not None:\n            p = next\n            next = p.link\n        p.link = self\n        return lst");
 embed_py_meth("Packet", "def __construct(self, l, i, k):\n        self.link = l\n        self.ident = i\n        self.kind = k\n        self.daturm = 0\n        self.data = [0,0,0,0]");
+embed_py_meth("Packet", "def append_to(self, lst):\n        self.link = None\n        if lst is None:\n            return self\n        p = lst\n        next = p.link\n        while next is not None:\n            p = next\n            next = p.link\n        p.link = self\n        return lst");
 
 class TaskRec {}
 
@@ -45,9 +45,9 @@ class HandlerTaskRec extends TaskRec {
 
     
 }
-embed_py_meth("HandlerTaskRec", "def deviceInAdd(self, p):\n        x = p.append_to(self.device_in)\n        self.device_in = x\n        return x");
-embed_py_meth("HandlerTaskRec", "def workInAdd(self, p):\n        x = p.append_to(self.work_in)\n        self.work_in = x\n        return x");
 embed_py_meth("HandlerTaskRec", "def __construct(self):\n        self.work_in = None\n        self.device_in = None");
+embed_py_meth("HandlerTaskRec", "def workInAdd(self, p):\n        x = p.append_to(self.work_in)\n        self.work_in = x\n        return x");
+embed_py_meth("HandlerTaskRec", "def deviceInAdd(self, p):\n        x = p.append_to(self.device_in)\n        self.device_in = x\n        return x");
 
 class WorkTaskRec extends TaskRec {
     
@@ -75,16 +75,16 @@ class TaskState {
 
     
 }
-embed_py_meth("TaskState", "def isWaitingWithPacket(self):\n        return self.packet_pending and self.task_waiting and not self.task_holding");
-embed_py_meth("TaskState", "def isTaskHoldingOrWaiting(self):\n        return self.task_holding or (not self.packet_pending and self.task_waiting)");
-embed_py_meth("TaskState", "def isTaskHolding(self):\n        return self.task_holding");
-embed_py_meth("TaskState", "def isTaskWaiting(self):\n        return self.task_waiting");
-embed_py_meth("TaskState", "def isPacketPending(self):\n        return self.packet_pending");
-embed_py_meth("TaskState", "def waitingWithPacket(self):\n        self.packet_pending = True\n        self.task_waiting = True\n        self.task_holding = False\n        return self");
-embed_py_meth("TaskState", "def running(self):\n        self.packet_pending = False\n        self.task_waiting = False\n        self.task_holding = False\n        return self");
-embed_py_meth("TaskState", "def waiting(self):\n        self.packet_pending = False\n        self.task_waiting = True\n        self.task_holding = False\n        return self");
-embed_py_meth("TaskState", "def packetPending(self):\n        self.packet_pending = True\n        self.task_waiting = False\n        self.task_holding = False\n        return self");
 embed_py_meth("TaskState", "def __construct(self):\n        self.packet_pending = True\n        self.task_waiting = False\n        self.task_holding = False");
+embed_py_meth("TaskState", "def packetPending(self):\n        self.packet_pending = True\n        self.task_waiting = False\n        self.task_holding = False\n        return self");
+embed_py_meth("TaskState", "def waiting(self):\n        self.packet_pending = False\n        self.task_waiting = True\n        self.task_holding = False\n        return self");
+embed_py_meth("TaskState", "def running(self):\n        self.packet_pending = False\n        self.task_waiting = False\n        self.task_holding = False\n        return self");
+embed_py_meth("TaskState", "def waitingWithPacket(self):\n        self.packet_pending = True\n        self.task_waiting = True\n        self.task_holding = False\n        return self");
+embed_py_meth("TaskState", "def isPacketPending(self):\n        return self.packet_pending");
+embed_py_meth("TaskState", "def isTaskWaiting(self):\n        return self.task_waiting");
+embed_py_meth("TaskState", "def isTaskHolding(self):\n        return self.task_holding");
+embed_py_meth("TaskState", "def isTaskHoldingOrWaiting(self):\n        return self.task_holding or (not self.packet_pending and self.task_waiting)");
+embed_py_meth("TaskState", "def isWaitingWithPacket(self):\n        return self.packet_pending and self.task_waiting and not self.task_holding");
 
 define('TASKTABSIZE', 10);
 
@@ -97,8 +97,8 @@ class TaskWorkArea {
         
     
 }
-embed_py_meth("TaskWorkArea", "def reset(self):\n        self.taskTab = []\n        i = 0\n        while i < TASKTABSIZE:\n            self.taskTab.as_list().append(None)\n            i += 1\n        self.taskList = None\n        self.holdCount = 0\n        self.qpktCount = 0");
 embed_py_meth("TaskWorkArea", "def __construct(self):\n        self.reset();\n");
+embed_py_meth("TaskWorkArea", "def reset(self):\n        self.taskTab = []\n        i = 0\n        while i < TASKTABSIZE:\n            self.taskTab.as_list().append(None)\n            i += 1\n        self.taskList = None\n        self.holdCount = 0\n        self.qpktCount = 0");
 
 class Task extends TaskState {
     
@@ -117,14 +117,14 @@ class Task extends TaskState {
 
     
 }
-embed_py_meth("Task", "def findtcb(self, id):\n        t = taskWorkArea.taskTab[id]\n        if t is None:\n            raise Exception(\"Bad task id\")\n        return t");
-embed_py_meth("Task", "def qpkt(self, pkt):\n        t = self.findtcb(pkt.ident)\n        taskWorkArea.qpktCount += 1\n        pkt.link = None\n        pkt.ident = self.ident\n        return t.addPacket(pkt, self)");
-embed_py_meth("Task", "def release(self, i):\n        t = self.findtcb(i)\n        t.task_holding = False\n        if t.priority > self.priority:\n            return t\n        else:\n            return self");
-embed_py_meth("Task", "def hold(self):\n        taskWorkArea.holdCount += 1\n        self.task_holding = True\n        return self.link");
-embed_py_meth("Task", "def waitTask(self):\n        self.task_waiting = True\n        return self");
-embed_py_meth("Task", "def runTask(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetPending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
-embed_py_meth("Task", "def addPacket(self, p, old):\n        if self.input is None:\n            self.input = p\n            self.packet_pending = True\n            if self.priority > old.priority:\n                return self\n        else:\n            p.append_to(self.input)\n        return old");
 embed_py_meth("Task", "def __construct(self, i, p, w, initialState, r):\n        self.link = taskWorkArea.taskList\n        self.ident = i\n        self.priority = p\n        self.input = w\n        \n        self.packet_pending = initialState.isPacketPending()\n        self.task_waiting = initialState.isTaskWaiting()\n        self.task_holding = initialState.isTaskHolding()\n        \n        self.handle = r\n        \n        taskWorkArea.taskList = self\n        taskWorkArea.taskTab[i] = self");
+embed_py_meth("Task", "def addPacket(self, p, old):\n        if self.input is None:\n            self.input = p\n            self.packet_pending = True\n            if self.priority > old.priority:\n                return self\n        else:\n            p.append_to(self.input)\n        return old");
+embed_py_meth("Task", "def runTask(self):\n        if self.isWaitingWithPacket():\n            msg = self.input\n            self.input = msg.link\n            if self.input is None:\n                self.running()\n            else:\n                self.packetPending()\n        else:\n            msg = None\n        return self.fn(msg, self.handle)");
+embed_py_meth("Task", "def waitTask(self):\n        self.task_waiting = True\n        return self");
+embed_py_meth("Task", "def hold(self):\n        taskWorkArea.holdCount += 1\n        self.task_holding = True\n        return self.link");
+embed_py_meth("Task", "def release(self, i):\n        t = self.findtcb(i)\n        t.task_holding = False\n        if t.priority > self.priority:\n            return t\n        else:\n            return self");
+embed_py_meth("Task", "def qpkt(self, pkt):\n        t = self.findtcb(pkt.ident)\n        taskWorkArea.qpktCount += 1\n        pkt.link = None\n        pkt.ident = self.ident\n        return t.addPacket(pkt, self)");
+embed_py_meth("Task", "def findtcb(self, id):\n        t = taskWorkArea.taskTab[id]\n        if t is None:\n            raise Exception(\"Bad task id\")\n        return t");
 
 class DeviceTask extends Task {
     
