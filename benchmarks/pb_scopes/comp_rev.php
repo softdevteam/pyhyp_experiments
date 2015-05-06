@@ -4,6 +4,4 @@ embed_py_func_global("def f_outer(n):\n    inc = 2\n    \n    inner = embed_php_
 function run_iter($n) {
 	f_outer($n);
 }
-
-run_iter(100);
 }?>

@@ -1,6 +1,6 @@
 <?php{
 function multiply_and_add($a, $b, $c) {
-    return a + b * c;
+    return $a + $b * $c;
 }
 
 
@@ -10,5 +10,4 @@ function run_iter($n) {
 	outer($n, 10000);
 }
 
-run_iter(100);
 }?>

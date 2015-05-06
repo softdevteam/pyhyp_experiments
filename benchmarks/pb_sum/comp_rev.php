@@ -8,6 +8,4 @@ embed_py_func_global("def f_call(n):\n    x = 31415\n    expect = x * 5 + 15\n  
 function run_iter($n) {
 	f_call($n);
 }
-
-run_iter(100);
 }?>

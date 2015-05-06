@@ -13,7 +13,7 @@ function consume_chain($chain) {
     while($chain != "end") {
         $val1 = $chain[0];
         $val2 = $chain[1];
-        $val3 = $chain[2];
+        $chain = $chain[2];
         $res += $val2 - $val1;
     }
     return $res;
@@ -24,6 +24,4 @@ embed_py_func_global("def outer(outer, inner):\n    import math\n    correct = m
 function run_iter($n) {
 	outer($n, 10000);
 }
-
-run_iter(100);
 }?>

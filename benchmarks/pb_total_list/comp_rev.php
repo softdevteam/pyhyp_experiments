@@ -12,6 +12,4 @@ embed_py_func_global("def f_call(n):\n    a = []\n    i = 0\n    while i < 1000:
 function run_iter($n) {
 	f_call($n);
 }
-
-run_iter(100);
 }?>
