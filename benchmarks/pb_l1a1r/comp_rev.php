@@ -13,6 +13,4 @@ embed_py_func_global("def outer(outer, inner):\n    correct = sum_up_to_n(inner)
 function run_iter($n) {
 	outer($n, 10000);
 }
-
-run_iter(100);
 }?>
