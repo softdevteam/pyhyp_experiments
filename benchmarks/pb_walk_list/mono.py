@@ -1,5 +1,5 @@
 def make_chain(x):
-    curr = "end"
+    curr = None
     while x >= 0:
         curr = [x, 2 * x, curr]
         x -= 1
@@ -7,7 +7,7 @@ def make_chain(x):
 
 def consume_chain(chain):
     res = 0
-    while chain != "end":
+    while chain != None:
         val1, val2, chain = chain
         res += val2 - val1
     return res

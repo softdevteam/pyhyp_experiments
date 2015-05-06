@@ -1,6 +1,6 @@
 <?php{
 function make_chain($x) {
-    $curr = "end";
+    $curr = NULL;
     while ($x >= 0) {
         $curr = array($x, 2 * $x, $curr);
         $x -= 1;
@@ -10,7 +10,7 @@ function make_chain($x) {
 
 function consume_chain($chain) {
     $res = 0;
-    while($chain != "end") {
+    while($chain != NULL) {
         $val1 = $chain[0];
         $val2 = $chain[1];
         $chain = $chain[2];
