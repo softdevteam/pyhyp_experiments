@@ -1,3 +1,6 @@
 work
 **/*.pyc
+**/*.swp
+**/*.core
+**/*.bak
 __pycache__
