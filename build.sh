@@ -323,6 +323,10 @@ VARIANTS = {
         'filename': 'comp.php',
         'iter_runner': 'iterations_runner.php',
     },
+    'composed-reverse': {
+        'filename': 'comp-rev.php',
+        'iter_runner': 'iterations_runner.php',
+    },
 }\n" >> ${CONFIG_FILE}
 
 	echo "VMS = {" >> ${CONFIG_FILE}
@@ -362,7 +366,7 @@ VARIANTS = {
 	# PyHyp
 	echo "\t'PyHyp': {" >> ${CONFIG_FILE}
 	echo "\t\t'path': '${PYHYP_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['composed', 'mono-php']," >> ${CONFIG_FILE}
+	echo "\t\t'variants': ['composed', 'composed-reverse', 'mono-php']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
 	echo "\t}," >> ${CONFIG_FILE}
@@ -381,10 +385,8 @@ VARIANTS = {
 
 	# new micro
 	echo "\t'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
-	#echo "\t'pb_ref_swap2': 110000000," >> ${CONFIG_FILE}
 	echo "\t'pb_return_simple': 300000000," >> ${CONFIG_FILE}
 	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
-	#echo "\t'pb_scopes2': 500000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum':      100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_meth_attr': 100000000," >> ${CONFIG_FILE}
 	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
@@ -416,7 +418,7 @@ VARIANTS = {
 	# when the class is a PHP class. We can't embed PHP methods
 	# in Python classes.
 	for b in "richards" "deltablue" "pb_instchain" "pb_sum_meth" "pb_sum_meth_attr"; do
-		echo "\t'${b}:*:comp-rev'," >> ${CONFIG_FILE}
+		echo "\t'${b}:*:composed-reverse'," >> ${CONFIG_FILE}
 	done
 
 	echo "]\n\n" >> ${CONFIG_FILE}
