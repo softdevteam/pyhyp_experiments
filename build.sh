@@ -9,34 +9,39 @@ check_for () {
     fi
 }
 
-echo "===> Checking dependencies"
-check_for cc
-check_for g++
-check_for bunzip2
-check_for git
-check_for hg
-check_for python
-check_for svn
-check_for unzip
-check_for xml2-config
-check_for cmake
-check_for virtualenv
+# but not if in "config generation only" mode
+if [ "$1" != "gen_config" ]; then
+	echo "===> Checking dependencies"
+	check_for cc
+	check_for g++
+	check_for bunzip2
+	check_for git
+	check_for hg
+	check_for python
+	check_for svn
+	check_for unzip
+	check_for xml2-config
+	check_for cmake
+	check_for virtualenv
 
-which pypy > /dev/null 2> /dev/null
-if [ $? -eq 0 ]; then
-    PYTHON=`which pypy`
-else
-    PYTHON=`which python`
-fi
-which gmake > /dev/null 2> /dev/null
-if [ $? -eq 0 ]; then
-    MYMAKE=gmake
-else
-    MYMAKE=make
-fi
+	which pypy > /dev/null 2> /dev/null
+	if [ $? -eq 0 ]; then
+	    PYTHON=`which pypy`
+	else
+	    PYTHON=`which python`
+	fi
+	which gmake > /dev/null 2> /dev/null
+	if [ $? -eq 0 ]; then
+	    MYMAKE=gmake
+	else
+	    MYMAKE=make
+	fi
 
-if [ $missing -eq 1 ]; then
-    exit 1
+	if [ $missing -eq 1 ]; then
+	    exit 1
+	fi
+else
+	echo "CONFIG GENERATION ONLY!";
 fi
 
 HERE=`pwd`
@@ -423,14 +428,17 @@ VARIANTS = {
 # MAIN
 #
 
-do_gcc;
-do_hhvm;
-do_cpython;
-do_zend;
-do_pypy;
-do_pyhyp;
-do_hippy;
-do_kalibera;
+# pass "gen_config" to only generate config file
+if [ $1 != "gen_config" ]; then
+	do_gcc;
+	do_hhvm;
+	do_cpython;
+	do_zend;
+	do_pypy;
+	do_pyhyp;
+	do_hippy;
+	do_kalibera;
+fi
 
 gen_config;
 
