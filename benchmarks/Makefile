@@ -2,39 +2,44 @@
 
 ECO =	eco
 
-# So-called larger benchmarks
-COMPOSED_OUTPUTS_LARGER =	fannkuch/comp.php \
-				mandel/comp.php \
-				richards/comp.php \
-				deltablue/comp.php
+# Composed variant #1
+COMPOSED_OUTPUTS =	fannkuch/comp.php \
+			mandel/comp.php \
+			richards/comp.php \
+			deltablue/comp.php \
+			pb_ref_swap/comp.php \
+			pb_return_simple/comp.php \
+			pb_scopes/comp.php \
+			pb_sum/comp.php \
+			pb_sum_meth_attr/comp.php \
+			pb_total_list/comp.php \
+			pb_sum_meth/comp.php \
+			pb_instchain/comp.php \
+			pb_l1a0r/comp.php \
+			pb_l1a1r/comp.php \
+			pb_lists/comp.php \
+			pb_smallfunc/comp.php \
+			pb_walk_list/comp.php
 
-# New pico benchmarks
-COMPOSED_OUTPUTS_NEW_PICO =	pb_ref_swap/comp.php \
-				pb_return_simple/comp.php \
-				pb_scopes/comp.php \
-				pb_sum/comp.php \
-				pb_sum_meth_attr/comp.php \
-				pb_total_list/comp.php \
-				pb_sum_meth/comp.php \
-				pb_instchain/comp.php # strictly from unipycation, but was unused
-
-# Pico benchmarks ported from Unipycation
-COMPOSED_OUTPUTS_UNIPY_PICO = 	pb_l1a0r/comp.php \
-				pb_l1a1r/comp.php \
-				pb_lists/comp.php \
-				pb_smallfunc/comp.php \
-				pb_walk_list/comp.php
-
-ALL_COMPOSED_OUTPUTS =	 	${COMPOSED_OUTPUTS_LARGER} \
-				${COMPOSED_OUTPUTS_NEW_PICO} \
-				${COMPOSED_OUTPUTS_UNIPY_PICO}
+# Composed variant #2 (reverse of #1)
+COMPOSED_OUTPUTS +=	mandel/comp_rev.php \
+			pb_ref_swap/comp_rev.php \
+			pb_return_simple/comp_rev.php \
+			pb_scopes/comp_rev.php \
+			pb_sum/comp_rev.php \
+			pb_total_list/comp_rev.php \
+			pb_l1a0r/comp_rev.php \
+			pb_l1a1r/comp_rev.php \
+			pb_lists/comp_rev.php \
+			pb_smallfunc/comp_rev.php \
+			pb_walk_list/comp_rev.php
 
 .SUFFIXES:.eco .php
 
 .eco.php:
 	${ECO} -e $< $@
 
-all: ${ALL_COMPOSED_OUTPUTS}
+all: ${COMPOSED_OUTPUTS}
 
 clean:
-	-rm -f ${ALL_COMPOSED_OUTPUTS}
+	-rm -f ${COMPOSED_OUTPUTS}
