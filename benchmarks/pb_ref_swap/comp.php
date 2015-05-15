@@ -1,6 +1,6 @@
 <?php{
 
-embed_py_func_global("@php_decor(refs=[0, 1])\ndef f_swap(a_ref, b_ref):\n    tmp = a_ref.deref()\n    a_ref.store(b_ref.deref())\n    b_ref.store(tmp)");
+compile_py_func_global("@php_decor(refs=[0, 1])\ndef f_swap(a_ref, b_ref):\n    tmp = a_ref.deref()\n    a_ref.store(b_ref.deref())\n    b_ref.store(tmp)");
 
 function f_call($n) {
 	 $ct = 0;

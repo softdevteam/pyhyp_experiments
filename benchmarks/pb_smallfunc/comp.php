@@ -1,6 +1,6 @@
 <?php{
 
-embed_py_func_global("def multiply_and_add(a, b, c):\n    return a + b * c");
+compile_py_func_global("def multiply_and_add(a, b, c):\n    return a + b * c");
 
 function outer($outer, $inner_unused) {
 	$iter_countdown = $outer * 10;

@@ -1,6 +1,6 @@
 <?php{
 
-embed_py_func_global("def sum_up_to_n(n):\n    result = 0\n    while n > 0:\n        result += n\n        n -= 1\n    return result");
+compile_py_func_global("def sum_up_to_n(n):\n    result = 0\n    while n > 0:\n        result += n\n        n -= 1\n    return result");
 
 function outer($outer, $inner) {
 	$correct = sum_up_to_n($inner);

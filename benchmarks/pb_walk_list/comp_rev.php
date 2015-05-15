@@ -19,7 +19,7 @@ function consume_chain($chain) {
     return $res;
 }
 
-embed_py_func_global("def outer(outer, inner):\n    import math\n    correct = math.floor(inner * (inner + 1) / 2)\n    \n    i = 0\n    while i < outer:\n        res = consume_chain(make_chain(inner))\n        assert res == correct\n        i += 1");
+compile_py_func_global("def outer(outer, inner):\n    import math\n    correct = math.floor(inner * (inner + 1) / 2)\n    \n    i = 0\n    while i < outer:\n        res = consume_chain(make_chain(inner))\n        assert res == correct\n        i += 1");
 
 function run_iter($n) {
 	outer($n, 10000);

@@ -5,7 +5,7 @@ class Sum {
  
 
 }
-embed_py_meth("Sum", "def f_rcv(self, a1, a2, a3, a4, a5):\n    return a1 + a2 + a3 + a4 + a5");
+compile_py_meth("Sum", "def f_rcv(self, a1, a2, a3, a4, a5):\n    return a1 + a2 + a3 + a4 + a5");
 
 function f_call($n) {
 	  $s = new Sum();

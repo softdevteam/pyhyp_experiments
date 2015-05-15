@@ -1,5 +1,5 @@
 <?php{
-embed_py_func_global("def f_ret():\n    return 1");
+compile_py_func_global("def f_ret():\n    return 1");
 
 function f_call($n) {
 

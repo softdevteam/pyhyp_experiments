@@ -8,7 +8,7 @@ function make_list($x) {
 	return $res;
 }
  
-embed_py_func_global("def consume_list(l):\n    ll = l.as_list()\n    res = 0\n    for i in ll:\n        res += i\n    return res");
+compile_py_func_global("def consume_list(l):\n    ll = l.as_list()\n    res = 0\n    for i in ll:\n        res += i\n    return res");
 
 function outer($outer, $inner) {
 	$correct = floor($inner * ($inner + 1) / 2);

@@ -1,9 +1,9 @@
 <?php{
 
-embed_py_func_global("def make_chain(x):\n    curr = None\n    while x >= 0:\n        curr = [x, 2 * x, curr]\n        x -= 1\n    return curr");
+compile_py_func_global("def make_chain(x):\n    curr = None\n    while x >= 0:\n        curr = [x, 2 * x, curr]\n        x -= 1\n    return curr");
 
 
-embed_py_func_global("def consume_chain(chain):\n    chain = chain.as_list()\n    res = 0\n    while chain != None:\n        val1, val2, chain = chain\n        res += val2 - val1\n    return res");
+compile_py_func_global("def consume_chain(chain):\n    chain = chain.as_list()\n    res = 0\n    while chain != None:\n        val1, val2, chain = chain\n        res += val2 - val1\n    return res");
 
 function outer($outer, $inner) {
 	$correct = floor($inner * ($inner + 1) / 2);
