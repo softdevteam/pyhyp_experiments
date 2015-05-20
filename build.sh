@@ -435,7 +435,7 @@ VARIANTS = {
 #
 
 # pass "gen_config" to only generate config file
-if [ $1 != "gen_config" ]; then
+if [ ! $1 = "gen_config" ]; then
 	do_gcc;
 	do_hhvm;
 	do_cpython;
