@@ -98,6 +98,10 @@ def make_tables(config, data_file, typ):
             config.VMS["PyHyp-comp"] = config.VMS["PyHyp"].copy()
             config.VMS["PyHyp-comp"]["variants"] = ["composed"]
 
+        if "composed-reverse" in pyhyp_variants:
+            config.VMS["PyHyp-comp-rev"] = config.VMS["PyHyp"].copy()
+            config.VMS["PyHyp-comp-rev"]["variants"] = ["composed"]
+
     if saw_pyhyp:
         del(config.VMS["PyHyp"])
 
@@ -114,6 +118,8 @@ def make_tables(config, data_file, typ):
             nkey = "%s:PyHyp-comp:composed" % bench
         elif variant == "mono-php":
             nkey = "%s:PyHyp-mono:mono-php" % bench
+        elif variant == "composed-reverse":
+            nkey = "%s:PyHyp-comp-rev:composed" % bench
         else:
             assert False
 

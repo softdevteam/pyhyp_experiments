@@ -324,7 +324,7 @@ VARIANTS = {
         'iter_runner': 'iterations_runner.php',
     },
     'composed-reverse': {
-        'filename': 'comp-rev.php',
+        'filename': 'comp_rev.php',
         'iter_runner': 'iterations_runner.php',
     },
 }\n" >> ${CONFIG_FILE}
@@ -435,7 +435,7 @@ VARIANTS = {
 #
 
 # pass "gen_config" to only generate config file
-if [ ! $1 = "gen_config" ]; then
+if [ ! "$1" = "gen_config" ]; then
 	do_gcc;
 	do_hhvm;
 	do_cpython;
