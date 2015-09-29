@@ -1,6 +1,6 @@
 <?php{
 
-compile_py_func_global("def f_rcv(ary):\n    ct = 0\n    for i in ary:\n        ct += i\n    return ct");
+compile_py_func_global("def f_rcv(ary):\n    ary = ary.as_list()\n    ct = 0\n    for i in ary:\n        ct += i\n    return ct");
 
 function f_call($n) {
 
