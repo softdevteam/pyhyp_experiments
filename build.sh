@@ -49,108 +49,120 @@ WRKDIR=${HERE}/work
 mkdir -p ${WRKDIR}
 PATCH_DIR=${HERE}/patches
 
-# Python VMs get installed into virtualenvs. Makes installing things easy.
-VENV_DIR=${WRKDIR}/virtualenv
-
-# GCC
-GCC_VERSION_MAJOR=4.8
-GCC_VERSION=${GCC_VERSION_MAJOR}.3
-GCC_TARBALL=gcc-${GCC_VERSION}.tar.gz
-GCC_DIR=gcc-${GCC_VERSION}
-GCC_DOWNLOAD_URI=ftp://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/${GCC_TARBALL}
-GCC_INST_DIR=${WRKDIR}/gcc-${GCC_VERSION}-inst
-GCC_BINARY=${GCC_INST_DIR}/bin/gcc
-GXX_BINARY=${GCC_INST_DIR}/bin/g++
-
-do_gcc() {
-	echo "===> GCC"
-	if [ ! -f "${GCC_BINARY}" ]; then
-	    cd ${WRKDIR}
-	    if [ ! -f "${GCC_TARBALL}" ]; then
-		    wget ${GCC_DOWNLOAD_URI}
-	    fi
-	    tar xzf ${GCC_TARBALL}
-	    cd ${GCC_DIR}
-	    ./contrib/download_prerequisites
-	    cd ..
-	    mkdir objdir
-	    cd objdir
-	    ../${GCC_DIR}/configure --prefix=${GCC_INST_DIR}
-	    make || exit $?
-	    make install || exit $?
-	fi
-}
-
 # HHVM 3.4.0 and deps of that time.
 HHVM_VERSION=817b3a07fc4e509ce15635dbc87778e5b3496663
 HHVM_GIT_URI=git://github.com/facebook/hhvm.git
 HHVM_DIR=${WRKDIR}/hhvm
 HHVM_BINARY=${HHVM_DIR}/hphp/hhvm/hhvm
-HHVM_WRAPPER=${HHVM_DIR}/hphp/hhvm/hhvm.wrapper
 GLOG_SVN_URI=http://google-glog.googlecode.com/svn/trunk/
 GLOG_VERSION=143
 GLOG_DIR=google-glog
 
 do_hhvm() {
-	echo "===> HHVM"
-	if [ ! -f "${HHVM_BINARY}" ]; then
-	    cd ${WRKDIR}
-	    git clone ${HHVM_GIT_URI}
-	    cd hhvm
-	    git checkout ${HHVM_VERSION}
-	    git submodule update --init --recursive
-	    patch -Ep1 < ${PATCH_DIR}/hhvm.diff || exit $?
-	    cd ..
+    echo "===> HHVM"
+    cd ${WRKDIR} || exit $?
 
-	    export CMAKE_PREFIX_PATH=`pwd`/glog
-	    if [ ! -e "${GLOG_DIR}" ]; then
-		    svn checkout ${GLOG_SVN_URI} ${GLOG_DIR}
-	    fi
-	    cd ${GLOG_DIR}
-	    ./configure --prefix=$CMAKE_PREFIX_PATH CC=${GCC_BINARY} CXX=${GXX_BINARY}
-	    make || exit $?
-	    make install || exit $?
-	    cd ${WRKDIR}
+    export CMAKE_PREFIX_PATH=`pwd`/glog
+    if [ ! -e "${GLOG_DIR}" ]; then
+        svn checkout ${GLOG_SVN_URI} ${GLOG_DIR} || exit $?
+    fi
 
-	    cd hhvm
-	    export LD_LIBRARY_PATH=${GCC_INST_DIR}/lib64/
-	    cmake . -DCMAKE_CXX_COMPILER=${GXX_BINARY} -DCMAKE_C_COMPILER=${GCC_BINARY} || exit $?
-	    make || exit $?
-	fi
+    if ! [ -d  "${WRKDIR}/glog" ]; then
+        cd ${GLOG_DIR} || exit $?
+        ./configure --prefix=$CMAKE_PREFIX_PATH || exit $?
+        make || exit $?
+        make install || exit $?
+    fi
 
-	# we need to set the LD_LIBRARY_PATH for HHVM
-	echo "#!/bin/sh" > ${HHVM_WRAPPER}
-	echo "LD_LIBRARY_PATH=${GCC_INST_DIR}/lib64 ${HHVM_BINARY} \$*" >> ${HHVM_WRAPPER}
-	chmod +x ${HHVM_WRAPPER}
+    cd ${WRKDIR} || exit $?
+    if ! [ -d "hhvm" ]; then
+        git clone ${HHVM_GIT_URI} || exit $?
+        cd hhvm || exit $?
+        git checkout ${HHVM_VERSION} || exit $?
+        git submodule update --init --recursive || exit $?
+        patch -Ep1 < ${PATCH_DIR}/hhvm.diff || exit $?
+        patch -Ep1 < ${PATCH_DIR}/hhvm_cmake.diff || exit $?
+        cd ..
+    fi
+
+    if ! [ -f "${HHVM_BINARY}" ]; then
+        cd ${WRKDIR}/hhvm
+        cmake . || exit $?
+        make || exit $?
+    fi
 }
 
 # CPython
 
-CPYTHON_VERSION=2.7.7
+CPYTHON_VERSION=2.7.10
 CPYTHON_DIR=${WRKDIR}/Python-${CPYTHON_VERSION}
 CPYTHON_TARBALL=Python-${CPYTHON_VERSION}.tgz
 CPYTHON_DOWNLOAD_URI=http://python.org/ftp/python/${CPYTHON_VERSION}/${CPYTHON_TARBALL}
 CPYTHON_INST_DIR=${WRKDIR}/cpython-inst
 CPYTHON_BINARY=${CPYTHON_INST_DIR}/bin/python
-CPYTHON_VENV=${VENV_DIR}/cpython
-CPYTHON_VENV_BINARY=${CPYTHON_VENV}/bin/python
-CPYTHON_VENV_PIP=${CPYTHON_VENV}/bin/pip
+
+PYCPARSER_VERSION=2.14
+PYCPARSER_TARBALL=pycparser-${PYCPARSER_VERSION}.tar.gz
+PYCPARSER_DOWNLOAD_URL=https://pypi.python.org/packages/source/p/pycparser/${PYCPARSER_TARBALL}
+
+SETUPTOOLS_VERSION=18.3.2
+SETUPTOOLS_TARBALL=setuptools-${SETUPTOOLS_VERSION}.tar.gz
+SETUPTOOLS_DOWNLOAD_URL=https://pypi.python.org/packages/source/s/setuptools/${SETUPTOOLS_TARBALL}
+
+CFFI_VERSION=1.2.1
+CFFI_TARBALL=cffi-${CFFI_VERSION}.tar.gz
+CFFI_DOWNLOAD_URL=https://pypi.python.org/packages/source/c/cffi/${CFFI_TARBALL}
 
 do_cpython() {
     echo "===> CPython"
-    if [ ! -d "${CPYTHON_VENV}" ]; then
-	if [ ! -f "${CPYTHON_BINARY}" ]; then
-	    cd ${WRKDIR}
-	    wget ${CPYTHON_DOWNLOAD_URI} || exit $?
-	    tar xfz Python-${CPYTHON_VERSION}.tgz || exit $?
-	    cd ${CPYTHON_DIR}
-	    ./configure --prefix=${CPYTHON_INST_DIR} || exit $?
-	    ${MYMAKE} || exit $?
-	    ${MYMAKE} install || exit $?
-	fi
 
-        virtualenv --python=${CPYTHON_BINARY} ${CPYTHON_VENV}
-	${CPYTHON_VENV_PIP} install cffi || exit $?
+    cd ${WRKDIR}
+    if ! [ -f "${CPYTHON_TARBALL}" ]; then
+        wget ${CPYTHON_DOWNLOAD_URI} || exit $?
+    fi
+
+    if ! [ -d "${CPYTHON_DIR}" ]; then
+        tar xfz ${CPYTHON_TARBALL} || exit $?
+    fi
+
+    if ! [ -f "${CPYTHON_BINARY}" ]; then
+        cd ${CPYTHON_DIR}
+        ./configure --prefix=${CPYTHON_INST_DIR} || exit $?
+        ${MYMAKE} || exit $?
+        ${MYMAKE} install || exit $?
+    fi
+
+    # pycparser
+    cd ${WRKDIR}
+    if ! [ -f "${PYCPARSER_TARBALL}" ]; then
+	wget ${PYCPARSER_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -d "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/pycparser" ]; then 
+	tar xvf ${PYCPARSER_TARBALL} || exit $?
+	cd pycparser-${PYCPARSER_VERSION} || exit $?
+	${CPYTHON_BINARY} setup.py install || exit $?
+    fi
+
+    # setuptools
+    cd ${WRKDIR}
+    if ! [ -f "${SETUPTOOLS_TARBALL}" ]; then
+	wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -f "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/setuptools.pth" ]; then 
+	tar xvf ${SETUPTOOLS_TARBALL} || exit $?
+	cd setuptools-${SETUPTOOLS_VERSION} || exit $?
+	${CPYTHON_BINARY} setup.py install || exit $?
+    fi
+
+    # cffi
+    cd ${WRKDIR}
+    if ! [ -f "${CFFI_TARBALL}" ]; then
+	wget ${CFFI_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -d "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/cffi-${CFFI_VERSION}-py2.7-linux-x86_64.egg" ]; then 
+	tar xvf ${CFFI_TARBALL} || exit $?
+	cd cffi-${CFFI_VERSION} || exit $?
+	${CPYTHON_BINARY} setup.py install || exit $?
     fi
 }
 
@@ -178,37 +190,92 @@ do_zend() {
 
 # Download and build PyPy
 
-PYPY_VERSION=2.5.0
+PYPY_VERSION=2.6.0
 PYPY_TARBALL=pypy-${PYPY_VERSION}-src.tar.bz2
 PYPY_DIR=${WRKDIR}/pypy-${PYPY_VERSION}-src
 PYPY_GOAL_DIR=${PYPY_DIR}/pypy/goal
 PYPY_BINARY=${PYPY_GOAL_DIR}/pypy-c
 PYPY_DOWNLOAD_URI=https://bitbucket.org/pypy/pypy/downloads/${PYPY_TARBALL}
-PYPY_VENV=${VENV_DIR}/pypy
-PYPY_VENV_BINARY=${PYPY_VENV}/bin/pypy
-PYPY_VENV_PIP=${PYPY_VENV}/bin/pip
+PYPY_SITE_PKGS=${PYPY_DIR}/site-packages
+
+PTABLE_VERSION=0.7.2
+PTABLE_TARBALL=prettytable-${PTABLE_VERSION}.tar.bz2
+PTABLE_DOWNLOAD_URL=https://pypi.python.org/packages/source/P/PrettyTable/${PTABLE_TARBALL}
+
+APPDIRS_VERSION=1.4.0
+APPDIRS_TARBALL=appdirs-${APPDIRS_VERSION}.tar.gz
+APPDIRS_DOWNLOAD_URL=https://pypi.python.org/packages/source/a/appdirs/${APPDIRS_TARBALL}
+
+RPLY_VERSION=0.7.4
+RPLY_TARBALL=rply-${RPLY_VERSION}.tar.gz
+RPLY_DOWNLOAD_URL=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
 
 do_pypy() {
 	echo "===> PyPy"
-	if [ ! -d ${PYPY_VENV} ]; then
-	    if [ ! -f "${PYPY_BINARY}" ]; then
-	        cd ${WRKDIR}
-	        wget https://bitbucket.org/pypy/pypy/downloads/pypy-${PYPY_VERSION}-src.tar.bz2 || exit $?
-	        bunzip2 -c - ${PYPY_TARBALL} | tar xf -
-	        cd ${PYPY_DIR}
-	        # Patch from pypy-hippy-bridge repo
-	        patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
-	        cd ${PYPY_GOAL_DIR}
-	        usession=`mktemp -d`
-	        PYPY_USESSION_DIR=${usession} ${PYTHON} \
-			../../rpython/bin/rpython -Ojit || exit $?
-	        rm -rf ${usession}
-	    fi
 
-        virtualenv --python=${PYPY_BINARY} ${PYPY_VENV} || exit $?
-	${PYPY_VENV_PIP} install rply || exit $?
-	${PYPY_VENV_PIP} install prettytable || exit $? # for confidence.py
-    fi
+	cd ${WRKDIR}
+	if ! [ -f "${PYPY_TARBALL}" ]; then
+		wget ${PYPY_DOWNLOAD_URI} || exit $?
+	fi
+
+	if ! [ -d "${PYPY_DIR}" ]; then
+		bunzip2 -c - ${PYPY_TARBALL} | tar xf -
+		cd ${PYPY_DIR}
+		# Patch from pypy-hippy-bridge repo
+		patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
+	fi
+
+	if [ ! -f "${PYPY_BINARY}" ]; then
+		cd ${PYPY_GOAL_DIR}
+		usession=`mktemp -d`
+		PYPY_USESSION_DIR=${usession} ${PYTHON} \
+			../../rpython/bin/rpython -Ojit || exit $?
+		rm -rf ${usession}
+	fi
+
+	# setuptools
+	cd ${WRKDIR}
+	if ! [ -f "${SETUPTOOLS_TARBALL}" ]; then
+		wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
+	fi
+	if ! [ -f "${PYPY_SITE_PKGS}/setuptools.pth" ]; then
+		tar xvf ${SETUPTOOLS_TARBALL} || exit $?
+		cd setuptools-${SETUPTOOLS_VERSION} || exit $?
+		${PYPY_BINARY} setup.py install || exit $?
+	fi
+
+	# appdirs
+	cd ${WRKDIR}
+	if ! [ -f "${APPDIRS_TARBALL}" ]; then
+		wget ${APPDIRS_DOWNLOAD_URL} || exit $?
+	fi
+	if ! [ -f "${PYPY_SITE_PKGS}/appdirs-${APPDIRS_VERSION}-py2.7.egg" ]; then 
+		tar xvf ${APPDIRS_TARBALL} || exit $?
+		cd appdirs-${APPDIRS_VERSION} || exit $?
+		${PYPY_BINARY} setup.py install || exit $?
+	fi
+
+	# rply
+	cd ${WRKDIR}
+	if ! [ -f "${RPLY_TARBALL}" ]; then
+		wget ${RPLY_DOWNLOAD_URL} || exit $?
+	fi
+	if ! [ -f "${PYPY_SITE_PKGS}/rply-${RPLY_VERSION}-py2.7.egg" ]; then
+		tar xvf ${RPLY_TARBALL} || exit $?
+		cd rply-${RPLY_VERSION} || exit $?
+		${PYPY_BINARY} setup.py install || exit $?
+	fi
+
+	# prettytable
+	cd ${WRKDIR}
+	if ! [ -f "${PTABLE_TARBALL}" ]; then
+		wget ${PTABLE_DOWNLOAD_URL} || exit $?
+	fi
+	if ! [ -f "${PYPY_SITE_PKGS}/prettytable-${PTABLE_VERSION}-py2.7.egg" ]; then
+		tar xvf ${PTABLE_TARBALL} || exit $?
+		cd prettytable-${PTABLE_VERSION} || exit $?
+		${PYPY_BINARY} setup.py install || exit $?
+	fi
 }
 
 # PyHyP
@@ -248,7 +315,7 @@ do_pyhyp() {
 	    git checkout ${PYHYP_HIPPY_VERSION}
 
 	    # Translate using the PyPy we built earlier
-	    ${PYPY_VENV_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
+	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
 		    -Ojit targethippy.py || exit $?
 	    mv hippy-c pyhyp
 	fi
@@ -279,7 +346,7 @@ do_hippy() {
 	    git checkout ${HIPPY_HIPPY_VERSION}
 	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
 
-	    ${PYPY_VENV_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
+	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
 	        targethippy.py || exit $?
 	fi
 }
@@ -341,7 +408,7 @@ VARIANTS = {
 
 	# CPython
 	echo "\t'CPython': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${CPYTHON_VENV_BINARY}'," >> ${CONFIG_FILE}
+	echo "\t\t'path': '${CPYTHON_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
@@ -357,7 +424,7 @@ VARIANTS = {
 
 	# PyPy
 	echo "\t'PyPy': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${PYPY_VENV_BINARY}'," >> ${CONFIG_FILE}
+	echo "\t\t'path': '${PYPY_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
@@ -436,7 +503,6 @@ VARIANTS = {
 
 # pass "gen_config" to only generate config file
 if [ ! "$1" = "gen_config" ]; then
-	do_gcc;
 	do_hhvm;
 	do_cpython;
 	do_zend;
@@ -450,9 +516,9 @@ gen_config;
 
 echo "\n-------------------------------------------------------"
 echo "HHVM:\n  ${HHVM_WRAPPER}\n"
-echo "CPython:\n  ${CPYTHON_VENV_BINARY}\n"
+echo "CPython:\n  ${CPYTHON_BINARY}\n"
 echo "ZEND PHP:\n  ${ZEND_BINARY}\n"
-echo "PyPy:\n  ${PYPY_VENV_BINARY}\n"
+echo "PyPy:\n  ${PYPY_BINARY}\n"
 echo "PyHyp:\n  ${PYHYP_BINARY}\n"
 echo "HippyVM:\n ${HIPPY_BINARY}"
 echo "--------------------------------------------------------\n"
