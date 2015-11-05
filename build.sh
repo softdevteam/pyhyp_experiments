@@ -2,7 +2,7 @@
 
 missing=0
 check_for () {
-	which $1 > /dev/null 2> /dev/null
+    which $1 > /dev/null 2> /dev/null
     if [ $? -ne 0 ]; then
         echo "Error: can't find $1 binary"
         missing=1
@@ -11,37 +11,37 @@ check_for () {
 
 # but not if in "config generation only" mode
 if [ "$1" != "gen_config" ]; then
-	echo "===> Checking dependencies"
-	check_for cc
-	check_for g++
-	check_for bunzip2
-	check_for git
-	check_for hg
-	check_for python
-	check_for svn
-	check_for unzip
-	check_for xml2-config
-	check_for cmake
-	check_for virtualenv
+    echo "===> Checking dependencies"
+    check_for cc
+    check_for g++
+    check_for bunzip2
+    check_for git
+    check_for hg
+    check_for python
+    check_for svn
+    check_for unzip
+    check_for xml2-config
+    check_for cmake
+    check_for virtualenv
 
-	which pypy > /dev/null 2> /dev/null
-	if [ $? -eq 0 ]; then
-	    PYTHON=`which pypy`
-	else
-	    PYTHON=`which python`
-	fi
-	which gmake > /dev/null 2> /dev/null
-	if [ $? -eq 0 ]; then
-	    MYMAKE=gmake
-	else
-	    MYMAKE=make
-	fi
+    which pypy > /dev/null 2> /dev/null
+    if [ $? -eq 0 ]; then
+        PYTHON=`which pypy`
+    else
+        PYTHON=`which python`
+    fi
+    which gmake > /dev/null 2> /dev/null
+    if [ $? -eq 0 ]; then
+        MYMAKE=gmake
+    else
+        MYMAKE=make
+    fi
 
-	if [ $missing -eq 1 ]; then
-	    exit 1
-	fi
+    if [ $missing -eq 1 ]; then
+        exit 1
+    fi
 else
-	echo "CONFIG GENERATION ONLY!";
+    echo "CONFIG GENERATION ONLY!";
 fi
 
 HERE=`pwd`
@@ -135,34 +135,34 @@ do_cpython() {
     # pycparser
     cd ${WRKDIR}
     if ! [ -f "${PYCPARSER_TARBALL}" ]; then
-	wget ${PYCPARSER_DOWNLOAD_URL} || exit $?
+        wget ${PYCPARSER_DOWNLOAD_URL} || exit $?
     fi
     if ! [ -d "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/pycparser" ]; then 
-	tar xvf ${PYCPARSER_TARBALL} || exit $?
-	cd pycparser-${PYCPARSER_VERSION} || exit $?
-	${CPYTHON_BINARY} setup.py install || exit $?
+        tar xvf ${PYCPARSER_TARBALL} || exit $?
+        cd pycparser-${PYCPARSER_VERSION} || exit $?
+        ${CPYTHON_BINARY} setup.py install || exit $?
     fi
 
     # setuptools
     cd ${WRKDIR}
     if ! [ -f "${SETUPTOOLS_TARBALL}" ]; then
-	wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
+        wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
     fi
     if ! [ -f "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/setuptools.pth" ]; then 
-	tar xvf ${SETUPTOOLS_TARBALL} || exit $?
-	cd setuptools-${SETUPTOOLS_VERSION} || exit $?
-	${CPYTHON_BINARY} setup.py install || exit $?
+        tar xvf ${SETUPTOOLS_TARBALL} || exit $?
+        cd setuptools-${SETUPTOOLS_VERSION} || exit $?
+        ${CPYTHON_BINARY} setup.py install || exit $?
     fi
 
     # cffi
     cd ${WRKDIR}
     if ! [ -f "${CFFI_TARBALL}" ]; then
-	wget ${CFFI_DOWNLOAD_URL} || exit $?
+        wget ${CFFI_DOWNLOAD_URL} || exit $?
     fi
     if ! [ -d "${CPYTHON_INST_DIR}/lib/python2.7/site-packages/cffi-${CFFI_VERSION}-py2.7-linux-x86_64.egg" ]; then 
-	tar xvf ${CFFI_TARBALL} || exit $?
-	cd cffi-${CFFI_VERSION} || exit $?
-	${CPYTHON_BINARY} setup.py install || exit $?
+        tar xvf ${CFFI_TARBALL} || exit $?
+        cd cffi-${CFFI_VERSION} || exit $?
+        ${CPYTHON_BINARY} setup.py install || exit $?
     fi
 }
 
@@ -175,17 +175,17 @@ ZEND_DIR=php-${ZEND_VERSION}
 ZEND_BINARY=${WRKDIR}/${ZEND_DIR}/sapi/cli/php
 
 do_zend() {
-	echo "===> Zend"
-	if [ ! -f "${ZEND_BINARY}" ]; then
-	    cd ${WRKDIR}
-	    wget -O ${ZEND_TARBALL} ${ZEND_DOWNLOAD_URI} || exit $?
-	    bunzip2 -c - ${ZEND_TARBALL} | tar xf - || exit $?
-	    cd ${ZEND_DIR}
-	    patch -Ep1 < ${PATCH_DIR}/zend.diff || exit $?
-	    ./configure || exit $?
-	    ${MYMAKE} || exit $?
-	    # Zend PHP can run out of the build dir, so no 'make install'.
-	fi
+    echo "===> Zend"
+    if [ ! -f "${ZEND_BINARY}" ]; then
+        cd ${WRKDIR}
+        wget -O ${ZEND_TARBALL} ${ZEND_DOWNLOAD_URI} || exit $?
+        bunzip2 -c - ${ZEND_TARBALL} | tar xf - || exit $?
+        cd ${ZEND_DIR}
+        patch -Ep1 < ${PATCH_DIR}/zend.diff || exit $?
+        ./configure || exit $?
+        ${MYMAKE} || exit $?
+        # Zend PHP can run out of the build dir, so no 'make install'.
+    fi
 }
 
 # Download and build PyPy
@@ -211,71 +211,71 @@ RPLY_TARBALL=rply-${RPLY_VERSION}.tar.gz
 RPLY_DOWNLOAD_URL=https://pypi.python.org/packages/source/r/rply/${RPLY_TARBALL}
 
 do_pypy() {
-	echo "===> PyPy"
+    echo "===> PyPy"
 
-	cd ${WRKDIR}
-	if ! [ -f "${PYPY_TARBALL}" ]; then
-		wget ${PYPY_DOWNLOAD_URI} || exit $?
-	fi
+    cd ${WRKDIR}
+    if ! [ -f "${PYPY_TARBALL}" ]; then
+        wget ${PYPY_DOWNLOAD_URI} || exit $?
+    fi
 
-	if ! [ -d "${PYPY_DIR}" ]; then
-		bunzip2 -c - ${PYPY_TARBALL} | tar xf -
-		cd ${PYPY_DIR}
-		# Patch from pypy-hippy-bridge repo
-		patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
-	fi
+    if ! [ -d "${PYPY_DIR}" ]; then
+        bunzip2 -c - ${PYPY_TARBALL} | tar xf -
+        cd ${PYPY_DIR}
+        # Patch from pypy-hippy-bridge repo
+        patch -Ep1 < ${PATCH_DIR}/pypy-2.5.diff || exit $?
+    fi
 
-	if [ ! -f "${PYPY_BINARY}" ]; then
-		cd ${PYPY_GOAL_DIR}
-		usession=`mktemp -d`
-		PYPY_USESSION_DIR=${usession} ${PYTHON} \
-			../../rpython/bin/rpython -Ojit || exit $?
-		rm -rf ${usession}
-	fi
+    if [ ! -f "${PYPY_BINARY}" ]; then
+        cd ${PYPY_GOAL_DIR}
+        usession=`mktemp -d`
+        PYPY_USESSION_DIR=${usession} ${PYTHON} \
+            ../../rpython/bin/rpython -Ojit || exit $?
+        rm -rf ${usession}
+    fi
 
-	# setuptools
-	cd ${WRKDIR}
-	if ! [ -f "${SETUPTOOLS_TARBALL}" ]; then
-		wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
-	fi
-	if ! [ -f "${PYPY_SITE_PKGS}/setuptools.pth" ]; then
-		tar xvf ${SETUPTOOLS_TARBALL} || exit $?
-		cd setuptools-${SETUPTOOLS_VERSION} || exit $?
-		${PYPY_BINARY} setup.py install || exit $?
-	fi
+    # setuptools
+    cd ${WRKDIR}
+    if ! [ -f "${SETUPTOOLS_TARBALL}" ]; then
+        wget ${SETUPTOOLS_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -f "${PYPY_SITE_PKGS}/setuptools.pth" ]; then
+        tar xvf ${SETUPTOOLS_TARBALL} || exit $?
+        cd setuptools-${SETUPTOOLS_VERSION} || exit $?
+        ${PYPY_BINARY} setup.py install || exit $?
+    fi
 
-	# appdirs
-	cd ${WRKDIR}
-	if ! [ -f "${APPDIRS_TARBALL}" ]; then
-		wget ${APPDIRS_DOWNLOAD_URL} || exit $?
-	fi
-	if ! [ -f "${PYPY_SITE_PKGS}/appdirs-${APPDIRS_VERSION}-py2.7.egg" ]; then 
-		tar xvf ${APPDIRS_TARBALL} || exit $?
-		cd appdirs-${APPDIRS_VERSION} || exit $?
-		${PYPY_BINARY} setup.py install || exit $?
-	fi
+    # appdirs
+    cd ${WRKDIR}
+    if ! [ -f "${APPDIRS_TARBALL}" ]; then
+        wget ${APPDIRS_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -f "${PYPY_SITE_PKGS}/appdirs-${APPDIRS_VERSION}-py2.7.egg" ]; then 
+        tar xvf ${APPDIRS_TARBALL} || exit $?
+        cd appdirs-${APPDIRS_VERSION} || exit $?
+        ${PYPY_BINARY} setup.py install || exit $?
+    fi
 
-	# rply
-	cd ${WRKDIR}
-	if ! [ -f "${RPLY_TARBALL}" ]; then
-		wget ${RPLY_DOWNLOAD_URL} || exit $?
-	fi
-	if ! [ -f "${PYPY_SITE_PKGS}/rply-${RPLY_VERSION}-py2.7.egg" ]; then
-		tar xvf ${RPLY_TARBALL} || exit $?
-		cd rply-${RPLY_VERSION} || exit $?
-		${PYPY_BINARY} setup.py install || exit $?
-	fi
+    # rply
+    cd ${WRKDIR}
+    if ! [ -f "${RPLY_TARBALL}" ]; then
+        wget ${RPLY_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -f "${PYPY_SITE_PKGS}/rply-${RPLY_VERSION}-py2.7.egg" ]; then
+        tar xvf ${RPLY_TARBALL} || exit $?
+        cd rply-${RPLY_VERSION} || exit $?
+        ${PYPY_BINARY} setup.py install || exit $?
+    fi
 
-	# prettytable
-	cd ${WRKDIR}
-	if ! [ -f "${PTABLE_TARBALL}" ]; then
-		wget ${PTABLE_DOWNLOAD_URL} || exit $?
-	fi
-	if ! [ -f "${PYPY_SITE_PKGS}/prettytable-${PTABLE_VERSION}-py2.7.egg" ]; then
-		tar xvf ${PTABLE_TARBALL} || exit $?
-		cd prettytable-${PTABLE_VERSION} || exit $?
-		${PYPY_BINARY} setup.py install || exit $?
-	fi
+    # prettytable
+    cd ${WRKDIR}
+    if ! [ -f "${PTABLE_TARBALL}" ]; then
+        wget ${PTABLE_DOWNLOAD_URL} || exit $?
+    fi
+    if ! [ -f "${PYPY_SITE_PKGS}/prettytable-${PTABLE_VERSION}-py2.7.egg" ]; then
+        tar xvf ${PTABLE_TARBALL} || exit $?
+        cd prettytable-${PTABLE_VERSION} || exit $?
+        ${PYPY_BINARY} setup.py install || exit $?
+    fi
 }
 
 # PyHyP
@@ -294,31 +294,31 @@ PYHYP_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
 PYHYP_BINARY=${PYHYP_HIPPY_DIR}/pyhyp
 
 do_pyhyp() {
-	echo "===> PyHyP"
-	mkdir -p ${PYHYP_DIR}
+    echo "===> PyHyP"
+    mkdir -p ${PYHYP_DIR}
 
-	if [ ! -f "${PYHYP_BINARY}" ]; then
+    if [ ! -f "${PYHYP_BINARY}" ]; then
 
-	    cd ${PYHYP_DIR}
-	    if [ ! -d "${PYHYP_PYPY_DIR}" ]; then
-		hg clone ${PYHYP_PYPY_HG_URI}
-	    fi
+        cd ${PYHYP_DIR}
+        if [ ! -d "${PYHYP_PYPY_DIR}" ]; then
+            hg clone ${PYHYP_PYPY_HG_URI}
+        fi
 
-	    if [ ! -d "${PYHYP_HIPPY_DIR}" ]; then
-		git clone ${PYHYP_HIPPY_GIT_URI}
-	    fi
+        if [ ! -d "${PYHYP_HIPPY_DIR}" ]; then
+            git clone ${PYHYP_HIPPY_GIT_URI}
+        fi
 
-	    # Checkout correct versions
-	    cd ${PYHYP_PYPY_DIR}
-	    hg up ${PYHYP_PYPY_VERSION}
-	    cd ${PYHYP_HIPPY_DIR}
-	    git checkout ${PYHYP_HIPPY_VERSION}
+        # Checkout correct versions
+        cd ${PYHYP_PYPY_DIR}
+        hg up ${PYHYP_PYPY_VERSION}
+        cd ${PYHYP_HIPPY_DIR}
+        git checkout ${PYHYP_HIPPY_VERSION}
 
-	    # Translate using the PyPy we built earlier
-	    ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
-		    -Ojit targethippy.py || exit $?
-	    mv hippy-c pyhyp
-	fi
+        # Translate using the PyPy we built earlier
+        ${PYPY_BINARY} ${PYHYP_PYPY_DIR}/rpython/bin/rpython \
+            -Ojit targethippy.py || exit $?
+        mv hippy-c pyhyp
+    fi
 }
 
 # Hippy
@@ -327,39 +327,39 @@ HIPPY_DIR=${WRKDIR}/hippyvm
 
 HIPPY_HIPPY_DIR=${HIPPY_DIR}/hippyvm
 HIPPY_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
-HIPPY_HIPPY_VERSION=master	# XXX freeze
+HIPPY_HIPPY_VERSION=master # XXX freeze
 
 HIPPY_BINARY=${HIPPY_HIPPY_DIR}/hippy-c
 
 do_hippy() {
-	echo "===> HippyVM"
-	mkdir -p ${HIPPY_DIR}
+    echo "===> HippyVM"
+    mkdir -p ${HIPPY_DIR}
 
-	if [ ! -f "${HIPPY_BINARY}" ]; then
-	    cd ${HIPPY_DIR}
+    if [ ! -f "${HIPPY_BINARY}" ]; then
+        cd ${HIPPY_DIR}
 
-	    if [ ! -d "${HIPPY_HIPPY_DIR}" ]; then
-		git clone ${HIPPY_HIPPY_GIT_URI} || exit $?
-	    fi
+        if [ ! -d "${HIPPY_HIPPY_DIR}" ]; then
+            git clone ${HIPPY_HIPPY_GIT_URI} || exit $?
+        fi
 
-	    cd ${HIPPY_HIPPY_DIR}
-	    git checkout ${HIPPY_HIPPY_VERSION}
-	    patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
+        cd ${HIPPY_HIPPY_DIR}
+        git checkout ${HIPPY_HIPPY_VERSION}
+        patch -Ep1 < ${PATCH_DIR}/hippyvm.diff || exit $?
 
-	    ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
-	        targethippy.py || exit $?
-	fi
+        ${PYPY_BINARY} ${PYPY_DIR}/rpython/bin/rpython -Ojit \
+            targethippy.py || exit $?
+    fi
 }
 
 KALIBERA_GIT_URI=https://github.com/softdevteam/libkalibera.git
 KALIBERA_DIR=${WRKDIR}/libkalibera
 do_kalibera() {
-	echo "===> libkalibera"
-	if [ ! -d "${KALIBERA_DIR}" ]; then
-		cd ${WRKDIR}
-		git clone ${KALIBERA_GIT_URI} || exit $?
-	fi
-	ln -sf ${KALIBERA_DIR}/python/pykalibera ${HERE}/pykalibera
+    echo "===> libkalibera"
+    if [ ! -d "${KALIBERA_DIR}" ]; then
+        cd ${WRKDIR}
+        git clone ${KALIBERA_GIT_URI} || exit $?
+    fi
+    ln -sf ${KALIBERA_DIR}/python/pykalibera ${HERE}/pykalibera
 }
 
 # Make config file
@@ -368,133 +368,132 @@ CONFIG_FILE="${HERE}/config.py"
 WARM_UPON_ITER=1 # user will need to tweak this
 
 gen_config() {
-	n_iterations=20 # default value tweaked by experimenter on a per-vm basis
+    n_iterations=20 # default value tweaked by experimenter on a per-vm basis
 
-	echo "===> Generate ${CONFIG_FILE}"
+    echo "===> Generate ${CONFIG_FILE}"
 
-	echo "# Autogenerated by build.sh -- COPY BEFORE MAKING EDITS" > ${CONFIG_FILE}
+    echo "# Autogenerated by build.sh -- COPY BEFORE MAKING EDITS" > ${CONFIG_FILE}
 
-	# Variants
-	echo "
-# Variants
-VARIANTS = {
-    'mono-php': {
-        'filename' : 'mono.php',
-        'iter_runner': 'iterations_runner.php',
-    },
-    'mono-python': {
-        'filename': 'mono.py',
-        'iter_runner': 'iterations_runner.py',
-    },
-    'composed': {
-        'filename': 'comp.php',
-        'iter_runner': 'iterations_runner.php',
-    },
-    'composed-reverse': {
-        'filename': 'comp_rev.php',
-        'iter_runner': 'iterations_runner.php',
-    },
-}\n" >> ${CONFIG_FILE}
+    # Variants
+    echo "# Variants" >> ${CONFIG_FILE}
+    echo "VARIANTS = {" >> ${CONFIG_FILE}
+    echo "    'mono-php': {" >> ${CONFIG_FILE}
+    echo "        'filename' : 'mono.php'," >> ${CONFIG_FILE}
+    echo "        'iter_runner': 'iterations_runner.php'," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
+    echo "    'mono-python': {" >> ${CONFIG_FILE}
+    echo "        'filename': 'mono.py'," >> ${CONFIG_FILE}
+    echo "        'iter_runner': 'iterations_runner.py'," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
+    echo "    'composed': {" >> ${CONFIG_FILE}
+    echo "        'filename': 'comp.php'," >> ${CONFIG_FILE}
+    echo "        'iter_runner': 'iterations_runner.php'," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
+    echo "    'composed-reverse': {" >> ${CONFIG_FILE}
+    echo "        'filename': 'comp_rev.php'," >> ${CONFIG_FILE}
+    echo "        'iter_runner': 'iterations_runner.php'," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
+    echo "}\n" >> ${CONFIG_FILE}
 
-	echo "VMS = {" >> ${CONFIG_FILE}
+    echo "VMS = {" >> ${CONFIG_FILE}
 
-	# HHVM
-	echo "\t'HHVM': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${HHVM_WRAPPER}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
+    # HHVM
+    echo "    'HHVM': {" >> ${CONFIG_FILE}
+    echo "        'path': '${HHVM_WRAPPER}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['mono-php']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
 
-	# CPython
-	echo "\t'CPython': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${CPYTHON_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
+    # CPython
+    echo "    'CPython': {" >> ${CONFIG_FILE}
+    echo "        'path': '${CPYTHON_BINARY}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['mono-python']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
 
-	# Zend PHP
-	echo "\t'Zend': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${ZEND_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
+    # Zend PHP
+    echo "    'Zend': {" >> ${CONFIG_FILE}
+    echo "        'path': '${ZEND_BINARY}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['mono-php']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
 
-	# PyPy
-	echo "\t'PyPy': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${PYPY_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
+    # PyPy
+    echo "    'PyPy': {" >> ${CONFIG_FILE}
+    echo "        'path': '${PYPY_BINARY}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['mono-python']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
 
-	# PyHyp
-	echo "\t'PyHyp': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${PYHYP_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['composed', 'composed-reverse', 'mono-php']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
+    # PyHyp
+    echo "    'PyHyp': {" >> ${CONFIG_FILE}
+    echo "        'path': '${PYHYP_BINARY}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['composed', 'composed-reverse', 'mono-php']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
 
-	# HippyVM
-	echo "\t'HippyVM': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${HIPPY_BINARY}'," >> ${CONFIG_FILE}
-	echo "\t\t'variants': ['mono-php']," >> ${CONFIG_FILE}
-	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
-	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
-	echo "\t}," >> ${CONFIG_FILE}
-	echo "}\n" >> ${CONFIG_FILE}
+    # HippyVM
+    echo "    'HippyVM': {" >> ${CONFIG_FILE}
+    echo "        'path': '${HIPPY_BINARY}'," >> ${CONFIG_FILE}
+    echo "        'variants': ['mono-php']," >> ${CONFIG_FILE}
+    echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
+    echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
+    echo "    }," >> ${CONFIG_FILE}
+    echo "}\n" >> ${CONFIG_FILE}
 
-	# Add benchmarks
-	echo "BENCHMARKS = {" >> ${CONFIG_FILE}
+    # Add benchmarks
+    echo "BENCHMARKS = {" >> ${CONFIG_FILE}
 
-	# new micro
-	echo "\t'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
-	echo "\t'pb_return_simple': 300000000," >> ${CONFIG_FILE}
-	echo "\t'pb_scopes': 160000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum':      100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum_meth_attr': 100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
-	echo "\t'pb_total_list': 280000," >> ${CONFIG_FILE}
-	echo "\t'pb_instchain': 1200," >> ${CONFIG_FILE}
+    # new micro
+    echo "    'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
+    echo "    'pb_return_simple': 300000000," >> ${CONFIG_FILE}
+    echo "    'pb_scopes': 160000000," >> ${CONFIG_FILE}
+    echo "    'pb_sum':      100000000," >> ${CONFIG_FILE}
+    echo "    'pb_sum_meth_attr': 100000000," >> ${CONFIG_FILE}
+    echo "    'pb_sum_meth': 100000000," >> ${CONFIG_FILE}
+    echo "    'pb_total_list': 280000," >> ${CONFIG_FILE}
+    echo "    'pb_instchain': 1200," >> ${CONFIG_FILE}
 
-	# unipycation micro
-	echo "\t'pb_l1a0r': 44000," >> ${CONFIG_FILE}
-	echo "\t'pb_l1a1r': 30000," >> ${CONFIG_FILE}
-	echo "\t'pb_lists': 3600," >> ${CONFIG_FILE}
-	echo "\t'pb_smallfunc': 45000000," >> ${CONFIG_FILE}
-	echo "\t'pb_walk_list': 390," >> ${CONFIG_FILE}
+    # unipycation micro
+    echo "    'pb_l1a0r': 44000," >> ${CONFIG_FILE}
+    echo "    'pb_l1a1r': 30000," >> ${CONFIG_FILE}
+    echo "    'pb_lists': 3600," >> ${CONFIG_FILE}
+    echo "    'pb_smallfunc': 45000000," >> ${CONFIG_FILE}
+    echo "    'pb_walk_list': 390," >> ${CONFIG_FILE}
 
-	# larger
-	echo "\t'fannkuch': 10," >> ${CONFIG_FILE}
-	echo "\t'mandel': 750," >> ${CONFIG_FILE}
-	echo "\t'richards': 100," >> ${CONFIG_FILE}
-	echo "\t'deltablue': 4000," >> ${CONFIG_FILE}
+    # larger
+    echo "    'fannkuch': 10," >> ${CONFIG_FILE}
+    echo "    'mandel': 750," >> ${CONFIG_FILE}
+    echo "    'richards': 100," >> ${CONFIG_FILE}
+    echo "    'deltablue': 4000," >> ${CONFIG_FILE}
 
 
-	echo "}\n" >> ${CONFIG_FILE}
+    echo "}\n" >> ${CONFIG_FILE}
 
-	# Skips
-	echo "SKIP = [" >> ${CONFIG_FILE}
-	# these use refs, which python doesn't have
-	echo "\t'mandel:*:mono-python'," >> ${CONFIG_FILE}
-	echo "\t'pb_ref_swap:*:mono-python'," >> ${CONFIG_FILE}
-	# These embed foreign methods in classes, which we can only do
-	# when the class is a PHP class. We can't embed PHP methods
-	# in Python classes.
-	for b in "richards" "deltablue" "pb_instchain" "pb_sum_meth" "pb_sum_meth_attr"; do
-		echo "\t'${b}:*:composed-reverse'," >> ${CONFIG_FILE}
-	done
+    # Skips
+    echo "SKIP = [" >> ${CONFIG_FILE}
+    # these use refs, which python doesn't have
+    echo "    'mandel:*:mono-python'," >> ${CONFIG_FILE}
+    echo "    'pb_ref_swap:*:mono-python'," >> ${CONFIG_FILE}
+    # These embed foreign methods in classes, which we can only do
+    # when the class is a PHP class. We can't embed PHP methods
+    # in Python classes.
+    for b in "richards" "deltablue" "pb_instchain" "pb_sum_meth" "pb_sum_meth_attr"; do
+        echo "    '${b}:*:composed-reverse'," >> ${CONFIG_FILE}
+    done
 
-	echo "]\n\n" >> ${CONFIG_FILE}
+    echo "]\n\n" >> ${CONFIG_FILE}
 
-	# Repetitions
-	echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
+    # Repetitions
+    echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
 
-	# for mk_graphs.py
-	echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
+    # for mk_graphs.py
+    echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
 }
 
 #
@@ -503,13 +502,13 @@ VARIANTS = {
 
 # pass "gen_config" to only generate config file
 if [ ! "$1" = "gen_config" ]; then
-	do_hhvm;
-	do_cpython;
-	do_zend;
-	do_pypy;
-	do_pyhyp;
-	do_hippy;
-	do_kalibera;
+    do_hhvm;
+    do_cpython;
+    do_zend;
+    do_pypy;
+    do_pyhyp;
+    do_hippy;
+    do_kalibera;
 fi
 
 gen_config;
