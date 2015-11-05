@@ -52,35 +52,6 @@ PATCH_DIR=${HERE}/patches
 # Python VMs get installed into virtualenvs. Makes installing things easy.
 VENV_DIR=${WRKDIR}/virtualenv
 
-# GCC
-GCC_VERSION_MAJOR=4.8
-GCC_VERSION=${GCC_VERSION_MAJOR}.3
-GCC_TARBALL=gcc-${GCC_VERSION}.tar.gz
-GCC_DIR=gcc-${GCC_VERSION}
-GCC_DOWNLOAD_URI=ftp://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/${GCC_TARBALL}
-GCC_INST_DIR=${WRKDIR}/gcc-${GCC_VERSION}-inst
-GCC_BINARY=${GCC_INST_DIR}/bin/gcc
-GXX_BINARY=${GCC_INST_DIR}/bin/g++
-
-do_gcc() {
-	echo "===> GCC"
-	if [ ! -f "${GCC_BINARY}" ]; then
-	    cd ${WRKDIR}
-	    if [ ! -f "${GCC_TARBALL}" ]; then
-		    wget ${GCC_DOWNLOAD_URI}
-	    fi
-	    tar xzf ${GCC_TARBALL}
-	    cd ${GCC_DIR}
-	    ./contrib/download_prerequisites
-	    cd ..
-	    mkdir objdir
-	    cd objdir
-	    ../${GCC_DIR}/configure --prefix=${GCC_INST_DIR}
-	    make || exit $?
-	    make install || exit $?
-	fi
-}
-
 # HHVM 3.4.0 and deps of that time.
 HHVM_VERSION=817b3a07fc4e509ce15635dbc87778e5b3496663
 HHVM_GIT_URI=git://github.com/facebook/hhvm.git
