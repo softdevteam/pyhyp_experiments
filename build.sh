@@ -49,9 +49,6 @@ WRKDIR=${HERE}/work
 mkdir -p ${WRKDIR}
 PATCH_DIR=${HERE}/patches
 
-# Python VMs get installed into virtualenvs. Makes installing things easy.
-VENV_DIR=${WRKDIR}/virtualenv
-
 # HHVM 3.4.0 and deps of that time.
 HHVM_VERSION=817b3a07fc4e509ce15635dbc87778e5b3496663
 HHVM_GIT_URI=git://github.com/facebook/hhvm.git
@@ -411,7 +408,7 @@ VARIANTS = {
 
 	# CPython
 	echo "\t'CPython': {" >> ${CONFIG_FILE}
-	echo "\t\t'path': '${CPYTHON_VENV_BINARY}'," >> ${CONFIG_FILE}
+	echo "\t\t'path': '${CPYTHON_BINARY}'," >> ${CONFIG_FILE}
 	echo "\t\t'variants': ['mono-python']," >> ${CONFIG_FILE}
 	echo "\t\t'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
 	echo "\t\t'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
@@ -519,7 +516,7 @@ gen_config;
 
 echo "\n-------------------------------------------------------"
 echo "HHVM:\n  ${HHVM_WRAPPER}\n"
-echo "CPython:\n  ${CPYTHON_VENV_BINARY}\n"
+echo "CPython:\n  ${CPYTHON_BINARY}\n"
 echo "ZEND PHP:\n  ${ZEND_BINARY}\n"
 echo "PyPy:\n  ${PYPY_BINARY}\n"
 echo "PyHyp:\n  ${PYHYP_BINARY}\n"
