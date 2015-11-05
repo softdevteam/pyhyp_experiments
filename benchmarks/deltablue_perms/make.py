@@ -24,7 +24,6 @@ def index_php_funcs(fh):
 
     # Assume functions appear in the same order as in the python file
     php_funcs = []
-    print("Finding PHP functions ")
     while True:
         match = re.search(PHP_FUNC_REGEX, php_src, re.DOTALL)
         if not match:
@@ -48,7 +47,6 @@ def index_py_funcs(fh):
 
     # Assume functions appear in the same order as in the python file
     py_funcs = []
-    print("Finding Python functions ")
     for match in re.finditer(PY_FUNC_REGEX, py_src):
         src, meth_typ, meth_name, global_typ, global_name = match.groups()
 
@@ -56,7 +54,6 @@ def index_py_funcs(fh):
         name = meth_name if meth_name is not None else global_name
 
         py_funcs.append((name, typ, src))
-        print(name)
 
     return py_funcs
 
@@ -113,8 +110,7 @@ def main():
     with open(COMP_PHP, "r") as fh:
         py_funcs = index_py_funcs(fh)
 
-    print "php funcs: %d" % len(php_funcs)
-    print "py funcs: %d" % len(py_funcs)
+    assert len(php_funcs) == len(py_funcs)
 
     for i in range(len(py_funcs)):
         n, m = php_funcs[i], py_funcs[i]
