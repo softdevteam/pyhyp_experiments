@@ -496,6 +496,18 @@ gen_config() {
     echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
 }
 
+do_deltablue_permutations() {
+    echo "===> Generate deltablue permutations"
+
+    cd benchmarks/deltablue_perms && ${CPYTHON_BINARY} make.py || exit $?
+    n_perms=`ls permutation_*.php | wc -l`
+
+    if [ $n_perms != 79 ]; then
+        echo "wrong number of permutations!"
+        exit 1
+    fi
+}
+
 #
 # MAIN
 #
@@ -509,6 +521,7 @@ if [ ! "$1" = "gen_config" ]; then
     do_pyhyp;
     do_hippy;
     do_kalibera;
+    do_deltablue_permutations
 fi
 
 gen_config;
