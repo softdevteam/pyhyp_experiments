@@ -499,11 +499,13 @@ gen_config() {
 do_deltablue_permutations() {
     echo "===> Generate deltablue permutations"
 
-    cd benchmarks/deltablue_perms && ${CPYTHON_BINARY} make.py || exit $?
-    n_perms=`ls permutation_*.php | wc -l`
+    cd ${HERE}/deltablue_perms && ${CPYTHON_BINARY} make.py || exit $?
+    n_perms=`ls ../benchmarks | grep -e '^deltablue_perm_*' | wc -l`
 
-    if [ $n_perms != 79 ]; then
+    expect_n_perms=79
+    if [ $n_perms != ${expect_n_perms} ]; then
         echo "wrong number of permutations!"
+        echo "Got ${n_perms} expect ${expect_n_perms}"
         exit 1
     fi
 }
