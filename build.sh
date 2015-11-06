@@ -447,8 +447,9 @@ gen_config() {
     echo "}\n" >> ${CONFIG_FILE}
 
     # Add benchmarks
-    echo "BENCHMARKS = {" >> ${CONFIG_FILE}
+    echo "DELTABLUE_PARAM = 4000\n" >> ${CONFIG_FILE}
 
+    echo "BENCHMARKS = {" >> ${CONFIG_FILE}
     # new micro
     echo "    'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
     echo "    'pb_return_simple': 300000000," >> ${CONFIG_FILE}
@@ -470,10 +471,16 @@ gen_config() {
     echo "    'fannkuch': 10," >> ${CONFIG_FILE}
     echo "    'mandel': 750," >> ${CONFIG_FILE}
     echo "    'richards': 100," >> ${CONFIG_FILE}
-    echo "    'deltablue': 4000," >> ${CONFIG_FILE}
+    echo "    'deltablue': DELTABLUE_PARAM," >> ${CONFIG_FILE}
 
 
     echo "}\n" >> ${CONFIG_FILE}
+
+    # deltablue permutations
+    echo "\nN_DELTABLUE_PERMS = 79" >> ${CONFIG_FILE}
+    echo "for i in xrange(N_DELTABLUE_PERMS):" >> ${CONFIG_FILE}
+    echo "    BENCHMARKS['deltablue_perm_%03d' % i] = DELTABLUE_PARAM" >> ${CONFIG_FILE}
+    echo "" >> ${CONFIG_FILE}
 
     # Skips
     echo "SKIP = [" >> ${CONFIG_FILE}
@@ -488,6 +495,13 @@ gen_config() {
     done
 
     echo "]\n\n" >> ${CONFIG_FILE}
+
+    # deltablue permutations can only run on the composd variant.
+    echo "for i in xrange(N_DELTABLUE_PERMS):" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:mono-python' % i)" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:mono-php' % i)" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:composed-reverse' % i)" >> ${CONFIG_FILE}
+    echo "" >> ${CONFIG_FILE}
 
     # Repetitions
     echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
