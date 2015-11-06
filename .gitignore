@@ -4,3 +4,4 @@ work
 **/*.core
 **/*.bak
 __pycache__
+benchmarks/deltablue_perm_*

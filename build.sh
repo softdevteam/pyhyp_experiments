@@ -447,8 +447,9 @@ gen_config() {
     echo "}\n" >> ${CONFIG_FILE}
 
     # Add benchmarks
-    echo "BENCHMARKS = {" >> ${CONFIG_FILE}
+    echo "DELTABLUE_PARAM = 4000\n" >> ${CONFIG_FILE}
 
+    echo "BENCHMARKS = {" >> ${CONFIG_FILE}
     # new micro
     echo "    'pb_ref_swap': 110000000," >> ${CONFIG_FILE}
     echo "    'pb_return_simple': 300000000," >> ${CONFIG_FILE}
@@ -470,10 +471,16 @@ gen_config() {
     echo "    'fannkuch': 10," >> ${CONFIG_FILE}
     echo "    'mandel': 750," >> ${CONFIG_FILE}
     echo "    'richards': 100," >> ${CONFIG_FILE}
-    echo "    'deltablue': 4000," >> ${CONFIG_FILE}
+    echo "    'deltablue': DELTABLUE_PARAM," >> ${CONFIG_FILE}
 
 
     echo "}\n" >> ${CONFIG_FILE}
+
+    # deltablue permutations
+    echo "\nN_DELTABLUE_PERMS = 79" >> ${CONFIG_FILE}
+    echo "for i in xrange(N_DELTABLUE_PERMS):" >> ${CONFIG_FILE}
+    echo "    BENCHMARKS['deltablue_perm_%03d' % i] = DELTABLUE_PARAM" >> ${CONFIG_FILE}
+    echo "" >> ${CONFIG_FILE}
 
     # Skips
     echo "SKIP = [" >> ${CONFIG_FILE}
@@ -489,11 +496,32 @@ gen_config() {
 
     echo "]\n\n" >> ${CONFIG_FILE}
 
+    # deltablue permutations can only run on the composd variant.
+    echo "for i in xrange(N_DELTABLUE_PERMS):" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:mono-python' % i)" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:mono-php' % i)" >> ${CONFIG_FILE}
+    echo "    SKIP.append('deltablue_perm_%03d:*:composed-reverse' % i)" >> ${CONFIG_FILE}
+    echo "" >> ${CONFIG_FILE}
+
     # Repetitions
     echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
 
     # for mk_graphs.py
     echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
+}
+
+do_deltablue_permutations() {
+    echo "===> Generate deltablue permutations"
+
+    cd ${HERE}/deltablue_perms && ${CPYTHON_BINARY} make.py || exit $?
+    n_perms=`ls ../benchmarks | grep -e '^deltablue_perm_*' | wc -l`
+
+    expect_n_perms=79
+    if [ $n_perms != ${expect_n_perms} ]; then
+        echo "wrong number of permutations!"
+        echo "Got ${n_perms} expect ${expect_n_perms}"
+        exit 1
+    fi
 }
 
 #
@@ -509,6 +537,7 @@ if [ ! "$1" = "gen_config" ]; then
     do_pyhyp;
     do_hippy;
     do_kalibera;
+    do_deltablue_permutations
 fi
 
 gen_config;
