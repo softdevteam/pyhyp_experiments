@@ -13,6 +13,12 @@ from collections import OrderedDict
 import sys
 import os
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+BENCH_DIR = os.path.join(HERE, "..", "benchmarks")
+MONO_PHP = os.path.join(HERE, "mono.php")
+COMP_PHP = os.path.join(HERE, "comp.php")
+
+
 def dot():
     sys.stdout.write(".")
     sys.stdout.flush()
@@ -94,14 +100,15 @@ def mk_permutations(skeleton, php_funcs, py_funcs):
             assert new_src != src
             src = new_src
 
-        fn = os.path.join(OUT_DIR, "permutation_%03d.php" % permfile_idx)
+        direc = os.path.join(BENCH_DIR, "deltablue_perm_%03d" % permfile_idx)
+        try:
+            os.mkdir(direc)
+        except OSError:
+            pass
+
+        fn = os.path.join(direc, "comp.php")
         with open(fn, "w") as fh:
             fh.write(src)
-
-BENCH_DIR = os.path.join(os.getcwd())
-MONO_PHP = os.path.join(BENCH_DIR, "mono.php")
-COMP_PHP = os.path.join(BENCH_DIR, "comp.php")
-OUT_DIR = os.getcwd()
 
 def main():
     with open(MONO_PHP, "r") as fh:
