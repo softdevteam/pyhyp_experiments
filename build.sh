@@ -399,7 +399,7 @@ gen_config() {
 
     # HHVM
     echo "    'HHVM': {" >> ${CONFIG_FILE}
-    echo "        'path': '${HHVM_WRAPPER}'," >> ${CONFIG_FILE}
+    echo "        'path': '${HHVM_BINARY}'," >> ${CONFIG_FILE}
     echo "        'variants': ['mono-php']," >> ${CONFIG_FILE}
     echo "        'n_iterations': ${n_iterations}," >> ${CONFIG_FILE}
     echo "        'warm_upon_iter': ${WARM_UPON_ITER}," >> ${CONFIG_FILE}
