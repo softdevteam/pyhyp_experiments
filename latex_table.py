@@ -1,18 +1,30 @@
 #! work/virtualenv/pypy/bin/pypy
-# A quick script which generates confidence intervals for rough benchmarking
-# Used during VM optimisation to get a rough idea if a change helped.
+"""Generate latex tables"""
 
 import sys
 import json
 import math
-import prettytable
 import os
-import collections
+from collections import OrderedDict
 
 from pykalibera.data import Data, bootstrap_geomean
-from util import should_skip
 
 CONF_SIZE = "0.99"  # intentionally str
+
+SHORT_VM_NAMES = {
+    "CPython": "CPython",
+    "HHVM": "HHVM",
+    "HippyVM": "HippyVM",
+    "PyHyp-mono": "PyHyp$_m$",
+    "PyHyp-comp": "PyHyp$_c$",
+    "PyHyp-comp-rev": "PyHyp$_{c'}$",
+    "PyPy": "PyPy",
+    "Zend": "Zend",
+}
+
+DB_ROW_N = 5
+TEX_DIR = "tex"
+
 
 try:
     debug = os.environ["TABLE_DEBUG"]
@@ -60,7 +72,6 @@ def get_rowspan(row_data, bench, vm=None):
 def make_kalibera_data(exp_data, warmup):
     data_arg = {}
     total_execs = len(exp_data)
-    ok = False
     for exec_n in range(total_execs):
         exec_nowarmup = exp_data[exec_n][warmup - 1:]
         if not exec_nowarmup:
@@ -70,23 +81,22 @@ def make_kalibera_data(exp_data, warmup):
     return Data(data_arg, [total_execs, len(data_arg[(0, )])])
 
 class ResultInfo(object):
-    def __init__(self, val, val_err, rel_pyhyp, rel_pyhyp_err, warmup):
+    def __init__(self, val, val_err, rel_val, rel_val_err, warmup):
         self.val, self.val_err = val, val_err
-        self.rel_pyhyp, self.rel_pyhyp_err = rel_pyhyp, rel_pyhyp_err
+        self.rel_val, self.rel_val_err = rel_val, rel_val_err
         self.warmup = warmup
 
     @classmethod
     def missing(cls, warmup):
         return cls(None, None, None, None, warmup)
 
-def make_tables(config, data_file, typ):
-
+def make_tables(config, data_file):
     with open(data_file, "r") as data_fh:
         raw_results = json.load(data_fh)["data"]
 
     # make pyhyp variants look like vms
     saw_pyhyp = False
-    if config.VMS.has_key("PyHyp"):
+    if "PyHyp" in config.VMS:
         saw_pyhyp = True
         pyhyp_variants = config.VMS["PyHyp"]["variants"]
 
@@ -125,16 +135,15 @@ def make_tables(config, data_file, typ):
 
         results[nkey] = v
 
-    # mono PHP benchmark ref_swap2 are copies of ref_swap data
-    if results.has_key("pb_ref_swap:Zend:mono-php"):
-        results["pb_ref_swap2:Zend:mono-php"] = results["pb_ref_swap:Zend:mono-php"]
+    row_data, geomeans = process_main_data(results)
+    db_perms_row_data, db_mono_rel_mean = process_db_perms_data(results)
 
-    if results.has_key("pb_ref_swap:HHVM:mono-php"):
-        results["pb_ref_swap2:HHVM:mono-php"] = results["pb_ref_swap:HHVM:mono-php"]
+    make_latex_tables(config, row_data, geomeans,
+                      db_perms_row_data, db_mono_rel_mean)
+    os.system("cd tex && make")
 
-    if results.has_key("pb_ref_swap:HippyVM:mono-php"):
-        results["pb_ref_swap2:HippyVM:mono-php"] = results["pb_ref_swap:HippyVM:mono-php"]
 
+def process_main_data(results):
     # now process confidence, relative times, ...
     row_data = {}
     geomeans = {}
@@ -142,7 +151,12 @@ def make_tables(config, data_file, typ):
         # used to compute geomean
         bench_times = []
         baseline_times = []
+
         for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+            # The permuatations of deltablue are special, skip them here
+            if bench_key.startswith("deltablue_perm"):
+                continue
+
             dot()
             variants = vm_data["variants"]
 
@@ -200,19 +214,51 @@ def make_tables(config, data_file, typ):
                 bootstrap_geomean(bench_times, baseline_times, ITERATIONS, CONF_SIZE)
 
     print("")
-
-    if typ == "ascii":
-        make_ascii_table(row_data)
-    else:
-        make_latex_tables(config, row_data, geomeans)
+    return row_data, geomeans
 
 
-def conf_cell(val, err, width=".7cm"):
+def process_db_perms_data(results):
+    """Process data for deltablue permutations"""
+
+    # We will display each permutation relative to the mono-php variant
+    # of deltablue running under PyHyp.
+    pyhyp_warmup = config.VMS["PyHyp-comp"]["warm_upon_iter"]
+
+    db_perms_rel_to = results["deltablue:PyHyp-mono:mono-php"]
+    db_rel_to_kdata = make_kalibera_data(db_perms_rel_to, pyhyp_warmup)
+    db_row_data = OrderedDict()
+
+    variant = "composed"
+    vm_key = "PyHyp-comp"
+    for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
+        if not bench_key.startswith("deltablue_perm"):
+            continue
+
+        dot()
+
+        rs_key = "%s:%s:%s" % (bench_key, vm_key, variant)
+        rs = results[rs_key]
+        kdata = make_kalibera_data(rs, pyhyp_warmup)
+        val = kdata.mean()
+        val_err = error(kdata)
+        rel_mono, rel_mono_err = rel(kdata, db_rel_to_kdata)
+
+        ri = ResultInfo(val, val_err, rel_mono, rel_mono_err, pyhyp_warmup)
+        db_row_data[rs_key] = ri
+    print("")
+
+    return db_row_data, db_rel_to_kdata.mean()
+
+
+def conf_cell(val, err, width=".7cm", suffix=""):
     if val is None: # no result for that combo
         return ""
     else:
         err_s = "\\pm %.4f" % err if err is not None else ""
-        return "$\substack{\\mathmakebox[%s][r]{%.3f}\\\\{\\mathmakebox[%s][r]{\\scriptscriptstyle %s}}}$" % (width, val, width, err_s)
+        return ("$\substack{\\mathmakebox[%s][r]{%.3f}%s\\\\"
+                "{\\mathmakebox[%s][r]{\\scriptscriptstyle %s}}}$"
+                % (width, val, suffix, width, err_s))
+
 
 def header_cell(text, align="r", width="1.2cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
@@ -237,10 +283,13 @@ def write_latex_header(fh):
     \\usepackage{multirow}
     \\usepackage{xspace}
     \\usepackage{amsmath}
+    \\usepackage{slashbox}
+    \\usepackage[table]{xcolor}
     \\begin{document}
     \\footnotesize\n""")
 
-def make_latex_tables(config, row_data, geomeans):
+def make_latex_tables(config, row_data, geomeans,
+                      db_perms_row_data, db_mono_rel_mean):
     # makefile for tables
     with open(os.path.join(TEX_DIR, "Makefile"), "w") as fh:
         fh.write(MAKEFILE_CONTENTS)
@@ -252,40 +301,15 @@ def make_latex_tables(config, row_data, geomeans):
 
         w("\\input{results_abs}\n")
         w("\\input{results_rel_pyhyp}\n")
+        w("\\input{results_db_perms}\n")
         w("\\end{document}")
 
-    short_vm_names = {
-        "CPython": "CPython",
-        "HHVM": "HHVM",
-        "HippyVM": "HippyVM",
-        "PyHyp-mono": "PyHyp$_m$",
-        "PyHyp-comp": "PyHyp$_c$",
-        "PyPy": "PyPy",
-        "Zend": "Zend",
-    }
+    make_latex_table_abs(config, row_data, geomeans)
+    make_latex_table_rel(config, row_data, geomeans)
+    make_latex_table_db_perms(config, db_perms_row_data, db_mono_rel_mean)
 
-    #short_bm_names = {
-    #    "pb_return_simple": "pb_rs",
-    #    "pb_total_list": "pb_t_l",
-    #    "pb_scopes": "pb_scp",
-    #    "fannkuch": "fkuch",
-    #    "pb_sum_meth": "pb_smeth",
-    #    "pb_termconstruction": "pb_tcons",
-    #    "pb_sum": "pb_s",
-    #    "pb_l1a0r": "pb_l1a0r",
-    #    "pb_l1a1r": "pb_l1a1r",
-    #    "pb_instchain": "pb_ichain",
-    #    "pb_lists": "pb_lists",
-    #    "deltablue": "dblue",
-    #    "mandel": "mamdel",
-    #    "pb_smallfunc": "pb_sfunc",
-    #    "pb_ref_swap": "pb_rswap",
-    #    "pb_ref_swap2": "pb_rswap2",
-    #    "richards": "richds",
-    #    "pb_sum_attr": "pb_sattr",
-    #}
 
-    # -- absolute times
+def make_latex_table_abs(config, row_data, geomeans):
     of = open(os.path.join(TEX_DIR, "results_abs.tex"), "w")
     w = of.write
 
@@ -297,7 +321,7 @@ def make_latex_tables(config, row_data, geomeans):
     # emit header
     w("Benchmark")
     for i in sorted(config.VMS.iterkeys()):
-        w("&%s" % header_cell(short_vm_names[i]))
+        w("&%s" % header_cell(SHORT_VM_NAMES[i]))
     w("\\\\\n")
     w("\\toprule\n")
 
@@ -308,6 +332,8 @@ def make_latex_tables(config, row_data, geomeans):
         for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
             if bench_key.startswith("pb_") != pico:
                 continue
+            if bench_key.startswith("deltablue_perm"):
+                continue  # in another table
             if not first:
                 w("\\addlinespace\n")
 
@@ -342,7 +368,8 @@ def make_latex_tables(config, row_data, geomeans):
     w("\\end{table*}")
     of.close()
 
-    # -- relative PyHyp times
+
+def make_latex_table_rel(config, row_data, geomeans):
     of = open(os.path.join(TEX_DIR, "results_rel_pyhyp.tex"), "w")
     w = of.write
 
@@ -354,7 +381,7 @@ def make_latex_tables(config, row_data, geomeans):
     # emit header
     w("Benchmark")
     for i in sorted(config.VMS.iterkeys()):
-        w("&%s" % header_cell(short_vm_names[i]))
+        w("&%s" % header_cell(SHORT_VM_NAMES[i]))
     w("\\\\\n")
     w("\\toprule\n")
 
@@ -366,6 +393,8 @@ def make_latex_tables(config, row_data, geomeans):
         for bench_key, bench_data in sorted(config.BENCHMARKS.iteritems()):
             if bench_key.startswith("pb_") != pico:
                 continue
+            if bench_key.startswith("deltablue_perm"):
+                continue  # in another table
             if not first and was_data:
                 w("\\addlinespace\n")
 
@@ -386,11 +415,11 @@ def make_latex_tables(config, row_data, geomeans):
 
                 ri = row_data[rd_key]
                 if vm_key == "PyHyp-comp":
-                    row.append(conf_cell(ri.rel_pyhyp, None))
+                    row.append(conf_cell(ri.rel_val, None))
                 else:
-                    row.append(conf_cell(ri.rel_pyhyp, ri.rel_pyhyp_err))
+                    row.append(conf_cell(ri.rel_val, ri.rel_val_err))
 
-                if ri.rel_pyhyp is not None:
+                if ri.rel_val is not None:
                     was_data = True
 
             # row is complete
@@ -419,34 +448,99 @@ def make_latex_tables(config, row_data, geomeans):
     w("\\end{table*}")
     of.close()
 
-    os.system("cd tex && make")
+def colour_cells(cells, shade):
+    if shade:
+        new_cells = []
+        for cell in cells:
+            new_cells.append("\\cellcolor{black!10}%s" % cell)
+        return new_cells
+    else:
+        return cells
 
+def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
+    of = open(os.path.join(TEX_DIR, "results_db_perms.tex"), "w")
+    w = of.write
 
-def make_ascii_table(row_data):
+    w("\\addtolength{\\tabcolsep}{-.4em}\n")
+    w("\\begin{table*}\n")
+    w("\\small\n")
+    w("\\centering\n")
 
-    tb = prettytable.PrettyTable(["Benchmark", "VM", "Variant", "Seconds", "Error"])
-    tb.align["Benchmark"] = "l"
-    tb.align["WarmIter"] = "r"
-    tb.align["Seconds"] = "r"
-    tb.align["Error"] = "r"
-    tb.float_format = "4.6"
+    row_spec = "rrrp{.1em}" * (DB_ROW_N - 1)
+    row_spec += "rrr"
+    w("\\begin{tabular}{%s}\n" % (row_spec))
+    w("\\toprule\n")
 
-    for k, v in row_data.iteritems():
-        bench, vm, variant = k.split(":")
-        tb.add_row([bench, "%s (warm=%d)" % (vm, v.warmup),
-                   variant, v.val, v.val_err])
+    # since we will draw cells downwards, we have to know ahead of time how
+    # many rows we will need to draw.
+    db_perm_benchs = [k for k in sorted(config.BENCHMARKS.keys()) if
+                      k.startswith("deltablue_perm")]
+    n_rows = int(math.ceil(float(len(db_perm_benchs)) / DB_ROW_N))
 
-    sys.stdout.write("\n")
-    print(tb.get_string(sortby="Benchmark"))
+    row = []
+    shade = False
+    cell_count = 0
+    vm_key = "PyHyp-comp"
+    variant_key = "composed"
+    for rowno in xrange(n_rows):
+        for colno in xrange(DB_ROW_N):
+            perm_no = (colno * n_rows) + rowno
 
+            try:
+                bench_key = db_perm_benchs[perm_no]
+            except IndexError:
+                # out of range -- done
+                break
 
-TEX_DIR = "tex"
+            assert bench_key.endswith(str(perm_no))
+
+            rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
+            ri = row_data[rd_key]
+
+            cell1 = "{\\tiny %s:}" % perm_no
+            cell2 = conf_cell(ri.val, ri.val_err, suffix="s")
+            cell3 = conf_cell(ri.rel_val, ri.rel_val_err, suffix="\\times")
+            ext_cells = [cell1, cell2, cell3]
+
+            row.extend(colour_cells(ext_cells, shade))
+
+            # decide if we should add a spacing cell
+            if (cell_count % DB_ROW_N) != DB_ROW_N - 1:
+                # not the last cell on a row
+                row.append("")
+
+            cell_count += 1
+
+        # row is complete
+        w("%s\\\\\n" % "&".join(row))
+        row = []
+        shade = not shade
+
+    assert row == []
+
+    w("\\bottomrule\n")
+    w("\\end{tabular}\n")
+    w("\\label{tab:db_perms_results}\n")
+    w("\\caption{Deltablue permutations: absolute times and times relative to "
+      "PyHyp running mono-PHP deltablue (%.3f)}\n" % db_mono_rel_mean)
+    w("\\end{table*}")
+    w("\\addtolength{\\tabcolsep}{.4em}\n")
+    of.close()
+
+def usage():
+    print("usage: %s <config-file>" % __file__)
+    sys.exit(1)
 
 if __name__ == "__main__":
-    config_file = sys.argv[1]
-    typ = sys.argv[2]
+    err = False
 
-    assert typ in ["ascii", "tex"]
+    if len(sys.argv) != 2:
+        usage()
+
+    try:
+        config_file = sys.argv[1]
+    except IndexError:
+        usage()
 
     import_name = config_file[:-3]
     data_file = import_name + "_results.json"
@@ -461,4 +555,4 @@ if __name__ == "__main__":
     except OSError as e:
         pass # file exists
 
-    make_tables(config, data_file, typ)
+    make_tables(config, data_file)
