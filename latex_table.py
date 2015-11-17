@@ -44,11 +44,9 @@ def avg(seq):
 
 def error(data):
     # lower, median, upper
-    a, b, c = data.bootstrap_confidence_interval(
-        ITERATIONS,
-        confidence=CONF_SIZE)
-
-    return avg([b - a, c - b])
+    result = data.bootstrap_confidence_interval(
+        ITERATIONS, confidence=CONF_SIZE)
+    return result.error
 
 def rel(data, other):
     cr = data.bootstrap_quotient(
