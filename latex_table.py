@@ -17,7 +17,7 @@ SHORT_VM_NAMES = {
     "HippyVM": "HippyVM",
     "PyHyp-mono": "PyHyp$_m$",
     "PyHyp-comp": "PyHyp$_c$",
-    "PyHyp-comp-rev": "PyHyp$_{c'}$",
+    "PyHyp-comp-rev": "PyHyp$_{c2}$",
     "PyPy": "PyPy",
     "Zend": "Zend",
 }
@@ -248,14 +248,18 @@ def process_db_perms_data(results):
     return db_row_data, db_rel_to_kdata.mean()
 
 
-def conf_cell(val, err, width=".7cm", suffix=""):
+def conf_cell(val, err, width=".7cm", suffix="", bold=False):
     if val is None: # no result for that combo
         return ""
     else:
         err_s = "\\pm %.4f" % err if err is not None else ""
-        return ("$\substack{\\mathmakebox[%s][r]{%.3f}%s\\\\"
+        val_s = "%.3f" % val
+        if bold:
+            err_s = "\\mathbf{%s}" % err_s
+            val_s = "\\mathbf{%s}" % val_s
+        return ("$\substack{\\mathmakebox[%s][r]{%s}%s\\\\"
                 "{\\mathmakebox[%s][r]{\\scriptscriptstyle %s}}}$"
-                % (width, val, suffix, width, err_s))
+                % (width, val_s, suffix, width, err_s))
 
 
 def header_cell(text, align="r", width="1.2cm"):
@@ -495,9 +499,15 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
             rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
             ri = row_data[rd_key]
 
-            cell1 = "{\\tiny %s:}" % perm_no
-            cell2 = conf_cell(ri.val, ri.val_err, suffix="s")
-            cell3 = conf_cell(ri.rel_val, ri.rel_val_err, suffix="\\times")
+            rel_val_bold = False
+            if not (0.75 <= ri.rel_val <= 1.25):
+                rel_val_bold = True
+
+            cell1 = "{\\tiny %s:}" % (perm_no + 1)
+            cell2 = conf_cell(ri.val, ri.val_err, suffix="s", bold=rel_val_bold)
+            cell3 = conf_cell(ri.rel_val, ri.rel_val_err,
+                              suffix="\\times", bold=rel_val_bold)
+
             ext_cells = [cell1, cell2, cell3]
 
             row.extend(colour_cells(ext_cells, shade))
