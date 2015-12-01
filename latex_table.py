@@ -16,7 +16,7 @@ SHORT_VM_NAMES = {
     "HHVM": "HHVM",
     "HippyVM": "HippyVM",
     "PyHyp-mono": "PyHyp$_m$",
-    "PyHyp-comp": "PyHyp$_c$",
+    "PyHyp-comp": "PyHyp$_{c1}$",
     "PyHyp-comp-rev": "PyHyp$_{c2}$",
     "PyPy": "PyPy",
     "Zend": "Zend",
@@ -278,15 +278,14 @@ all: main.pdf
 
 def write_latex_header(fh):
     fh.write("""\\documentclass{article}
-    \\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
     \\usepackage{mathtools}
     \\usepackage{booktabs}
     \\usepackage{multicol}
     \\usepackage{multirow}
     \\usepackage{xspace}
     \\usepackage{amsmath}
-    \\usepackage{slashbox}
     \\usepackage[table]{xcolor}
+    \\usepackage[export]{adjustbox}
     \\begin{document}
     \\footnotesize\n""")
 
@@ -317,6 +316,7 @@ def make_latex_table_abs(config, row_data, geomeans):
 
     w("\\begin{table*}\n")
     w("\\centering\n")
+    w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
@@ -366,7 +366,11 @@ def make_latex_table_abs(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\caption{Absolute benchmark timings (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\end{adjustbox}\n")
+    w("\\caption{Absolute benchmark timings (PyHyp$_{c1} = $ PyHyp running "
+      "the composed-1 variant, PyHyp$_{c2} = $ PyHyp running the composed-2 "
+      "variant, PyHyp$_m = $ PyHyp running the mono-PHP variant).}\n")
+    w("\\label{tab:absresults}\n")
     w("\\end{table*}")
     of.close()
 
@@ -377,6 +381,7 @@ def make_latex_table_rel(config, row_data, geomeans):
 
     w("\\begin{table*}\n")
     w("\\centering\n")
+    w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
@@ -445,8 +450,12 @@ def make_latex_table_rel(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
+    w("\\end{adjustbox}\n")
+    w("\\caption{Benchmark timings relative to PyHyp running the composed-1 variant")
+    w("(PyHyp$_{c1} = $ PyHyp running the composed-1 variant, PyHyp$_{c2} = $"
+        "PyHyp running the composed-2 variant, PyHyp$_m = $ PyHyp running "
+        "the mono-PHP variant).}\n")
     w("\\label{tab:relresults}\n")
-    w("\\caption{Benchmark timings relative to PyHyp composed (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table*}")
     of.close()
 
@@ -528,9 +537,9 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\label{tab:db_perms_results}\n")
     w("\\caption{Deltablue permutations: absolute times and times relative to "
-      "PyHyp running mono-PHP deltablue (%.3f)}\n" % db_mono_rel_mean)
+      "PyHyp running the mono-PHP variant of deltablue.}\n")
+    w("\\label{tab:db_perms_results}\n")
     w("\\end{table*}")
     w("\\addtolength{\\tabcolsep}{.4em}\n")
     of.close()
