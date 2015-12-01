@@ -16,7 +16,7 @@ SHORT_VM_NAMES = {
     "HHVM": "HHVM",
     "HippyVM": "HippyVM",
     "PyHyp-mono": "PyHyp$_m$",
-    "PyHyp-comp": "PyHyp$_c$",
+    "PyHyp-comp": "PyHyp$_{c1}$",
     "PyHyp-comp-rev": "PyHyp$_{c2}$",
     "PyPy": "PyPy",
     "Zend": "Zend",
@@ -285,7 +285,6 @@ def write_latex_header(fh):
     \\usepackage{multirow}
     \\usepackage{xspace}
     \\usepackage{amsmath}
-    \\usepackage{slashbox}
     \\usepackage[table]{xcolor}
     \\begin{document}
     \\footnotesize\n""")
@@ -366,7 +365,10 @@ def make_latex_table_abs(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\caption{Absolute benchmark timings (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
+    w("\\caption{Absolute benchmark timings (PyHyp$_{c1} = $ PyHyp running "
+      "the composed-1 variant, PyHyp$_{c2} = $ PyHyp running the composed-2 "
+      "variant, PyHyp$_m = $ PyHyp running the mono-PHP variant).}\n")
+    w("\\label{tab:absresults}\n")
     w("\\end{table*}")
     of.close()
 
@@ -445,8 +447,11 @@ def make_latex_table_rel(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
+    w("\\caption{Benchmark timings relative to PyHyp running the composed-1 variant")
+    w("(PyHyp$_{c1} = $ PyHyp running the composed-1 variant, PyHyp$_{c2} = $"
+        "PyHyp running the composed-2 variant, PyHyp$_m = $ PyHyp running "
+        "the mono-PHP variant).}\n")
     w("\\label{tab:relresults}\n")
-    w("\\caption{Benchmark timings relative to PyHyp composed (PyHyp$_c =$ PyHyp composed, PyHyp$_m =$ PyHyp mono).}\n")
     w("\\end{table*}")
     of.close()
 
@@ -528,9 +533,9 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\label{tab:db_perms_results}\n")
     w("\\caption{Deltablue permutations: absolute times and times relative to "
-      "PyHyp running mono-PHP deltablue (%.3f)}\n" % db_mono_rel_mean)
+      "PyHyp running the mono-PHP variant of deltablue.}\n")
+    w("\\label{tab:db_perms_results}\n")
     w("\\end{table*}")
     w("\\addtolength{\\tabcolsep}{.4em}\n")
     of.close()
