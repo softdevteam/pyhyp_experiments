@@ -278,7 +278,6 @@ all: main.pdf
 
 def write_latex_header(fh):
     fh.write("""\\documentclass{article}
-    \\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
     \\usepackage{mathtools}
     \\usepackage{booktabs}
     \\usepackage{multicol}
@@ -286,6 +285,7 @@ def write_latex_header(fh):
     \\usepackage{xspace}
     \\usepackage{amsmath}
     \\usepackage[table]{xcolor}
+    \\usepackage[export]{adjustbox}
     \\begin{document}
     \\footnotesize\n""")
 
@@ -316,6 +316,7 @@ def make_latex_table_abs(config, row_data, geomeans):
 
     w("\\begin{table*}\n")
     w("\\centering\n")
+    w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
@@ -365,6 +366,7 @@ def make_latex_table_abs(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
+    w("\\end{adjustbox}\n")
     w("\\caption{Absolute benchmark timings (PyHyp$_{c1} = $ PyHyp running "
       "the composed-1 variant, PyHyp$_{c2} = $ PyHyp running the composed-2 "
       "variant, PyHyp$_m = $ PyHyp running the mono-PHP variant).}\n")
@@ -379,6 +381,7 @@ def make_latex_table_rel(config, row_data, geomeans):
 
     w("\\begin{table*}\n")
     w("\\centering\n")
+    w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
 
@@ -447,6 +450,7 @@ def make_latex_table_rel(config, row_data, geomeans):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
+    w("\\end{adjustbox}\n")
     w("\\caption{Benchmark timings relative to PyHyp running the composed-1 variant")
     w("(PyHyp$_{c1} = $ PyHyp running the composed-1 variant, PyHyp$_{c2} = $"
         "PyHyp running the composed-2 variant, PyHyp$_m = $ PyHyp running "
