@@ -78,11 +78,24 @@ def make_kalibera_data(exp_data, warmup):
 
     return Data(data_arg, [total_execs, len(data_arg[(0, )])])
 
+
+def dp3(flt):
+    if flt is not None:
+        return float("%.3f" % flt)
+
+def dp4(flt):
+    if flt is not None:
+        return float("%.4f" % flt)
+
 class ResultInfo(object):
     def __init__(self, val, val_err, rel_val, rel_val_err, warmup):
-        self.val, self.val_err = val, val_err
-        self.rel_val, self.rel_val_err = rel_val, rel_val_err
+        # All results rounded here. 3DP for values, 4DP for errors.
+        # This prevents the case where intervals appear to overlap in the
+        # table, but not using the raw ResultInfo data.
+        self.val, self.val_err = dp3(val), dp4(val_err)
+        self.rel_val, self.rel_val_err = dp3(rel_val), dp4(rel_val_err)
         self.warmup = warmup
+        self.tags = []  # use to flag interesting properties
 
     @classmethod
     def missing(cls, warmup):
@@ -133,11 +146,15 @@ def make_tables(config, data_file):
 
         results[nkey] = v
 
-    row_data, geomeans = process_main_data(results)
-    db_perms_row_data, db_mono_rel_mean = process_db_perms_data(results)
+    row_data, geomeans, db_perms_rel_to_kdata, db_perms_rel_to_resultinfo = \
+        process_main_data(results)
+
+    db_perms_row_data = \
+        process_db_perms_data(results, db_perms_rel_to_kdata,
+                              db_perms_rel_to_resultinfo)
 
     make_latex_tables(config, row_data, geomeans,
-                      db_perms_row_data, db_mono_rel_mean)
+                      db_perms_row_data)
     os.system("cd tex && make")
 
 
@@ -145,6 +162,8 @@ def process_main_data(results):
     # now process confidence, relative times, ...
     row_data = {}
     geomeans = {}
+    db_perms_rel_to_kdata = db_perms_rel_to_resultinfo = None
+
     for vm_key, vm_data in sorted(config.VMS.iteritems()):
         # used to compute geomean
         bench_times = []
@@ -206,24 +225,33 @@ def process_main_data(results):
             ri = ResultInfo(val, val_err, rel_pyhyp, rel_pyhyp_err, warmup)
             row_data[rs_key] = ri
 
+            if rs_key == "deltablue:PyHyp-mono:mono-php":
+                assert db_perms_rel_to_kdata is None
+                assert db_perms_rel_to_resultinfo is None
+                # use these later
+                db_perms_rel_to_kdata = kdata
+                db_perms_rel_to_resultinfo = ri
+
         # all benchmarks for this vm processed, now the geomean
         if bench_times:
             geomeans[vm_key] = \
                 bootstrap_geomean(bench_times, baseline_times, ITERATIONS, CONF_SIZE)
 
     print("")
-    return row_data, geomeans
+
+    assert db_perms_rel_to_kdata is not None
+    assert db_perms_rel_to_resultinfo is not None
+    return row_data, geomeans, db_perms_rel_to_kdata, db_perms_rel_to_resultinfo
 
 
-def process_db_perms_data(results):
+def process_db_perms_data(results, rel_kdata, rel_ri):
     """Process data for deltablue permutations"""
 
     # We will display each permutation relative to the mono-php variant
     # of deltablue running under PyHyp.
     pyhyp_warmup = config.VMS["PyHyp-comp"]["warm_upon_iter"]
 
-    db_perms_rel_to = results["deltablue:PyHyp-mono:mono-php"]
-    db_rel_to_kdata = make_kalibera_data(db_perms_rel_to, pyhyp_warmup)
+    #db_perms_rel_to_resultinfo = results["deltablue:PyHyp-mono:mono-php"]
     db_row_data = OrderedDict()
 
     variant = "composed"
@@ -239,24 +267,44 @@ def process_db_perms_data(results):
         kdata = make_kalibera_data(rs, pyhyp_warmup)
         val = kdata.mean()
         val_err = error(kdata)
-        rel_mono, rel_mono_err = rel(kdata, db_rel_to_kdata)
+        rel_mono, rel_mono_err = rel(kdata, rel_kdata)
 
         ri = ResultInfo(val, val_err, rel_mono, rel_mono_err, pyhyp_warmup)
         db_row_data[rs_key] = ri
+
+        # compute extremities of intervals
+        low, hi = ri.val - ri.val_err, ri.val + ri.val_err
+        low_rel, hi_rel = rel_ri.val - rel_ri.val_err, rel_ri.val + rel_ri.val_err
+
+        if not (hi_rel < low or hi < low_rel):
+            # they overlap
+            ri.tags.append("db_overlap")
+
+        if ri.rel_val < 0.75 or ri.rel_val > 1.25:
+            # extreme (>=25%) difference in relative time
+            ri.tags.append("extreme_rel_val")
+
     print("")
 
-    return db_row_data, db_rel_to_kdata.mean()
+    return db_row_data
 
 
-def conf_cell(val, err, width=".7cm", suffix="", bold=False):
+def conf_cell(val, err, width=".7cm", suffix="", bold=False, grayed=False):
     if val is None: # no result for that combo
         return ""
     else:
         err_s = "\\pm %.4f" % err if err is not None else ""
         val_s = "%.3f" % val
+
         if bold:
             err_s = "\\mathbf{%s}" % err_s
             val_s = "\\mathbf{%s}" % val_s
+            suffix = "\\mathbf{%s}" % suffix
+        elif grayed:
+            err_s = "\\color{gray}{%s}" % err_s
+            val_s = "\\color{gray}{%s}" % val_s
+            suffix = "\\color{gray}{%s}" % suffix
+
         return ("$\substack{\\mathmakebox[%s][r]{%s}%s\\\\"
                 "{\\mathmakebox[%s][r]{\\scriptscriptstyle %s}}}$"
                 % (width, val_s, suffix, width, err_s))
@@ -289,8 +337,7 @@ def write_latex_header(fh):
     \\begin{document}
     \\footnotesize\n""")
 
-def make_latex_tables(config, row_data, geomeans,
-                      db_perms_row_data, db_mono_rel_mean):
+def make_latex_tables(config, row_data, geomeans, db_perms_row_data):
     # makefile for tables
     with open(os.path.join(TEX_DIR, "Makefile"), "w") as fh:
         fh.write(MAKEFILE_CONTENTS)
@@ -318,7 +365,7 @@ def make_latex_tables(config, row_data, geomeans,
 
     make_latex_table_abs(config, row_data, geomeans)
     make_latex_table_rel(config, row_data, geomeans)
-    make_latex_table_db_perms(config, db_perms_row_data, db_mono_rel_mean)
+    make_latex_table_db_perms(config, db_perms_row_data)
 
 
 def make_latex_table_abs(config, row_data, geomeans):
@@ -459,12 +506,12 @@ def colour_cells(cells, shade):
     if shade:
         new_cells = []
         for cell in cells:
-            new_cells.append("\\cellcolor{black!10}%s" % cell)
+            new_cells.append("\\cellcolor{black!5}%s" % cell)
         return new_cells
     else:
         return cells
 
-def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
+def make_latex_table_db_perms(config, row_data):
     of = open(os.path.join(TEX_DIR, "results_db_perms.tex"), "w")
     w = of.write
 
@@ -501,14 +548,28 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
             rd_key = "%s:%s:%s" % (bench_key, vm_key, variant_key)
             ri = row_data[rd_key]
 
-            rel_val_bold = False
-            if not (0.75 <= ri.rel_val <= 1.25):
-                rel_val_bold = True
+            bold = False
+            #if not (0.75 <= ri.rel_val <= 1.25):
+            if "extreme_rel_val" in ri.tags:
+                bold = True
 
-            cell1 = "{\\tiny %s:}" % (perm_no + 1)
-            cell2 = conf_cell(ri.val, ri.val_err, suffix="s", bold=rel_val_bold)
+            # If the confidence intervals overlap, gray out
+            grayed = False
+            if "db_overlap" in ri.tags:
+                grayed = True
+
+            perm_no_s = "p$_{%s}$" % str(perm_no + 1)
+            if bold:
+                perm_no_s = "\\textbf{%s}" % perm_no_s
+            elif grayed:
+                perm_no_s = "\\color{gray}{%s}" % perm_no_s
+
+            cell1 = "{\\tiny %s:}" % (perm_no_s)
+            cell2 = conf_cell(ri.val, ri.val_err, suffix="s",
+                              bold=bold, grayed=grayed)
             cell3 = conf_cell(ri.rel_val, ri.rel_val_err,
-                              suffix="\\times", bold=rel_val_bold)
+                              suffix="\\times", bold=bold,
+                              grayed=grayed)
 
             ext_cells = [cell1, cell2, cell3]
 
