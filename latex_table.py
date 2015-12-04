@@ -300,9 +300,20 @@ def make_latex_tables(config, row_data, geomeans,
         write_latex_header(fh)
         w = fh.write
 
+        w("\\begin{table*}")
         w("\\input{results_abs}\n")
+        w("\\end{table*}")
+
+        w("\\begin{table*}")
         w("\\input{results_rel_pyhyp}\n")
+        w("\\end{table*}")
+
+        w("\\addtolength{\\tabcolsep}{-.4em}\n")
+        w("\\begin{table*}")
         w("\\input{results_db_perms}\n")
+        w("\\end{table*}")
+        w("\\addtolength{\\tabcolsep}{-.4em}\n")
+
         w("\\end{document}")
 
     make_latex_table_abs(config, row_data, geomeans)
@@ -314,8 +325,6 @@ def make_latex_table_abs(config, row_data, geomeans):
     of = open(os.path.join(TEX_DIR, "results_abs.tex"), "w")
     w = of.write
 
-    w("\\begin{table*}\n")
-    w("\\centering\n")
     w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -367,11 +376,6 @@ def make_latex_table_abs(config, row_data, geomeans):
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
     w("\\end{adjustbox}\n")
-    w("\\caption{Absolute benchmark timings (PyHyp$_{c1} = $ PyHyp running "
-      "the composed-1 variant, PyHyp$_{c2} = $ PyHyp running the composed-2 "
-      "variant, PyHyp$_m = $ PyHyp running the mono-PHP variant).}\n")
-    w("\\label{tab:absresults}\n")
-    w("\\end{table*}")
     of.close()
 
 
@@ -379,8 +383,6 @@ def make_latex_table_rel(config, row_data, geomeans):
     of = open(os.path.join(TEX_DIR, "results_rel_pyhyp.tex"), "w")
     w = of.write
 
-    w("\\begin{table*}\n")
-    w("\\centering\n")
     w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{l%s}\n" % ("r" * len(config.VMS)))
     w("\\toprule\n")
@@ -451,12 +453,6 @@ def make_latex_table_rel(config, row_data, geomeans):
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
     w("\\end{adjustbox}\n")
-    w("\\caption{Benchmark timings relative to PyHyp running the composed-1 variant")
-    w("(PyHyp$_{c1} = $ PyHyp running the composed-1 variant, PyHyp$_{c2} = $"
-        "PyHyp running the composed-2 variant, PyHyp$_m = $ PyHyp running "
-        "the mono-PHP variant).}\n")
-    w("\\label{tab:relresults}\n")
-    w("\\end{table*}")
     of.close()
 
 def colour_cells(cells, shade):
@@ -472,13 +468,10 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
     of = open(os.path.join(TEX_DIR, "results_db_perms.tex"), "w")
     w = of.write
 
-    w("\\addtolength{\\tabcolsep}{-.4em}\n")
-    w("\\begin{table*}\n")
-    w("\\small\n")
-    w("\\centering\n")
-
     row_spec = "rrrp{.1em}" * (DB_ROW_N - 1)
     row_spec += "rrr"
+
+    w("\\begin{adjustbox}{width=1.2\\textwidth,center}\n")
     w("\\begin{tabular}{%s}\n" % (row_spec))
     w("\\toprule\n")
 
@@ -537,11 +530,7 @@ def make_latex_table_db_perms(config, row_data, db_mono_rel_mean):
 
     w("\\bottomrule\n")
     w("\\end{tabular}\n")
-    w("\\caption{Deltablue permutations: absolute times and times relative to "
-      "PyHyp running the mono-PHP variant of deltablue.}\n")
-    w("\\label{tab:db_perms_results}\n")
-    w("\\end{table*}")
-    w("\\addtolength{\\tabcolsep}{.4em}\n")
+    w("\\end{adjustbox}\n")
     of.close()
 
 def usage():
