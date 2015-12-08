@@ -15,9 +15,9 @@ SHORT_VM_NAMES = {
     "CPython": "CPython",
     "HHVM": "HHVM",
     "HippyVM": "HippyVM",
-    "PyHyp-mono": "PyHyp$_m$",
-    "PyHyp-comp": "PyHyp$_{c1}$",
-    "PyHyp-comp-rev": "PyHyp$_{c2}$",
+    "PyHyp-mono": "PyHyp$_\\textrm{mono}$",
+    "PyHyp-comp": "PyHyp$_\\textrm{PHP}$",
+    "PyHyp-comp-rev": "PyHyp$_\\textrm{Py}$",
     "PyPy": "PyPy",
     "Zend": "Zend",
 }
@@ -310,7 +310,7 @@ def conf_cell(val, err, width=".7cm", suffix="", bold=False, grayed=False):
                 % (width, val_s, suffix, width, err_s))
 
 
-def header_cell(text, align="r", width="1.2cm"):
+def header_cell(text, align="r", width="1.45cm"):
     return "\\makebox[%s][%s]{%s}" % (width, align, text)
 
 MAKEFILE_CONTENTS = """
