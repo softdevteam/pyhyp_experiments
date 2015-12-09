@@ -5,3 +5,4 @@ work
 **/*.bak
 __pycache__
 benchmarks/deltablue_perm_*
+casestudies/squirrelmail*
