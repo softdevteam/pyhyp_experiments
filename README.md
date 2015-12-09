@@ -47,11 +47,6 @@ $ cd casestudies & make
 
 ### Prepare PyHyp
 
-To be able to use Sympy we need to install it into PyHyp.
-The easiest way to do this is to download the current Sympy version from
-`https://github.com/sympy/sympy/archive/sympy-0.7.6.1.tar.gz`. Extract
-the `sympy` folder from the archive into `pypy-hippy-bridge/site-packages/`.
-
 PyHyP needs to have the environment variable `PYPY_PREFIX` set to the
 `pypy-hippy-bridge` folder. If you don't want to set this variable globally, you
 can just patch the `hippyvm/hippy-c-cgi` executable by adding the appropriate
@@ -124,17 +119,9 @@ mimetype.assign		= (
 			)
 ```
 
-#### Installing the plugins
+#### Activating the plugin
 
-Now we need to install the Sympy plugin into Squirrelmail. First extract the
-plugin into squirrelmails `plugin` folder:
-
-```
-cd casestudies
-tar xfz sympy.tar.gz -C squirrelmail-webmail-1.4.22/plugins
-```
-
-Then activate the plugin using Squirrelmails `configure`:
+Run Squirrelmails `configure` once more:
 
 ```
 cd squirrelmail-webmail-1.4.22/
@@ -149,5 +136,18 @@ viewing of emails which is deactived by default. To do that, go to the local
 Squirrelmail website, then navigate to `Options->Display Preferences` and check
 the box `Show HTML Version by default` and `Submit`.
 
+#### Troubleshooting
+
+##### Sympy is missing
+To be able to use Sympy we need to install it into PyHyp.
+The easiest way to do this is to download the current Sympy version from
+`https://github.com/sympy/sympy/archive/sympy-0.7.6.1.tar.gz`. Extract
+the `sympy` folder from the archive into `pypy-hippy-bridge/site-packages/`.
+
 ### CFFI
-Can be run with the PyHyp executable.
+This example can be run just using the PyHyp executable. Simply run:
+
+```
+PYPY_PREFIX=../work/pyhyp/pypy-hippy-bridge ../work/pyhyp/hippyvm/pyhyp cffi.php
+```
+
