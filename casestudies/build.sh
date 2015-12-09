@@ -12,4 +12,4 @@ patch -p0 < ../diffs/mime.diff
 cd ..
 
 # patch hippy-c-cgi
-#patch -p0 < diffs/hippycgi.diff
+patch -p0 < diffs/hippycgi.diff
