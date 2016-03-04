@@ -5,41 +5,50 @@ as other VMs.
 
 ## Building
 
-First ensure you have the following installed on a Linux/amd64 system:
+If you are using the VirtualBox image, you can skip this stage, as the VMs come
+pre-built.
+
+To build yourself, first ensure you have the following installed on a
+Linux/amd64 system:
 
  * bunzip2
  * git
  * hg
  * python
  * svn
- * zip
  * unzip
- * libxml2
- * cmake
  * wget
  * GCC (and gcc-multilib).
  * virtualenv
+ * Dependencies of HHVM, PyPy, and HippyVM.
 
-Next build the VMs:
+Then run:
 
 ```
 $ sh build.sh
 ```
 
-Then inspect the generated `config.py`. Here you can adjust (for example)
+## Running the Benchmarks
+
+First inspect the generated `config.py`. Here you can adjust (for example)
 the number of iterations at each Kalibera level and the benchmark parameters.
 
-Now run:
+Then run:
 
 ```
-$ python runner.py config.py
+$ make bench
 ```
 
 Results are written to `config_results.json`.
 
 ## Case studies
 
-The two case studies from the paper are also included. Set them up by running
+The two case studies from the paper are also included.
+
+If you are using the VirtualBox image, then the case studies come ready to run.
+Please see the post-login message for more information.
+
+To set up the case studies manually, run:
 
 ```
 $ cd casestudies & make
@@ -60,6 +69,7 @@ exec $HIPPY --cgi "$@"
 ```
 
 ### SquirrelMail
+
 To run the case studies you need to setup a web-server, e.g. Apache,
 Lighttpd, nginx. You'll then have to replace the PHP interpreter with PyHyp.
 Here's an example configuration for lighttpd:
@@ -131,6 +141,7 @@ cd squirrelmail-webmail-1.4.22/
 Select: `8. Plugins`, then select `nltk` and `sympy`.
 
 #### Activate HTML emails
+
 To be able to see rendered formulae within Squirrelmail we need to activate HTML
 viewing of emails which is deactived by default. To do that, go to the local
 Squirrelmail website, then navigate to `Options->Display Preferences` and check
@@ -139,12 +150,14 @@ the box `Show HTML Version by default` and `Submit`.
 #### Troubleshooting
 
 ##### Sympy is missing
+
 To be able to use Sympy we need to install it into PyHyp.
 The easiest way to do this is to download the current Sympy version from
 `https://github.com/sympy/sympy/archive/sympy-0.7.6.1.tar.gz`. Extract
 the `sympy` folder from the archive into `pypy-hippy-bridge/site-packages/`.
 
 ### CFFI
+
 This example can be run just using the PyHyp executable. Simply run:
 
 ```
