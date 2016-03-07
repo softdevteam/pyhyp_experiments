@@ -20,8 +20,9 @@ $csrc = <<<EOD
     return ts.tv_sec + ts.tv_nsec * pow(10, -9);
   }
 EOD;
-$C = $ffi->verify($csrc);
-echo "Monotonic time: " . $C->_clock_gettime_monotonic();
+$ffi->set_source("_example", $csrc);
+$C = $ffi->dlopen(null);
+echo "Monotonic time: " . $C->_clock_gettime_monotonic() . "\n";
 }
 
 ?>
