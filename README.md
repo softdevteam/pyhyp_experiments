@@ -41,6 +41,8 @@ $ make bench
 
 Results are written to `config_results.json`.
 
+The source code for the benchmarks is in the 'benchmarks/' directory.
+
 ## Case studies
 
 The two case studies from the paper are also included.
