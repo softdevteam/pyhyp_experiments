@@ -284,10 +284,10 @@ do_pypy() {
 PYHYP_DIR=${WRKDIR}/pyhyp
 
 PYHYP_PYPY_DIR=${PYHYP_DIR}/pypy-hippy-bridge
-PYHYP_PYPY_VERSION=ecoop16_artefact_0_1
+PYHYP_PYPY_VERSION=hippy_bridge
 PYHYP_PYPY_HG_URI=https://bitbucket.org/softdevteam/pypy-hippy-bridge
 
-PYHYP_HIPPY_VERSION=ecoop16_artefact_0_1
+PYHYP_HIPPY_VERSION=pypy_bridge
 PYHYP_HIPPY_DIR=${PYHYP_DIR}/hippyvm
 PYHYP_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
 
@@ -327,7 +327,7 @@ HIPPY_DIR=${WRKDIR}/hippyvm
 
 HIPPY_HIPPY_DIR=${HIPPY_DIR}/hippyvm
 HIPPY_HIPPY_GIT_URI=https://github.com/hippyvm/hippyvm.git
-HIPPY_HIPPY_VERSION=2ae35b80023dbc4f0735e1388528d28ed7b234fd
+HIPPY_HIPPY_VERSION=master
 
 HIPPY_BINARY=${HIPPY_HIPPY_DIR}/hippy-c
 
