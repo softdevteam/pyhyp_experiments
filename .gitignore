@@ -6,3 +6,5 @@ work
 __pycache__
 benchmarks/deltablue_perm_*
 casestudies/squirrelmail*
+config.py
+pykalibera
