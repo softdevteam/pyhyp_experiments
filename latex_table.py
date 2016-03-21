@@ -7,7 +7,7 @@ import math
 import os
 from collections import OrderedDict
 
-from pykalibera.data import Data, bootstrap_geomean
+from pykalibera.data import Data, bootstrap_geomean, _mean
 
 CONF_SIZE = "0.99"  # intentionally str
 
@@ -68,15 +68,15 @@ def get_rowspan(row_data, bench, vm=None):
     return ct
 
 def make_kalibera_data(exp_data, warmup):
-    data_arg = {}
+    data_arg = []
     total_execs = len(exp_data)
     for exec_n in range(total_execs):
         exec_nowarmup = exp_data[exec_n][warmup - 1:]
         if not exec_nowarmup:
             return None
-        data_arg[(exec_n, )] = exec_nowarmup
+        data_arg.append(_mean(exec_nowarmup))
 
-    return Data(data_arg, [total_execs, len(data_arg[(0, )])])
+    return Data({(): data_arg}, [total_execs])
 
 
 def dp3(flt):
