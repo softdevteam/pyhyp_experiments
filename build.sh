@@ -368,7 +368,7 @@ CONFIG_FILE="${HERE}/config.py"
 WARM_UPON_ITER=1 # user will need to tweak this
 
 gen_config() {
-    n_iterations=20 # default value tweaked by experimenter on a per-vm basis
+    n_iterations=50 # default value tweaked by experimenter on a per-vm basis
 
     echo "===> Generate ${CONFIG_FILE}"
 
@@ -504,7 +504,7 @@ gen_config() {
     echo "" >> ${CONFIG_FILE}
 
     # Repetitions
-    echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
+    echo "N_EXECUTIONS = 5" >> ${CONFIG_FILE}
 
     # for mk_graphs.py
     echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
