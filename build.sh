@@ -504,7 +504,7 @@ gen_config() {
     echo "" >> ${CONFIG_FILE}
 
     # Repetitions
-    echo "N_EXECUTIONS = 5" >> ${CONFIG_FILE}
+    echo "N_EXECUTIONS = 20" >> ${CONFIG_FILE}
 
     # for mk_graphs.py
     echo "N_GRAPHS_PER_BENCH = 3" >> ${CONFIG_FILE}
